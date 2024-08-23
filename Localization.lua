@@ -11,162 +11,182 @@ debug = true
 
 local L = AL3:NewLocale("QuestAnnounce", "enUS", true, debug)
 if L then
-L["Announce Every"] = true
-L["Announce progression every x number of steps (0 will announce on quest objective completion only)"] = true
-L["Are you sure you want to announce to this channel?"] = true
-L["Chat Frame"] = true
-L["Completed: "] = true
-L["Debug"] = true
-L["Enable"] = true
-L["Enable/Disable QuestAnnounce"] = true
-L["Enable/Disable QuestAnnounce Debug Mode"] = true
-L["Enable/Disable QuestAnnounce Sounds"] = true
-L["Guild"] = true
-L["Instance"] = true
-L["Officer"] = true
-L["Party"] = true
-L["Progress: "] = true
-L["QuestAnnounce Test Message"] = true
-L["Raid Warning Frame"] = true
-L["Say"] = true
-L["Settings"] = true
-L["Sound"] = true
-L["UI Errors Frame"] = true
-L["What channels do you want to make the announcements?"] = true
-L["Where do you want to make the announcements?"] = true
-L["Whisper"] = true
-L["Whisper Who"] = true
+    L["Test Frame Messages"] = "Test Frame Message"
+	L["General"] = "General"
+	L["Announce Every"] = "Announce Every"
+    L["Announce progression every x number of steps (0 will announce on quest objective completion only)"] = "Announce progression every x number of steps (0 will announce on quest objective completion only)"
+    L["Are you sure you want to announce to this channel?"] = "Are you sure you want to announce to this channel?"
+    L["Chat Frame"] = "Chat Frame"
+    L["Completed: "] = "Completed:"
+    L["Debug"] = "Debug"
+    L["Enable"] = "Enable"
+    L["Enable/Disable QuestAnnounce"] = "Enable/Disable QuestAnnounce"
+    L["Enable/Disable QuestAnnounce Debug Mode"] = "Enable/Disable QuestAnnounce Debug Mode"
+    L["Enable/Disable QuestAnnounce Sounds"] = "Enable/Disable QuestAnnounce Sounds"
+    L["Guild"] = "Guild"
+    L["Instance"] = "Instance"
+    L["Officer"] = "Officer"
+    L["Party"] = "Party"
+    L["Progress: "] = "Progress:"
+    L["QuestAnnounce Test Message"] = "QuestAnnounce Test Message"
+    L["Raid Warning Frame"] = "Raid Warning Frame"
+    L["Say"] = "Say"
+    L["Settings"] = "Settings"
+    L["Sound"] = "Sound"
+    L["UI Errors Frame"] = "UI Errors Frame"
+    L["What channels do you want to make the announcements?"] = "What channels do you want to make the announcements?"
+    L["Where do you want to make the announcements?"] = "Where do you want to make the announcements?"
+    L["Whisper"] = "Whisper"
+    L["Whisper Who"] = "Whisper Who"
+    L["Channel"] = "Channel"
+    L["Channel Name"] = "Channel Name"
+	L["Whisper and Channel Options"] = "Whisper and Channel Options"
+	L["Please enter a channel name."] = "Please enter a channel name."
 
-if GetLocale() == "enUS" or GetLocale() == "enGB" then return end
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "deDE")
 if L then
-L["Announce Every"] = "alle ankündigen / anzeigen "
-L["Announce progression every x number of steps (0 will announce on quest objective completion only)"] = "kündige jede x Zahl der Schritte im Ablauf an (0 gibt nur den Questabschluss an.)"
-L["Are you sure you want to announce to this channel?"] = "Sind Sie sicher, dass Sie den richtigen Channel gewählt haben?"
-L["Chat Frame"] = "Chatfenster"
-L["Completed: "] = "Abgeschlossen "
-L["Debug"] = "Debug"
-L["Enable"] = "Aktiviert"
-L["Enable/Disable QuestAnnounce"] = [=[Aktiviert / Deaktiviert Quest Announce
-]=]
-L["Enable/Disable QuestAnnounce Debug Mode"] = "Schaltet den Debugmodus an oder aus"
-L["Enable/Disable QuestAnnounce Sounds"] = "Sound An oder Aus schalten."
-L["Guild"] = "Gilde"
-L["Instance"] = "Instanz"
-L["Officer"] = "Offizier"
-L["Party"] = "Gruppe"
-L["Progress: "] = "Fortschritt "
-L["QuestAnnounce Test Message"] = "Quest Announcer Testnachricht"
-L["Raid Warning Frame"] = "Schlachtzugswarnungfenster"
-L["Say"] = "Sagen"
-L["Settings"] = "Einstellungen"
-L["Sound"] = "Sound"
-L["UI Errors Frame"] = "UI-Fehler-Fenster"
-L["What channels do you want to make the announcements?"] = "In welchem Channel wollen Sie die Ankündigungen machen?"
-L["Where do you want to make the announcements?"] = "Wo wollen Sie die Durchsagen machen?"
-L["Whisper"] = "Flüstern"
-L["Whisper Who"] = "Flüstern zu"
-
-return
+    L["Test Frame Messages"] = "Test Frame Message"
+	L["General"] = "General"
+	L["Announce Every"] = "Jedes ankündigen"
+    L["Announce progression every x number of steps (0 will announce on quest objective completion only)"] = "Fortschritt alle x Schritte ankündigen (0 nur bei Abschluss der Quest)"
+    L["Are you sure you want to announce to this channel?"] = "Sind Sie sicher, dass Sie in diesem Kanal ankündigen möchten?"
+    L["Chat Frame"] = "Chatfenster"
+    L["Completed: "] = "Abgeschlossen:"
+    L["Debug"] = "Debug"
+    L["Enable"] = "Aktivieren"
+    L["Enable/Disable QuestAnnounce"] = "QuestAnnounce aktivieren/deaktivieren"
+    L["Enable/Disable QuestAnnounce Debug Mode"] = "Debug-Modus von QuestAnnounce aktivieren/deaktivieren"
+    L["Enable/Disable QuestAnnounce Sounds"] = "QuestAnnounce Sounds aktivieren/deaktivieren"
+    L["Guild"] = "Gilde"
+    L["Instance"] = "Instanz"
+    L["Officer"] = "Offizier"
+    L["Party"] = "Gruppe"
+    L["Progress: "] = "Fortschritt:"
+    L["QuestAnnounce Test Message"] = "Testnachricht von QuestAnnounce"
+    L["Raid Warning Frame"] = "Raid-Warnungsrahmen"
+    L["Say"] = "Sagen"
+    L["Settings"] = "Einstellungen"
+    L["Sound"] = "Sound"
+    L["UI Errors Frame"] = "UI-Fehler-Rahmen"
+    L["What channels do you want to make the announcements?"] = "In welchen Kanälen möchten Sie Ankündigungen machen?"
+    L["Where do you want to make the announcements?"] = "Wo möchten Sie Ankündigungen machen?"
+    L["Whisper"] = "Flüstern"
+    L["Whisper Who"] = "An wen flüstern"
+    L["Channel"] = "Kanal"
+    L["Channel Name"] = "Kanalname"
+	L["Whisper and Channel Options"] = "Flüster- und Kanaloptionen"
+	L["Please enter a channel name."] = "Gib bitte einen Chatkanalnamen ein."
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "esES") or AL3:NewLocale("QuestAnnounce", "esMX")
 if L then
--- L["Announce Every"] = "Announce Every"
--- L["Announce progression every x number of steps (0 will announce on quest objective completion only)"] = "Announce progression every x number of steps (0 will announce on quest objective completion only)"
--- L["Are you sure you want to announce to this channel?"] = "Are you sure you want to announce to this channel?"
--- L["Chat Frame"] = "Chat Frame"
-L["Completed: "] = "terminado" -- Needs review
-L["Debug"] = "depurar" -- Needs review
--- L["Enable"] = "Enable"
-L["Enable/Disable QuestAnnounce"] = "Activar / Desactivar" -- Needs review
-L["Enable/Disable QuestAnnounce Debug Mode"] = "Activar / Desactivar la depuración QuestAnnounce" -- Needs review
--- L["Enable/Disable QuestAnnounce Sounds"] = "Enable/Disable QuestAnnounce Sounds"
--- L["Guild"] = "Guild"
--- L["Instance"] = "Instance"
--- L["Officer"] = "Officer"
--- L["Party"] = "Party"
-L["Progress: "] = "progreso" -- Needs review
--- L["QuestAnnounce Test Message"] = "QuestAnnounce Test Message"
--- L["Raid Warning Frame"] = "Raid Warning Frame"
--- L["Say"] = "Say"
--- L["Settings"] = "Settings"
--- L["Sound"] = "Sound"
--- L["UI Errors Frame"] = "UI Errors Frame"
--- L["What channels do you want to make the announcements?"] = "What channels do you want to make the announcements?"
--- L["Where do you want to make the announcements?"] = "Where do you want to make the announcements?"
--- L["Whisper"] = "Whisper"
--- L["Whisper Who"] = "Whisper Who"
-
-return
+	L["Test Frame Messages"] = "Test Frame Message"
+    L["General"] = "General"
+	L["Announce Every"] = "Anunciar cada"
+    L["Announce progression every x number of steps (0 will announce on quest objective completion only)"] = "Anunciar el progreso cada x pasos (0 solo al completar objetivos de la misión)"
+    L["Are you sure you want to announce to this channel?"] = "¿Estás seguro de que quieres anunciar en este canal?"
+    L["Chat Frame"] = "Marco de chat"
+    L["Completed: "] = "Completado:"
+    L["Debug"] = "Depurar"
+    L["Enable"] = "Habilitar"
+    L["Enable/Disable QuestAnnounce"] = "Habilitar/Deshabilitar QuestAnnounce"
+    L["Enable/Disable QuestAnnounce Debug Mode"] = "Habilitar/Deshabilitar el modo de depuración de QuestAnnounce"
+    L["Enable/Disable QuestAnnounce Sounds"] = "Habilitar/Deshabilitar sonidos de QuestAnnounce"
+    L["Guild"] = "Gremio"
+    L["Instance"] = "Instancia"
+    L["Officer"] = "Oficial"
+    L["Party"] = "Grupo"
+    L["Progress: "] = "Progreso:"
+    L["QuestAnnounce Test Message"] = "Mensaje de prueba de QuestAnnounce"
+    L["Raid Warning Frame"] = "Marco de advertencia de incursión"
+    L["Say"] = "Decir"
+    L["Settings"] = "Configuraciones"
+    L["Sound"] = "Sonido"
+    L["UI Errors Frame"] = "Marco de errores de UI"
+    L["What channels do you want to make the announcements?"] = "¿En qué canales quieres hacer los anuncios?"
+    L["Where do you want to make the announcements?"] = "¿Dónde quieres hacer los anuncios?"
+    L["Whisper"] = "Susurrar"
+    L["Whisper Who"] = "A quién susurrar"
+    L["Channel"] = "Canal"
+    L["Channel Name"] = "Nombre del canal"
+	L["Whisper and Channel Options"] = "Opciones de Susurro y Canal"
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "frFR")
 if L then
--- L["Announce Every"] = "Announce Every"
--- L["Announce progression every x number of steps (0 will announce on quest objective completion only)"] = "Announce progression every x number of steps (0 will announce on quest objective completion only)"
--- L["Are you sure you want to announce to this channel?"] = "Are you sure you want to announce to this channel?"
--- L["Chat Frame"] = "Chat Frame"
--- L["Completed: "] = "Completed: "
--- L["Debug"] = "Debug"
--- L["Enable"] = "Enable"
--- L["Enable/Disable QuestAnnounce"] = "Enable/Disable QuestAnnounce"
--- L["Enable/Disable QuestAnnounce Debug Mode"] = "Enable/Disable QuestAnnounce Debug Mode"
--- L["Enable/Disable QuestAnnounce Sounds"] = "Enable/Disable QuestAnnounce Sounds"
--- L["Guild"] = "Guild"
--- L["Instance"] = "Instance"
--- L["Officer"] = "Officer"
--- L["Party"] = "Party"
--- L["Progress: "] = "Progress: "
--- L["QuestAnnounce Test Message"] = "QuestAnnounce Test Message"
--- L["Raid Warning Frame"] = "Raid Warning Frame"
--- L["Say"] = "Say"
--- L["Settings"] = "Settings"
--- L["Sound"] = "Sound"
--- L["UI Errors Frame"] = "UI Errors Frame"
--- L["What channels do you want to make the announcements?"] = "What channels do you want to make the announcements?"
--- L["Where do you want to make the announcements?"] = "Where do you want to make the announcements?"
--- L["Whisper"] = "Whisper"
--- L["Whisper Who"] = "Whisper Who"
-
-return
+	L["Test Frame Messages"] = "Test Frame Message"
+    L["General"] = "General"
+	L["Announce Every"] = "Annoncer chaque"
+    L["Announce progression every x number of steps (0 will announce on quest objective completion only)"] = "Annoncer la progression tous les x pas (0 uniquement à la fin des objectifs)"
+    L["Are you sure you want to announce to this channel?"] = "Êtes-vous sûr de vouloir annoncer sur ce canal ?"
+    L["Chat Frame"] = "Cadre de chat"
+    L["Completed: "] = "Terminé :"
+    L["Debug"] = "Déboguer"
+    L["Enable"] = "Activer"
+    L["Enable/Disable QuestAnnounce"] = "Activer/Désactiver QuestAnnounce"
+    L["Enable/Disable QuestAnnounce Debug Mode"] = "Activer/Désactiver le mode débogage de QuestAnnounce"
+    L["Enable/Disable QuestAnnounce Sounds"] = "Activer/Désactiver les sons de QuestAnnounce"
+    L["Guild"] = "Guilde"
+    L["Instance"] = "Instance"
+    L["Officer"] = "Officier"
+    L["Party"] = "Groupe"
+    L["Progress: "] = "Progression :"
+    L["QuestAnnounce Test Message"] = "Message de test de QuestAnnounce"
+    L["Raid Warning Frame"] = "Cadre d'avertissement de raid"
+    L["Say"] = "Dire"
+    L["Settings"] = "Paramètres"
+    L["Sound"] = "Son"
+    L["UI Errors Frame"] = "Cadre des erreurs de l'interface utilisateur"
+    L["What channels do you want to make the announcements?"] = "Sur quels canaux souhaitez-vous faire les annonces ?"
+    L["Where do you want to make the announcements?"] = "Où souhaitez-vous faire les annonces ?"
+    L["Whisper"] = "Chuchoter"
+    L["Whisper Who"] = "Chuchoter à qui"
+    L["Channel"] = "Canal"
+    L["Channel Name"] = "Nom du canal"
+	L["Whisper and Channel Options"] = "Options de Chuchotement et de Canal"
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "koKR")
 if L then
-L["Announce Every"] = "모두 방송"
-L["Announce progression every x number of steps (0 will announce on quest objective completion only)"] = "방송의 단계별 진행마다 X 번호"
--- L["Are you sure you want to announce to this channel?"] = "Are you sure you want to announce to this channel?"
--- L["Chat Frame"] = "Chat Frame"
-L["Completed: "] = "완료됨:"
-L["Debug"] = "디버그"
-L["Enable"] = "사용함"
-L["Enable/Disable QuestAnnounce"] = "Quest Announce 사용함/사용안함"
-L["Enable/Disable QuestAnnounce Debug Mode"] = "Quest Announce 디버그 모드 사용함/사용안함"
--- L["Enable/Disable QuestAnnounce Sounds"] = "Enable/Disable QuestAnnounce Sounds"
--- L["Guild"] = "Guild"
--- L["Instance"] = "Instance"
--- L["Officer"] = "Officer"
--- L["Party"] = "Party"
-L["Progress: "] = "상태:"
--- L["QuestAnnounce Test Message"] = "QuestAnnounce Test Message"
--- L["Raid Warning Frame"] = "Raid Warning Frame"
--- L["Say"] = "Say"
-L["Settings"] = "설정"
--- L["Sound"] = "Sound"
--- L["UI Errors Frame"] = "UI Errors Frame"
--- L["What channels do you want to make the announcements?"] = "What channels do you want to make the announcements?"
--- L["Where do you want to make the announcements?"] = "Where do you want to make the announcements?"
--- L["Whisper"] = "Whisper"
--- L["Whisper Who"] = "Whisper Who"
-
-return
+	L["Test Frame Messages"] = "Test Frame Message"
+    L["General"] = "General"
+	L["Announce Every"] = "모두 알림"
+    L["Announce progression every x number of steps (0 will announce on quest objective completion only)"] = "x 단계마다 진행 상황을 알림 (0은 퀘스트 목표 완료시만 알림)"
+    L["Are you sure you want to announce to this channel?"] = "이 채널에 알리시겠습니까?"
+    L["Chat Frame"] = "채팅 프레임"
+    L["Completed: "] = "완료됨:"
+    L["Debug"] = "디버그"
+    L["Enable"] = "활성화"
+    L["Enable/Disable QuestAnnounce"] = "QuestAnnounce 활성화/비활성화"
+    L["Enable/Disable QuestAnnounce Debug Mode"] = "QuestAnnounce 디버그 모드 활성화/비활성화"
+    L["Enable/Disable QuestAnnounce Sounds"] = "QuestAnnounce 사운드 활성화/비활성화"
+    L["Guild"] = "길드"
+    L["Instance"] = "인스턴스"
+    L["Officer"] = "오피서"
+    L["Party"] = "파티"
+    L["Progress: "] = "진행 상황:"
+    L["QuestAnnounce Test Message"] = "QuestAnnounce 테스트 메시지"
+    L["Raid Warning Frame"] = "공격대 경고 프레임"
+    L["Say"] = "말하기"
+    L["Settings"] = "설정"
+    L["Sound"] = "소리"
+    L["UI Errors Frame"] = "UI 오류 프레임"
+    L["What channels do you want to make the announcements?"] = "어떤 채널에서 알림을 하시겠습니까?"
+    L["Where do you want to make the announcements?"] = "어디에서 알림을 하시겠습니까?"
+    L["Whisper"] = "귓속말"
+    L["Whisper Who"] = "누구에게 귓속말"
+    L["Channel"] = "채널"
+    L["Channel Name"] = "채널 이름"
+	L["Whisper and Channel Options"] = "귓속말 및 채널 옵션"
 end
+
 
 local L = AL3:NewLocale("QuestAnnounce", "ruRU")
 if L then
+L["Test Frame Messages"] = "Test Frame Message"
+L["General"] = "General"
 L["Announce Every"] = "Анонсировать каждые"
 L["Announce progression every x number of steps (0 will announce on quest objective completion only)"] = "Анонсировать прогресс каждые X шагов (при 0 будет анонс только выполнения квеста)"
 L["Are you sure you want to announce to this channel?"] = "Вы уверены что хотите анонсировать в этот канал?"
@@ -192,13 +212,17 @@ L["What channels do you want to make the announcements?"] = "В какие ка�
 L["Where do you want to make the announcements?"] = "Куда вы хотите анонсировать прогресс?"
 L["Whisper"] = "Шёпот"
 L["Whisper Who"] = "Кому шепнуть"
-
+L["Channel"] = "Канал"
+L["Channel Name"] = "Имя канала"
+L["Whisper and Channel Options"] = "Настройки шепота и каналов"
 
 return
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "zhCN")
 if L then
+L["Test Frame Messages"] = "Test Frame Message"
+L["General"] = "General"
 L["Announce Every"] = "任务通报方式"
 L["Announce progression every x number of steps (0 will announce on quest objective completion only)"] = "通报进度每第 x 步"
 L["Are you sure you want to announce to this channel?"] = "你确定你要通报到这个频道吗？"
@@ -224,12 +248,16 @@ L["What channels do you want to make the announcements?"] = "想要任务广播�
 L["Where do you want to make the announcements?"] = "您希望在哪里公告？"
 L["Whisper"] = "密语"
 L["Whisper Who"] = "密语给谁"
-
+L["Channel"] = "频道"
+L["Channel Name"] = "频道名称"
+L["Whisper and Channel Options"] = "密语和频道选项"
 return
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "zhTW")
 if L then
+L["Test Frame Messages"] = "Test Frame Message"
+L["General"] = "General"
 L["Announce Every"] = "任務進度廣播方式"
 L["Announce progression every x number of steps (0 will announce on quest objective completion only)"] = "每x步通報進度一次(為0將只在任務結束時廣播)"
 L["Are you sure you want to announce to this channel?"] = "你確定要發送到這個頻道嗎？"
@@ -255,37 +283,43 @@ L["What channels do you want to make the announcements?"] = "你想要在哪個�
 L["Where do you want to make the announcements?"] = "你想要在什麽位置顯示任務廣播？"
 L["Whisper"] = "密語"
 L["Whisper Who"] = "密誰"
-
+L["Channel"] = "頻道"
+L["Channel Name"] = "頻道名稱"
+L["Whisper and Channel Options"] = "悄悄話和頻道選項"
 return
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "ptBR")
-if L then
--- L["Announce Every"] = "Announce Every"
--- L["Announce progression every x number of steps (0 will announce on quest objective completion only)"] = "Announce progression every x number of steps (0 will announce on quest objective completion only)"
--- L["Are you sure you want to announce to this channel?"] = "Are you sure you want to announce to this channel?"
--- L["Chat Frame"] = "Chat Frame"
--- L["Completed: "] = "Completed: "
--- L["Debug"] = "Debug"
--- L["Enable"] = "Enable"
--- L["Enable/Disable QuestAnnounce"] = "Enable/Disable QuestAnnounce"
--- L["Enable/Disable QuestAnnounce Debug Mode"] = "Enable/Disable QuestAnnounce Debug Mode"
--- L["Enable/Disable QuestAnnounce Sounds"] = "Enable/Disable QuestAnnounce Sounds"
--- L["Guild"] = "Guild"
--- L["Instance"] = "Instance"
--- L["Officer"] = "Officer"
--- L["Party"] = "Party"
--- L["Progress: "] = "Progress: "
--- L["QuestAnnounce Test Message"] = "QuestAnnounce Test Message"
--- L["Raid Warning Frame"] = "Raid Warning Frame"
--- L["Say"] = "Say"
--- L["Settings"] = "Settings"
--- L["Sound"] = "Sound"
--- L["UI Errors Frame"] = "UI Errors Frame"
--- L["What channels do you want to make the announcements?"] = "What channels do you want to make the announcements?"
--- L["Where do you want to make the announcements?"] = "Where do you want to make the announcements?"
--- L["Whisper"] = "Whisper"
--- L["Whisper Who"] = "Whisper Who"
-
-return
-end 
+if L then  
+	L["Test Frame Messages"] = "Test Frame Message"
+	L["General"] = "General"
+	L["Announce Every"] = "Anunciar Cada"
+    L["Announce progression every x number of steps (0 will announce on quest objective completion only)"] = "Anunciar progresso a cada x passos (0 anunciará apenas na conclusão do objetivo da missão)"
+    L["Are you sure you want to announce to this channel?"] = "Você tem certeza que deseja anunciar neste canal?"
+    L["Chat Frame"] = "Quadro de Chat"
+    L["Completed: "] = "Concluído:"
+    L["Debug"] = "Depurar"
+    L["Enable"] = "Habilitar"
+    L["Enable/Disable QuestAnnounce"] = "Habilitar/Desabilitar QuestAnnounce"
+    L["Enable/Disable QuestAnnounce Debug Mode"] = "Habilitar/Desabilitar Modo de Depuração do QuestAnnounce"
+    L["Enable/Disable QuestAnnounce Sounds"] = "Habilitar/Desabilitar Sons do QuestAnnounce"
+    L["Guild"] = "Guilda"
+    L["Instance"] = "Instância"
+    L["Officer"] = "Oficial"
+    L["Party"] = "Grupo"
+    L["Progress: "] = "Progresso:"
+    L["QuestAnnounce Test Message"] = "Mensagem de Teste do QuestAnnounce"
+    L["Raid Warning Frame"] = "Quadro de Aviso de Raide"
+    L["Say"] = "Dizer"
+    L["Settings"] = "Configurações"
+    L["Sound"] = "Som"
+    L["UI Errors Frame"] = "Quadro de Erros de UI"
+    L["What channels do you want to make the announcements?"] = "Em quais canais você deseja fazer os anúncios?"
+    L["Where do you want to make the announcements?"] = "Onde você deseja fazer os anúncios?"
+    L["Whisper"] = "Sussurrar"
+    L["Whisper Who"] = "Sussurrar Para"
+    L["Channel"] = "Canal"
+    L["Channel Name"] = "Nome do Canal"
+	L["Whisper and Channel Options"] = "Opções de Sussurro e Canal"
+    return
+end
