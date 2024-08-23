@@ -1,12 +1,51 @@
-QuestAnnounce v9.2.7 Multi
+v9.0.1.7 Multi - 27-07-2024
+         - Supports The War Within Retail 11.0.0
+         - Supports The War Within Retail 11.0.2
+         - Supports Cataclysm Classic 4.4.0
+         - Supports Wrath 3.4.3
+         - Supports TBC 2.5.4
+         - Supports Classic 1.15.3
+         - Bug fixes
+         - Completion of translations
+         - New feature: Announcement in a desired channel
+         - Automatic creation and leaving of the channel
+         - Bug fix for opening the configuration menu with slash command
+         - Updated ACE libraries
 
-Läuft auf dem Shadwolands 9.2.7 und Classic, TBC und Lichking Clienten.
+v9.0.1.6 Multi - 24-07-2024
+         - Supports The War Within Retail 11.0.0
+         - Supports The War Within Retail 11.0.2
+         - Supports Cataclysm Classic 4.4.0
+         - Supports Wrath 3.4.3
+         - Supports TBC 2.5.4
+         - Supports Classic 1.15.3
 
+v9.0.1.5 Multi - 15-05-2024
+         - Supports Dragonflight Retail 10.2.7
+         - Supports Wrath 3.4.1
+         - Supports TBC 2.5.4
+         - Supports Classic 1.14.3
 
-Updatet for 5.0.4
+v9.0.1.4 Multi - 30-09-2022
+         - Supports Dragonflight Retail 10.0.1
+         - Supports Wrath 3.4.1
+         - Supports TBC 2.5.4
+         - Supports Classic 1.14.3
+        
+v9.0.1.3 - 28-10-2022
+         - Supports Retail 10.0.0
+         - Supports Wrath 3.4.0
+         - Supports TBC 2.5.4
+         - Supports Classic 1.14.3
 
+v9.0.1.2 - 30-09-2022
+         - Supports Dragonflight Beta 10.0.0.
 
-Updatet for 4.0.3a
+v9.0.1.1 - 30-09-2022
+         - Supports Retail 9.2.7
+         - Supports Wrath 3.4.0
+         - Supports TBC 2.5.4
+         - Supports Classic 1.14.3
 
 Postet den Questfortschritt als Gruppennachricht
 
