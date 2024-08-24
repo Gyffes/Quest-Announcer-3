@@ -42,7 +42,24 @@ if L then
     L["Channel Name"] = "Channel Name"
 	L["Whisper and Channel Options"] = "Whisper and Channel Options"
 	L["Please enter a channel name."] = "Please enter a channel name."
+	L["QuestAnnounce activated!"] = "QuestAnnounce activated!"	
+	L["QuestAnnounce deactivated!"] = "QuestAnnounce deactivated!"
+	L["Tooltip Right-click: Open options"] = "Right-click: Open options"
+	L["Tooltip Settings"] = "Tooltip Settings"
+	L["Settings to customize the tooltip appearance"] = "Settings to customize the tooltip appearance"
+	L["Tooltip Font"] = "Tooltip Font"
+	L["Choose the font for the tooltip text"] = "Choose the font for the tooltip text"
+	L["Tooltip Font Size"] = "Tooltip Font Size"
+	L["Set the font size for the tooltip text"] = "Set the font size for the tooltip text"
+	L["Tooltip Font Color"] = "Tooltip Font Color"
+	L["Choose the color of the tooltip text"] = "Choose the color of the tooltip text"
+	L["Tooltip Background Color"] = "Tooltip Background Color"
+	L["Choose the background color for the tooltip"] = "Choose the background color for the tooltip"
+	L["Tooltip Style"] = "Tooltip Style"
+	L["Select a predefined tooltip style"] = "Select a predefined tooltip style"
+	L["Default"] = "Default"
 
+	
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "deDE")
@@ -78,6 +95,24 @@ if L then
     L["Channel Name"] = "Kanalname"
 	L["Whisper and Channel Options"] = "Flüster- und Kanaloptionen"
 	L["Please enter a channel name."] = "Gib bitte einen Chatkanalnamen ein."
+	L["QuestAnnounce activated!"] = "QuestAnnounce Aktiviert!"	
+	L["QuestAnnounce deactivated!"] = "QuestAnnounce Deaktiviert!"
+	L["Tooltip LeftClick Aktivate/deactivated"] = "Linksklick: Aktiviert/Deaktiviert"
+	L["Tooltip Right-click: Open options"] = "Rechtsklick: Optionen öffnen"L["Tooltip Settings"] = "Tooltip-Einstellungen"
+	L["Settings to customize the tooltip appearance"] = "Einstellungen zur Anpassung des Tooltip-Aussehens"
+	L["Tooltip Font"] = "Tooltip-Schriftart"
+	L["Choose the font for the tooltip text"] = "Wähle die Schriftart für den Tooltip-Text"
+	L["Tooltip Font Size"] = "Tooltip-Schriftgröße"
+	L["Set the font size for the tooltip text"] = "Leg die Schriftgröße für den Tooltip-Text fest"
+	L["Tooltip Font Color"] = "Tooltip-Schriftfarbe"
+	L["Choose the color of the tooltip text"] = "Wähle die Farbe des Tooltip-Textes"
+	L["Tooltip Background Color"] = "Tooltip-Hintergrundfarbe"
+	L["Choose the background color for the tooltip"] = "Wähle die Hintergrundfarbe des Tooltips"
+	L["Tooltip Style"] = "Tooltip-Stil"
+	L["Select a predefined tooltip style"] = "Wähle einen vordefinierten Tooltip-Stil"
+	L["Default"] = "Standard"
+
+	
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "esES") or AL3:NewLocale("QuestAnnounce", "esMX")
@@ -112,6 +147,22 @@ if L then
     L["Channel"] = "Canal"
     L["Channel Name"] = "Nombre del canal"
 	L["Whisper and Channel Options"] = "Opciones de Susurro y Canal"
+	L["QuestAnnounce activated!"] = "QuestAnnounce activated!"	
+	L["QuestAnnounce deactivated!"] = "QuestAnnounce deactivated!"
+	L["Tooltip Right-click: Open options"] = "Right-click: Open options"
+	L["Tooltip Settings"] = "Tooltip Settings"
+	L["Settings to customize the tooltip appearance"] = "Settings to customize the tooltip appearance"
+	L["Tooltip Font"] = "Tooltip Font"
+	L["Choose the font for the tooltip text"] = "Choose the font for the tooltip text"
+	L["Tooltip Font Size"] = "Tooltip Font Size"
+	L["Set the font size for the tooltip text"] = "Set the font size for the tooltip text"
+	L["Tooltip Font Color"] = "Tooltip Font Color"
+	L["Choose the color of the tooltip text"] = "Choose the color of the tooltip text"
+	L["Tooltip Background Color"] = "Tooltip Background Color"
+	L["Choose the background color for the tooltip"] = "Choose the background color for the tooltip"
+	L["Tooltip Style"] = "Tooltip Style"
+	L["Select a predefined tooltip style"] = "Select a predefined tooltip style"
+	L["Default"] = "Default"
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "frFR")
@@ -146,6 +197,23 @@ if L then
     L["Channel"] = "Canal"
     L["Channel Name"] = "Nom du canal"
 	L["Whisper and Channel Options"] = "Options de Chuchotement et de Canal"
+	L["QuestAnnounce activated!"] = "QuestAnnounce activated!"	
+	L["QuestAnnounce deactivated!"] = "QuestAnnounce deactivated!"
+	L["Tooltip Right-click: Open options"] = "Right-click: Open options"
+	L["Tooltip Settings"] = "Tooltip Settings"
+	L["Settings to customize the tooltip appearance"] = "Settings to customize the tooltip appearance"
+	L["Tooltip Font"] = "Tooltip Font"
+	L["Choose the font for the tooltip text"] = "Choose the font for the tooltip text"
+	L["Tooltip Font Size"] = "Tooltip Font Size"
+	L["Set the font size for the tooltip text"] = "Set the font size for the tooltip text"
+	L["Tooltip Font Color"] = "Tooltip Font Color"
+	L["Choose the color of the tooltip text"] = "Choose the color of the tooltip text"
+	L["Tooltip Background Color"] = "Tooltip Background Color"
+	L["Choose the background color for the tooltip"] = "Choose the background color for the tooltip"
+	L["Tooltip Style"] = "Tooltip Style"
+	L["Select a predefined tooltip style"] = "Select a predefined tooltip style"
+	L["Default"] = "Default"
+	
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "koKR")
@@ -180,6 +248,22 @@ if L then
     L["Channel"] = "채널"
     L["Channel Name"] = "채널 이름"
 	L["Whisper and Channel Options"] = "귓속말 및 채널 옵션"
+	L["QuestAnnounce activated!"] = "QuestAnnounce activated!"	
+	L["QuestAnnounce deactivated!"] = "QuestAnnounce deactivated!"
+	L["Tooltip Right-click: Open options"] = "Right-click: Open options"
+	L["Tooltip Settings"] = "Tooltip Settings"
+	L["Settings to customize the tooltip appearance"] = "Settings to customize the tooltip appearance"
+	L["Tooltip Font"] = "Tooltip Font"
+	L["Choose the font for the tooltip text"] = "Choose the font for the tooltip text"
+	L["Tooltip Font Size"] = "Tooltip Font Size"
+	L["Set the font size for the tooltip text"] = "Set the font size for the tooltip text"
+	L["Tooltip Font Color"] = "Tooltip Font Color"
+	L["Choose the color of the tooltip text"] = "Choose the color of the tooltip text"
+	L["Tooltip Background Color"] = "Tooltip Background Color"
+	L["Choose the background color for the tooltip"] = "Choose the background color for the tooltip"
+	L["Tooltip Style"] = "Tooltip Style"
+	L["Select a predefined tooltip style"] = "Select a predefined tooltip style"
+	L["Default"] = "Default"
 end
 
 
@@ -215,8 +299,24 @@ L["Whisper Who"] = "Кому шепнуть"
 L["Channel"] = "Канал"
 L["Channel Name"] = "Имя канала"
 L["Whisper and Channel Options"] = "Настройки шепота и каналов"
+	L["QuestAnnounce activated!"] = "QuestAnnounce activated!"	
+	L["QuestAnnounce deactivated!"] = "QuestAnnounce deactivated!"
+	L["Tooltip Right-click: Open options"] = "Right-click: Open options"
+	L["Tooltip Settings"] = "Tooltip Settings"
+	L["Settings to customize the tooltip appearance"] = "Settings to customize the tooltip appearance"
+	L["Tooltip Font"] = "Tooltip Font"
+	L["Choose the font for the tooltip text"] = "Choose the font for the tooltip text"
+	L["Tooltip Font Size"] = "Tooltip Font Size"
+	L["Set the font size for the tooltip text"] = "Set the font size for the tooltip text"
+	L["Tooltip Font Color"] = "Tooltip Font Color"
+	L["Choose the color of the tooltip text"] = "Choose the color of the tooltip text"
+	L["Tooltip Background Color"] = "Tooltip Background Color"
+	L["Choose the background color for the tooltip"] = "Choose the background color for the tooltip"
+	L["Tooltip Style"] = "Tooltip Style"
+	L["Select a predefined tooltip style"] = "Select a predefined tooltip style"
+	L["Default"] = "Default"
 
-return
+
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "zhCN")
@@ -251,7 +351,23 @@ L["Whisper Who"] = "密语给谁"
 L["Channel"] = "频道"
 L["Channel Name"] = "频道名称"
 L["Whisper and Channel Options"] = "密语和频道选项"
-return
+	L["QuestAnnounce activated!"] = "QuestAnnounce activated!"	
+	L["QuestAnnounce deactivated!"] = "QuestAnnounce deactivated!"
+	L["Tooltip Right-click: Open options"] = "Right-click: Open options"
+	L["Tooltip Settings"] = "Tooltip Settings"
+	L["Settings to customize the tooltip appearance"] = "Settings to customize the tooltip appearance"
+	L["Tooltip Font"] = "Tooltip Font"
+	L["Choose the font for the tooltip text"] = "Choose the font for the tooltip text"
+	L["Tooltip Font Size"] = "Tooltip Font Size"
+	L["Set the font size for the tooltip text"] = "Set the font size for the tooltip text"
+	L["Tooltip Font Color"] = "Tooltip Font Color"
+	L["Choose the color of the tooltip text"] = "Choose the color of the tooltip text"
+	L["Tooltip Background Color"] = "Tooltip Background Color"
+	L["Choose the background color for the tooltip"] = "Choose the background color for the tooltip"
+	L["Tooltip Style"] = "Tooltip Style"
+	L["Select a predefined tooltip style"] = "Select a predefined tooltip style"
+	L["Default"] = "Default"
+
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "zhTW")
@@ -286,7 +402,23 @@ L["Whisper Who"] = "密誰"
 L["Channel"] = "頻道"
 L["Channel Name"] = "頻道名稱"
 L["Whisper and Channel Options"] = "悄悄話和頻道選項"
-return
+	L["QuestAnnounce activated!"] = "QuestAnnounce activated!"	
+	L["QuestAnnounce deactivated!"] = "QuestAnnounce deactivated!"
+	L["Tooltip Right-click: Open options"] = "Right-click: Open options"
+	L["Tooltip Settings"] = "Tooltip Settings"
+	L["Settings to customize the tooltip appearance"] = "Settings to customize the tooltip appearance"
+	L["Tooltip Font"] = "Tooltip Font"
+	L["Choose the font for the tooltip text"] = "Choose the font for the tooltip text"
+	L["Tooltip Font Size"] = "Tooltip Font Size"
+	L["Set the font size for the tooltip text"] = "Set the font size for the tooltip text"
+	L["Tooltip Font Color"] = "Tooltip Font Color"
+	L["Choose the color of the tooltip text"] = "Choose the color of the tooltip text"
+	L["Tooltip Background Color"] = "Tooltip Background Color"
+	L["Choose the background color for the tooltip"] = "Choose the background color for the tooltip"
+	L["Tooltip Style"] = "Tooltip Style"
+	L["Select a predefined tooltip style"] = "Select a predefined tooltip style"
+	L["Default"] = "Default"
+
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "ptBR")
@@ -321,5 +453,21 @@ if L then
     L["Channel"] = "Canal"
     L["Channel Name"] = "Nome do Canal"
 	L["Whisper and Channel Options"] = "Opções de Sussurro e Canal"
-    return
+	L["QuestAnnounce activated!"] = "QuestAnnounce activated!"	
+	L["QuestAnnounce deactivated!"] = "QuestAnnounce deactivated!"
+	L["Tooltip Right-click: Open options"] = "Right-click: Open options"
+	L["Tooltip Settings"] = "Tooltip Settings"
+	L["Settings to customize the tooltip appearance"] = "Settings to customize the tooltip appearance"
+	L["Tooltip Font"] = "Tooltip Font"
+	L["Choose the font for the tooltip text"] = "Choose the font for the tooltip text"
+	L["Tooltip Font Size"] = "Tooltip Font Size"
+	L["Set the font size for the tooltip text"] = "Set the font size for the tooltip text"
+	L["Tooltip Font Color"] = "Tooltip Font Color"
+	L["Choose the color of the tooltip text"] = "Choose the color of the tooltip text"
+	L["Tooltip Background Color"] = "Tooltip Background Color"
+	L["Choose the background color for the tooltip"] = "Choose the background color for the tooltip"
+	L["Tooltip Style"] = "Tooltip Style"
+	L["Select a predefined tooltip style"] = "Select a predefined tooltip style"
+	L["Default"] = "Default"
+    
 end

@@ -2,6 +2,7 @@
 local QuestAnnounce = LibStub("AceAddon-3.0"):NewAddon("QuestAnnounce", "AceEvent-3.0", "AceConsole-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("QuestAnnounce")
 
+
 -- Standardkonfigurationen für einen neuen Benutzer
 local defaults = {
     profile = {
@@ -59,7 +60,26 @@ end
 
 --[[ Initialisierung des Addons ]]--
 function QuestAnnounce:OnInitialize()
-    self.db = LibStub("AceDB-3.0"):New("QuestAnnounceDB", defaults, true) -- Einrichten der Datenbank mit den Standardwerten
+	local defaults = {
+		profile = {
+			settings = {
+				enable = true,
+				-- weitere Standardwerte
+			},
+			announceTo = {
+				chatFrame = true,
+				-- weitere Standardwerte
+			},
+			tooltip = {
+				font = "Friz Quadrata TT",
+				fontSize = 12,
+				fontColor = {1, 1, 1},
+				bgColor = {0, 0, 0},
+				style = "default",
+			},
+		},
+	}
+	self.db = LibStub("AceDB-3.0"):New("QuestAnnounceDB", defaults, true) -- Einrichten der Datenbank mit den Standardwerten
     
 	-- Registrieren von Callbacks für Profiländerungen
 	self.db.RegisterCallback(self, "OnProfileChanged", "OnProfileChanged")
@@ -68,6 +88,86 @@ function QuestAnnounce:OnInitialize()
     self.db.RegisterCallback(self, "OnNewProfile", "OnNewProfile")
     
     self:SetupOptions() -- Einrichten der Optionen
+	    -- Überprüfe, ob die Funktion verfügbar ist
+    if self.InitializeMinimapButton then
+        print("InitializeMinimapButton ist verfügbar.")
+        self:InitializeMinimapButton()
+    else
+        print("Fehler: InitializeMinimapButton ist nicht verfügbar.")
+    end
+	
+	
+end
+
+   function QuestAnnounce:InitializeMinimapButton()
+    print("Initialisiere Minimap-Button...")  -- Debugging-Ausgabe
+
+    local MinimapButton = CreateFrame("Button", "QuestAnnounceMinimapButton", Minimap)
+    MinimapButton:SetSize(32, 32)  -- Größe des Buttons
+    MinimapButton:SetFrameStrata("MEDIUM")
+    MinimapButton:SetFrameLevel(8)
+
+    local icon = MinimapButton:CreateTexture(nil, "BACKGROUND")
+    icon:SetTexture("Interface\\AddOns\\QuestAnnounce\\Media\\QA3Icon")  -- Pfad zur gespeicherten Grafik
+    icon:SetSize(28, 28)
+    icon:SetPoint("CENTER")
+
+    MinimapButton:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
+
+	--Anpassung des Minimap-Button Tooltips
+    MinimapButton:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        GameTooltip:AddLine("Quest Announce 3", 1, 1, 1)
+		
+		local font, fontSize, fontColor = QuestAnnounce.db.profile.tooltip.font, QuestAnnounce.db.profile.tooltip.fontSize, QuestAnnounce.db.profile.tooltip.fontColor
+		local bgColor = QuestAnnounce.db.profile.tooltip.bgColor
+		
+        --GameTooltip:SetFont(font, fontSize)
+		-- Setze die Schriftart und Schriftgröße für den Tooltiptext
+		local tooltipText = _G["GameTooltipTextLeft1"]
+			if tooltipText then
+			tooltipText:SetFont(font, fontSize)
+			tooltipText:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
+		end
+		
+		GameTooltip:AddLine(L["Tooltip LeftClick Aktivate/deactivated"], fontColor[1], fontColor[2], fontColor[3])
+        GameTooltip:AddLine(L["Tooltip Right-click: Open options"], fontColor[1], fontColor[2], fontColor[3])
+		
+
+		
+		GameTooltip:Show()
+    end)
+
+    MinimapButton:SetScript("OnLeave", function(self)
+        GameTooltip:Hide()
+    end)
+
+MinimapButton:RegisterForClicks("AnyUp")
+
+MinimapButton:SetScript("OnClick", function(self, button)
+    if button == "RightButton" then
+        print("Rechtsklick erkannt auf QuestAnnounceMinimapButton")  -- Debugging-Ausgabe
+        Settings.OpenToCategory("QuestAnnounce")
+    else
+        print("Linksklick erkannt auf QuestAnnounceMinimapButton")  -- Debugging-Ausgabe
+        if QuestAnnounce.db.profile.settings.enable then
+            QuestAnnounce.db.profile.settings.enable = false
+            QuestAnnounce:OnDisable()
+        else
+            QuestAnnounce.db.profile.settings.enable = true
+            QuestAnnounce:OnEnable()
+        end
+    end
+end)
+
+    MinimapButton:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
+
+    print("Minimap-Button erfolgreich erstellt und positioniert.")  -- Debugging-Ausgabe
+
+    MinimapButton:Show()  -- Sicherstellen, dass der Button angezeigt wird
+	
+	
+	
 end
 
 -- Aktivierung des Addons
@@ -75,6 +175,21 @@ function QuestAnnounce:OnEnable()
     --[[ We're looking at the UI_INFO_MESSAGE for quest messages ]]--
     self:RegisterEvent("UI_INFO_MESSAGE") -- Event für UI-Nachrichten registrieren
     self:SendDebugMsg("Addon Enabled :: "..tostring(QuestAnnounce.db.profile.settings.enable))
+
+    -- Chat- und Bildschirmmitte-Meldung beim Aktivieren
+    print(L["QuestAnnounce activated!"])
+    UIErrorsFrame:AddMessage(L["QuestAnnounce activated!"])
+end
+
+-- Deaktivierung des Addons
+function QuestAnnounce:OnDisable()
+    -- Hier kann der Code eingefügt werden, der ausgeführt werden soll, wenn das Addon deaktiviert wird
+    self:UnregisterEvent("UI_INFO_MESSAGE")  -- Beispiel: Event abmelden
+    self:SendDebugMsg("Addon deactivated :: "..tostring(self.db.profile.settings.enable))
+	
+	-- Chat- und Bildschirmmitte-Meldung beim Deaktivieren
+    print(L["QuestAnnounce deactivated!"])
+    UIErrorsFrame:AddMessage(L["QuestAnnounce deactivated!"])
 end
 
 --[[ QuestAnnounce ZeichenTabelle Chinese / Regex zum Erfassen von Questinformationen, abhängig von der Spielregion]]--
@@ -250,6 +365,9 @@ function QuestAnnounce:SendMsg(msg)
             PlaySound(PlaySoundKitID and "RAID_WARNING" or 8959)
         end
     end
-    
+   
+
+
     QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg - "..msg)
+	
 end

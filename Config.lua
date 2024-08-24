@@ -1,6 +1,7 @@
 -- QuestAnnounce Addon Initialisierung und Lokalisierung
 local QuestAnnounce = LibStub("AceAddon-3.0"):GetAddon("QuestAnnounce")
 local L = LibStub("AceLocale-3.0"):GetLocale("QuestAnnounce")
+local LSM = LibStub("LibSharedMedia-3.0")
 
 -- Optionen und Konfigurationsoptionen
 local options, configOptions = nil, {}
@@ -249,8 +250,8 @@ local function getOptions()
                 }
             }
         }
+
         -- Hinzufügen von benutzerdefinierten Konfigurationsoptionen
-        -- Adding custom configuration options
         for k, v in pairs(configOptions) do
             options.args[k] = (type(v) == "function") and v() or v
         end
@@ -270,6 +271,7 @@ end
 function QuestAnnounce:SetupOptions()
     self.optionsFrames = {}
 
+    -- Registrierung der allgemeinen Optionen
     LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("QuestAnnounce", getOptions)
     self.optionsFrames.QuestAnnounce = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("QuestAnnounce", nil, nil, "general")
 

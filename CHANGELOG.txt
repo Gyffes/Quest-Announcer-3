@@ -1,3 +1,9 @@
+v9.0.1.8 Multi - 24-08-2024
+		 - MinimapButton added.
+		 - Left-click Activates or deactivates the addon
+		 - Right-click opens the options. 
+		 - MiniMapButton tooltip
+
 v9.0.1.7 Multi - 27-07-2024
          - Supports The War Within Retail 11.0.0
          - Supports The War Within Retail 11.0.2

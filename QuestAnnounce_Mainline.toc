@@ -12,7 +12,9 @@
 embeds.xml
 #@end-no-lib-strip@
 
-Localization.lua
 
+
+Localization.lua
 QuestAnnounce.lua
 Config.lua
+
