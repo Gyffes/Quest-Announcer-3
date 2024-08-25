@@ -251,6 +251,125 @@ local function getOptions()
             }
         }
 
+        -- Tooltip customization options
+        options.args.tooltip = {
+            type = "group",
+            name = L["Tooltip Settings"],
+            desc = L["Settings to customize the tooltip appearance"],
+            order = 2, -- Dieser Bereich ist der zweite nach "general"
+            args = {
+                tooltipFont = {
+                   -- width = "full", -- Setzt die Breite auf die gesamte verfügbare Breite Half, Full, normal
+					order = 1,  
+					type = "select",
+                    name = L["Tooltip Font"],
+                    desc = L["Choose the font for the tooltip text"],
+                    values = LSM:HashTable("font"),
+                    get = function() return QuestAnnounce.db.profile.tooltip.font end,
+                    set = function(_, value) 
+                        QuestAnnounce.db.profile.tooltip.font = value 
+                        QuestAnnounce:UpdateTooltipBackground()
+                    end,
+                },
+				Spacer = { --Absatz erzwingen
+					order = 2,
+					type = "description",
+					name = " ", -- Leerer Name, um einen visuellen Abstand zu schaffen
+				},
+                tooltipFontSize = {
+                    order = 3,
+					type = "range",
+                    name = L["Tooltip Font Size"],
+                    desc = L["Set the font size for the tooltip text"],
+                    min = 8,
+                    max = 20,
+                    step = 1,
+                    get = function() return QuestAnnounce.db.profile.tooltip.fontSize end,
+                    set = function(_, value) 
+                        QuestAnnounce.db.profile.tooltip.fontSize = value 
+                        QuestAnnounce:UpdateTooltipBackground()
+                    end,
+                },
+				Spacer2 = { --Absatz erzwingen
+					order = 4,
+					type = "description",
+					name = " ", -- Leerer Name, um einen visuellen Abstand zu schaffen
+				},
+                tooltipFontColor = {
+                    order = 5,
+					type = "color",
+                    name = L["Tooltip Font Color"],
+                    desc = L["Choose the color of the tooltip text"],
+                    get = function() return unpack(QuestAnnounce.db.profile.tooltip.fontColor) end,
+                    set = function(_, r, g, b) 
+                        QuestAnnounce.db.profile.tooltip.fontColor = {r, g, b} 
+                        QuestAnnounce:UpdateTooltipBackground()
+                    end,
+                },
+				separator = {
+					order = 5.5,  -- Setze die Reihenfolge zwischen den beiden Optionen
+					type = "header",
+					name = "",  -- Leere Zeichenkette sorgt für einen einfachen Trennstrich ohne Text
+				},
+                tooltipBgColor = {
+					width = "full", -- Setzt die Breite auf die gesamte verfügbare Breite
+					order = 6,
+                    type = "color",
+                    name = L["Tooltip Background Color"],
+                    desc = L["Choose the background color for the tooltip"],
+                    hasAlpha = true, -- Aktiviert den Alpha-Wert im Farb-Dialog
+                    get = function()
+                        local bgColor = QuestAnnounce.db.profile.tooltip.bgColor or {0, 0, 0, 0.8}
+                        return unpack(bgColor)
+                    end,
+                    set = function(_, r, g, b, a)
+                        QuestAnnounce.db.profile.tooltip.bgColor = {r, g, b, a}
+                        QuestAnnounce:UpdateTooltipBackground()
+                    end,
+                },
+               -- tooltipBorderColor = {
+               --     order = 7,
+				--	type = "color",
+				--	name = L["Tooltip Background Color"],
+                --    desc = L["Choose the background color for the tooltip"],
+                 --   name = L["Tooltip Border Color"],
+                 --   desc = L["Choose the color of the tooltip border"],
+                 --   hasAlpha = true, -- Aktiviert den Alpha-Wert im Farb-Dialog
+                --    get = function()
+                 --       local borderColor = QuestAnnounce.db.profile.tooltip.borderColor or {0, 0, 0, 0.8}
+                  --      return unpack(borderColor)
+                 --   end,
+                --    set = function(_, r, g, b, a)
+                 --       QuestAnnounce.db.profile.tooltip.borderColor = {r, g, b, a}
+                 --       QuestAnnounce:UpdateTooltipBackground()
+                 --   end,
+                --},
+				separator = {
+					order = 7.5,  -- Setze die Reihenfolge zwischen den beiden Optionen
+					type = "header",
+					name = "",  -- Leere Zeichenkette sorgt für einen einfachen Trennstrich ohne Text
+				},
+                tooltipReset = {
+                    order = 8,
+					type = "execute",
+                    name = L["Reset Tooltip Settings"],
+                    desc = L["Reset tooltip settings to default values"],
+                    func = function()
+                        -- Setze die Tooltip-Einstellungen auf die Standardwerte zurück
+                        QuestAnnounce.db.profile.tooltip.font = "Friz Quadrata TT"
+                        QuestAnnounce.db.profile.tooltip.fontSize = 12
+                        QuestAnnounce.db.profile.tooltip.fontColor = {0.11, 1, 0.3}
+                        QuestAnnounce.db.profile.tooltip.bgColor = {0, 0, 0, 0.8}
+                        QuestAnnounce.db.profile.tooltip.borderColor = {1, 1, 1, 1}
+
+                        -- Aktualisiere den Tooltip sofort
+                        QuestAnnounce:UpdateTooltipBackground()
+                    end,
+                    confirm = function() return L["Are you sure you want to reset the tooltip settings to default?"] end,
+                },
+            },
+        }
+
         -- Hinzufügen von benutzerdefinierten Konfigurationsoptionen
         for k, v in pairs(configOptions) do
             options.args[k] = (type(v) == "function") and v() or v
@@ -261,19 +380,25 @@ local function getOptions()
 end
 
 -- Öffnen der Konfigurations-GUI
--- Opening the configuration GUI
 local function openConfig() 
     Settings.OpenToCategory("QuestAnnounce")
 end
 
 -- Setup der Optionen und Registrierung der Kommandos
--- Setting up options and registering commands
 function QuestAnnounce:SetupOptions()
     self.optionsFrames = {}
 
     -- Registrierung der allgemeinen Optionen
     LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("QuestAnnounce", getOptions)
     self.optionsFrames.QuestAnnounce = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("QuestAnnounce", nil, nil, "general")
+
+    -- Registrierung der Tooltip-Optionen als eigener Reiter
+    LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("QuestAnnounce_Tooltip", {
+        type = "group",
+        name = L["Tooltip Settings"],
+        args = getOptions().args.tooltip.args,
+    })
+    self.optionsFrames.Tooltip = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("QuestAnnounce_Tooltip", L["Tooltip Settings"], "QuestAnnounce")
 
     configOptions["Profiles"] = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 

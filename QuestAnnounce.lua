@@ -1,7 +1,7 @@
 -- Laden erforderlicher Bibliotheken und Lokalisierung
 local QuestAnnounce = LibStub("AceAddon-3.0"):NewAddon("QuestAnnounce", "AceEvent-3.0", "AceConsole-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("QuestAnnounce")
-
+local LSM = LibStub("LibSharedMedia-3.0") -- Stelle sicher, dass LibSharedMedia geladen ist
 
 -- Standardkonfigurationen für einen neuen Benutzer
 local defaults = {
@@ -26,7 +26,14 @@ local defaults = {
             whisperWho = nil,      -- Ziel des Flüsterns
             channel = false,       -- Benutzerdefinierter Channel
             channelName = nil      -- Name des benutzerdefinierten Channels
-        }
+        },
+		tooltip = {
+            font = "Friz Quadrata TT",
+            fontSize = 12,
+            fontColor = {0.11, 1, 0.3},
+            bgColor = {0, 0, 0, 0.8}, -- Hintergrundfarbe mit Alpha
+            borderColor = {0, 0, 0, 0.8}, -- Rahmenfarbe
+        },
     }
 }
 -- Chanel betreten
@@ -60,26 +67,7 @@ end
 
 --[[ Initialisierung des Addons ]]--
 function QuestAnnounce:OnInitialize()
-	local defaults = {
-		profile = {
-			settings = {
-				enable = true,
-				-- weitere Standardwerte
-			},
-			announceTo = {
-				chatFrame = true,
-				-- weitere Standardwerte
-			},
-			tooltip = {
-				font = "Friz Quadrata TT",
-				fontSize = 12,
-				fontColor = {1, 1, 1},
-				bgColor = {0, 0, 0},
-				style = "default",
-			},
-		},
-	}
-	self.db = LibStub("AceDB-3.0"):New("QuestAnnounceDB", defaults, true) -- Einrichten der Datenbank mit den Standardwerten
+    self.db = LibStub("AceDB-3.0"):New("QuestAnnounceDB", defaults, true) -- Einrichten der Datenbank mit den Standardwerten
     
 	-- Registrieren von Callbacks für Profiländerungen
 	self.db.RegisterCallback(self, "OnProfileChanged", "OnProfileChanged")
@@ -99,6 +87,64 @@ function QuestAnnounce:OnInitialize()
 	
 end
 
+function QuestAnnounce:CreateCustomTooltip()
+    if not self.customTooltip then
+        self.customTooltip = CreateFrame("GameTooltip", "QuestAnnounceTooltip", UIParent, "GameTooltipTemplate")
+        self.customTooltip:SetFrameStrata("TOOLTIP")
+        self.customTooltip:SetClampedToScreen(true)
+
+        -- Entferne alle standardmäßigen Texturen und Regionen, die Teil des Tooltips sein könnten
+        for _, region in ipairs({self.customTooltip:GetRegions()}) do
+            if region:GetObjectType() == "Texture" then
+                region:SetTexture(nil)
+                region:Hide()
+            elseif region:GetObjectType() == "FontString" then
+                -- Lassen Sie die FontStrings sichtbar, wenn benötigt
+            end
+        end
+
+        -- Erstelle benutzerdefinierte Hintergrund- und Rahmentexturen
+        self.customTooltip.bgTexture = self.customTooltip:CreateTexture(nil, "BACKGROUND")
+        self.customTooltip.bgTexture:SetAllPoints(self.customTooltip)
+      --  self.customTooltip.bgTexture:SetColorTexture(0, 0, 0, 0) -- Standard: komplett transparent
+
+     --   self.customTooltip.borderTexture = self.customTooltip:CreateTexture(nil, "BORDER")
+     --   self.customTooltip.borderTexture:SetPoint("TOPLEFT", self.customTooltip, "TOPLEFT", -2, 2)
+     --   self.customTooltip.borderTexture:SetPoint("BOTTOMRIGHT", self.customTooltip, "BOTTOMRIGHT", 2, -2)
+     --   self.customTooltip.borderTexture:SetColorTexture(0, 0, 0, 0) -- Standard: komplett transparent
+    end
+end
+
+-- Registrierung um den Tooltip zu Updaten ohne Reload
+function QuestAnnounce:UpdateTooltipBackground()
+   -- if not self.customTooltip or not self.customTooltip.bgTexture or not self.customTooltip.borderTexture then return end
+	if not self.customTooltip then return end
+
+    local bgColor = QuestAnnounce.db.profile.tooltip.bgColor or {0, 0, 0, 0.8}
+    local borderColor = QuestAnnounce.db.profile.tooltip.borderColor or {1, 1, 1, 1}
+
+    -- Setze die Hintergrundfarbe und den Alpha-Wert
+    self.customTooltip.bgTexture:SetColorTexture(bgColor[1], bgColor[2], bgColor[3], bgColor[4])
+    
+    -- Setze die Rahmenfarbe und den Alpha-Wert
+   -- self.customTooltip.borderTexture:SetColorTexture(borderColor[1], borderColor[2], borderColor[3], borderColor[4])
+	    -- Aktualisiert die Schriftart und -größe
+    local font = LSM:Fetch("font", QuestAnnounce.db.profile.tooltip.font)
+    local fontSize = QuestAnnounce.db.profile.tooltip.fontSize
+    local fontColor = QuestAnnounce.db.profile.tooltip.fontColor
+
+end
+
+
+--function QuestAnnounce:GetTooltipColors()
+--    local bgColor = QuestAnnounce.db.profile.tooltip.bgColor or {0, 0, 0, 0.8}
+--    local borderColor = QuestAnnounce.db.profile.tooltip.borderColor or {1, 1, 1}
+--    
+--    return bgColor, borderColor
+--end
+
+
+
    function QuestAnnounce:InitializeMinimapButton()
     print("Initialisiere Minimap-Button...")  -- Debugging-Ausgabe
 
@@ -116,30 +162,44 @@ end
 
 	--Anpassung des Minimap-Button Tooltips
     MinimapButton:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-        GameTooltip:AddLine("Quest Announce 3", 1, 1, 1)
+		-- Sicherstellen, dass LSM verfügbar ist
+        if not LSM then
+            print("LibSharedMedia nicht geladen")
+            return
+        end
 		
-		local font, fontSize, fontColor = QuestAnnounce.db.profile.tooltip.font, QuestAnnounce.db.profile.tooltip.fontSize, QuestAnnounce.db.profile.tooltip.fontColor
-		local bgColor = QuestAnnounce.db.profile.tooltip.bgColor
+		QuestAnnounce:CreateCustomTooltip()
 		
-        --GameTooltip:SetFont(font, fontSize)
-		-- Setze die Schriftart und Schriftgröße für den Tooltiptext
-		local tooltipText = _G["GameTooltipTextLeft1"]
-			if tooltipText then
-			tooltipText:SetFont(font, fontSize)
-			tooltipText:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
-		end
+		local font = LSM:Fetch("font", QuestAnnounce.db.profile.tooltip.font)
+        local fontSize = QuestAnnounce.db.profile.tooltip.fontSize
+        local fontColor = QuestAnnounce.db.profile.tooltip.fontColor
+		local tooltip = QuestAnnounce.customTooltip
 		
-		GameTooltip:AddLine(L["Tooltip LeftClick Aktivate/deactivated"], fontColor[1], fontColor[2], fontColor[3])
-        GameTooltip:AddLine(L["Tooltip Right-click: Open options"], fontColor[1], fontColor[2], fontColor[3])
-		
+		tooltip:SetOwner(self, "ANCHOR_LEFT")
+		tooltip:ClearLines()  -- Wichtig, um sicherzustellen, dass alte Zeilen entfernt werden
+	    tooltip:AddLine("Quest Announce 3", fontColor[1], fontColor[2], fontColor[3])
+		tooltip:AddLine(L["Tooltip LeftClick Aktivate/deactivated"], fontColor[1], fontColor[2], fontColor[3])
+        tooltip:AddLine(L["Tooltip Right-click: Open options"], fontColor[1], fontColor[2], fontColor[3])
 
-		
-		GameTooltip:Show()
+        -- Schriftart und -größe setzen
+        for i = 1, tooltip:NumLines() do
+            local leftLine = _G["QuestAnnounceTooltipTextLeft" .. i]
+            if leftLine then
+                leftLine:SetFont(font, fontSize)
+				leftLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
+            end
+            rightLine = _G["QuestAnnounceTooltipTextRight" .. i]
+            if rightLine then
+                rightLine:SetFont(font, fontSize)
+				rightLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
+            end
+        end
+		QuestAnnounce:UpdateTooltipBackground()
+		tooltip:Show()
     end)
 
     MinimapButton:SetScript("OnLeave", function(self)
-        GameTooltip:Hide()
+        QuestAnnounce.customTooltip:Hide()
     end)
 
 MinimapButton:RegisterForClicks("AnyUp")
