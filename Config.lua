@@ -10,7 +10,7 @@ local options, configOptions = nil, {}
 --[[ This options table is used in the GUI config. ]]-- 
 local function getOptions() 
     if not options then
-        options = {
+	    options = {
             type = "group",
             name = "QuestAnnounce",
             args = {
@@ -29,13 +29,13 @@ local function getOptions()
                             get = function(info)
                                 local key = info.arg or info[#info]
                                 QuestAnnounce:SendDebugMsg("getSettings: "..key.." :: "..tostring(QuestAnnounce.db.profile.settings[key]))
-                                return QuestAnnounce.db.profile.settings[key]
+								return QuestAnnounce.db.profile.settings[key]
                             end,
                             set = function(info, value)
                                 local key = info.arg or info[#info]
                                 QuestAnnounce.db.profile.settings[key] = value
                                 QuestAnnounce:SendDebugMsg("setSettings: "..key.." :: "..tostring(QuestAnnounce.db.profile.settings[key]))
-                            end,
+							end,
                             args = {
                                 enabledesc = {
                                     order = 1,
@@ -73,6 +73,18 @@ local function getOptions()
                                     type = "toggle",
                                     name = L["Sound"]
                                 },
+				                linkdesc = {
+                                    order = 7,
+                                    type = "description",
+                                    fontSize = "medium",
+                                    name = L["Enable / Disable Quest Links"]
+                                },
+								linkQuest = {
+									order = 8,
+									type = "toggle",
+									name = L["Enable Quest Links"],
+									desc = L["If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."]
+								},
                                 debugdesc = {
                                     order = 100,
                                     type = "description",
@@ -174,6 +186,14 @@ local function getOptions()
                                     confirm = function(info, value)
                                         return (value and L["Are you sure you want to announce to this channel?"] or false)
                                     end
+                                },
+								focus = {
+                                    order = 6,
+                                    type = "toggle",
+                                    name = L["Focus"],
+                                    confirm = function(info, value)
+                                        return (value and L["Are you sure you want to announce to this channel?"] or false)
+                                    end                                    
                                 }
                             }
                         },
@@ -233,7 +253,7 @@ local function getOptions()
                                     get = function(info)
                                         local key = info.arg or info[#info]
                                         return QuestAnnounce.db.profile.announceIn[key]
-                                    end,
+									end,
                                     confirm = function(info, value)
                                         return (value and L["Are you sure you want to announce to this channel?"] or false)
                                     end
@@ -251,7 +271,7 @@ local function getOptions()
             }
         }
 
-        -- Tooltip customization options
+       -- Tooltip customization options
         options.args.tooltip = {
             type = "group",
             name = L["Tooltip Settings"],
@@ -269,6 +289,7 @@ local function getOptions()
                     set = function(_, value) 
                         QuestAnnounce.db.profile.tooltip.font = value 
                         QuestAnnounce:UpdateTooltipBackground()
+						print("tooltipFont set to", value)  -- Debug-Ausgabe						
                     end,
                 },
 				Spacer = { --Absatz erzwingen
@@ -290,7 +311,7 @@ local function getOptions()
                         QuestAnnounce:UpdateTooltipBackground()
                     end,
                 },
-				Spacer2 = { --Absatz erzwingen
+				Spacer1 = { --Absatz erzwingen
 					order = 4,
 					type = "description",
 					name = " ", -- Leerer Name, um einen visuellen Abstand zu schaffen
@@ -344,13 +365,14 @@ local function getOptions()
                  --       QuestAnnounce:UpdateTooltipBackground()
                  --   end,
                 --},
-				separator = {
+				separator1 = {
 					order = 7.5,  -- Setze die Reihenfolge zwischen den beiden Optionen
 					type = "header",
 					name = "",  -- Leere Zeichenkette sorgt für einen einfachen Trennstrich ohne Text
 				},
                 tooltipReset = {
                     order = 8,
+					width = "full", -- Setzt die Breite auf die gesamte verfügbare Breite
 					type = "execute",
                     name = L["Reset Tooltip Settings"],
                     desc = L["Reset tooltip settings to default values"],
@@ -367,21 +389,47 @@ local function getOptions()
                     end,
                     confirm = function() return L["Are you sure you want to reset the tooltip settings to default?"] end,
                 },
+				 -- Separator für den Reset-Button
+                separator2 = {
+                    order = 8.5,
+                    type = "header",
+                    name = "",
+                },
+				-- Reset-Button für die Minimap-Button-Position
+                resetMinimapButton = {
+                    width = "full", -- Setzt die Breite auf die gesamte verfügbare Breite
+					order = 9,
+                    type = "execute",
+                    name = L["Reset Minimap Button Position"],
+                    desc = L["Reset the position of the minimap button to its default location."],
+                    func = function() QuestAnnounce:ResetMinimapButtonPosition() end,
+                    confirm = function() return L["Are you sure you want to reset the minimap button position?"] end,
+                }, 
             },
-        }
+        } 
 
         -- Hinzufügen von benutzerdefinierten Konfigurationsoptionen
         for k, v in pairs(configOptions) do
             options.args[k] = (type(v) == "function") and v() or v
         end
     end
-    
     return options
 end
 
--- Öffnen der Konfigurations-GUI
-local function openConfig() 
-    Settings.OpenToCategory("QuestAnnounce")
+
+local function openConfig()
+ --[[   local frame = QuestAnnounce.optionsFrames.QuestAnnounce
+    if frame and frame.name then
+        Settings.OpenToCategory(frame.name)
+        Settings.OpenToCategory(frame.name)
+    end ]]--
+	local function openConfig()
+    local category = QuestAnnounce.optionsCategory
+    if not category then return end
+
+    Settings.OpenToCategory(category:GetID())
+    Settings.OpenToCategory(category:GetID()) -- Blizzard workaround
+	end
 end
 
 -- Setup der Optionen und Registrierung der Kommandos
@@ -393,15 +441,25 @@ function QuestAnnounce:SetupOptions()
     self.optionsFrames.QuestAnnounce = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("QuestAnnounce", nil, nil, "general")
 
     -- Registrierung der Tooltip-Optionen als eigener Reiter
-    LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("QuestAnnounce_Tooltip", {
-        type = "group",
-        name = L["Tooltip Settings"],
-        args = getOptions().args.tooltip.args,
-    })
+    print("Tooltip args vor der Registrierung:", getOptions().args.tooltip.args)
+
+self.optionsFrames.tooltip = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("QuestAnnounce", L["Tooltip Settings"], "QuestAnnounce", "tooltip")
+
+    --[[    if not options.args.tooltip or not options.args.tooltip.args then
+        print("Fehler: Tooltip args nicht gefunden!")
+    else
+        print("Tooltip args gefunden, Registrierung wird fortgesetzt.")
+        LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("QuestAnnounce_Tooltip", {
+            type = "group",
+            name = L["Tooltip Settings"],
+            args = getOptions().args.tooltip.args,
+        })
+        print("Tooltip args nach der Registrierung:", getOptions().args.tooltip.args)
+    end
+
     self.optionsFrames.Tooltip = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("QuestAnnounce_Tooltip", L["Tooltip Settings"], "QuestAnnounce")
-
+]]
     configOptions["Profiles"] = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
-
     self.optionsFrames["Profiles"] = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("QuestAnnounce", "Profiles", "QuestAnnounce", "Profiles")
 
     LibStub("AceConsole-3.0"):RegisterChatCommand("qa", openConfig)

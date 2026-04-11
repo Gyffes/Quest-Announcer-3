@@ -63,9 +63,21 @@ if L then
 	L["Reset Tooltip Settings"] = "Reset Tooltip Settings"
 	L["Reset tooltip settings to default values"] = "Reset tooltip settings to default values"
 	L["Are you sure you want to reset the tooltip settings to default?"] = "Are you sure you want to reset the tooltip settings to default?"
-
-
-	
+	L["Reset Minimap Button Position"] = "Reset Minimap Button Position"
+	L["Reset the position of the minimap button to its default location."] = "Reset the position of the minimap button to its default location."
+	L["Are you sure you want to reset the minimap button position?"] = "Are you sure you want to reset the minimap button position?"
+	L["Quest Announce 3"] = "Quest Announce 3"
+	L["Disable"] = "Disable"
+	L["Addon Status:"] = "Addon Status:"
+	L["Announcement Channel"] = "Announcement Channel"
+	L["Focus"] = "Focus"
+	L["No focus set, message not sent."] = "No focus set, message not sent."
+	L["Right-click detected on QuestAnnounce MinimapButton Open Menu"] = "Right-click detected on QuestAnnounce MinimapButton Open Menu"
+	L["Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"] = "Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"
+	L["Minimap button successfully created and positioned"] = "Minimap button successfully created and positioned"
+	L["Enable / Disable Quest Links"] = "Enable / Disable Quest Links"
+	L["Enable Quest Links"] = "Enable Quest Links"
+	L["If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."] = "If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."	
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "deDE")
@@ -122,9 +134,21 @@ if L then
 	L["Reset Tooltip Settings"] = "Tooltip-Einstellungen zurücksetzen"
 	L["Reset tooltip settings to default values"] = "Tooltip-Einstellungen auf Standardwerte zurücksetzen"
 	L["Are you sure you want to reset the tooltip settings to default?"] = "Sind Sie sicher, dass Sie die Tooltip-Einstellungen auf die Standardwerte zurücksetzen möchten?"
-
-
-	
+	L["Reset Minimap Button Position"] = "Minimap-Button-Position zurücksetzen"
+	L["Reset the position of the minimap button to its default location."] = "Setze die Position des Minimap-Buttons auf die Standardeinstellung zurück."
+	L["Are you sure you want to reset the minimap button position?"] = "Bist du sicher, dass du die Position des Minimap-Buttons zurücksetzen möchtest?"
+	L["Quest Announce 3"] = "Quest Announce 3"
+	L["Disable"] = "Deaktivert"
+	L["Addon Status:"] = "Addon Status:"
+	L["Announcement Channel"] = "Ankündigungskanal"
+	L["Focus"] = "Focus"
+	L["No focus set, message not sent."] = "Kein Fokus gesetzt, Nachricht nicht gesendet."
+	L["Right-click detected on QuestAnnounce MinimapButton Open Menu"] = "Rechtsklick erkannt auf QuestAnnounce MinimapButton Öffne Menu"
+	L["Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"] = "Linksklick erkannt auf QuestAnnounce MinimapButton Schalte AN / Aus"
+	L["Minimap button successfully created and positioned"] = "Minimap-Button erfolgreich erstellt und positioniert."
+	L["Enable / Disable Quest Links"] = "Quest-Links aktivieren / deaktivieren"
+	L["Enable Quest Links"] = "Quest-Links aktivieren"
+	L["If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."] = "Wenn aktiviert, werden Questnamen als klickbare Links angezeigt. Ein Klick öffnet das Questlog, falls vorhanden. Andernfalls kann der Link kopiert und z. B. bei Wowhead verwendet werden."	
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "esES") or AL3:NewLocale("QuestAnnounce", "esMX")
@@ -180,6 +204,22 @@ if L then
 	L["Reset Tooltip Settings"] = "Reset Tooltip Settings"
 	L["Reset tooltip settings to default values"] = "Reset tooltip settings to default values"
 	L["Are you sure you want to reset the tooltip settings to default?"] = "Are you sure you want to reset the tooltip settings to default?"
+	L["Reset Minimap Button Position"] = "Reset Minimap Button Position"
+	L["Reset the position of the minimap button to its default location."] = "Reset the position of the minimap button to its default location."
+	L["Are you sure you want to reset the minimap button position?"] = "Are you sure you want to reset the minimap button position?"
+	L["Quest Announce 3"] = "Quest Announce 3"
+	L["Disable"] = "Disable"
+	L["Addon Status:"] = "Addon Status:"
+	L["Announcement Channel"] = "Announcement Channel"
+	L["Focus"] = "Focus"
+	L["No focus set, message not sent."] = "No focus set, message not sent."
+	L["Right-click detected on QuestAnnounce MinimapButton Open Menu"] = "Right-click detected on QuestAnnounce MinimapButton Open Menu"
+	L["Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"] = "Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"
+	L["Minimap button successfully created and positioned"] = "Minimap button successfully created and positioned"
+	L["Enable / Disable Quest Links"] = "Enable / Disable Quest Links"
+	L["Enable Quest Links"] = "Enable Quest Links"
+	L["If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."] = "If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."
+
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "frFR")
@@ -235,7 +275,21 @@ if L then
 	L["Reset Tooltip Settings"] = "Reset Tooltip Settings"
 	L["Reset tooltip settings to default values"] = "Reset tooltip settings to default values"
 	L["Are you sure you want to reset the tooltip settings to default?"] = "Are you sure you want to reset the tooltip settings to default?"
-	
+	L["Reset Minimap Button Position"] = "Reset Minimap Button Position"
+	L["Reset the position of the minimap button to its default location."] = "Reset the position of the minimap button to its default location."
+	L["Are you sure you want to reset the minimap button position?"] = "Are you sure you want to reset the minimap button position?"
+	L["Quest Announce 3"] = "Quest Announce 3"
+	L["Disable"] = "Disable"
+	L["Addon Status:"] = "Addon Status:"
+	L["Announcement Channel"] = "Announcement Channel"
+	L["Focus"] = "Focus"
+	L["No focus set, message not sent."] = "No focus set, message not sent."
+	L["Right-click detected on QuestAnnounce MinimapButton Open Menu"] = "Right-click detected on QuestAnnounce MinimapButton Open Menu"
+	L["Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"] = "Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"
+	L["Minimap button successfully created and positioned"] = "Minimap button successfully created and positioned"
+	L["Enable / Disable Quest Links"] = "Enable / Disable Quest Links"
+	L["Enable Quest Links"] = "Enable Quest Links"	
+	L["If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."] = "If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "koKR")
@@ -291,6 +345,22 @@ if L then
 	L["Reset Tooltip Settings"] = "Reset Tooltip Settings"
 	L["Reset tooltip settings to default values"] = "Reset tooltip settings to default values"
 	L["Are you sure you want to reset the tooltip settings to default?"] = "Are you sure you want to reset the tooltip settings to default?"
+	L["Reset Minimap Button Position"] = "Reset Minimap Button Position"
+	L["Reset the position of the minimap button to its default location."] = "Reset the position of the minimap button to its default location."
+	L["Are you sure you want to reset the minimap button position?"] = "Are you sure you want to reset the minimap button position?"
+	L["Quest Announce 3"] = "Quest Announce 3"
+	L["Disable"] = "Disable"
+	L["Addon Status:"] = "Addon Status:"
+	L["Announcement Channel"] = "Announcement Channel"
+	L["Focus"] = "Focus"
+	L["No focus set, message not sent."] = "No focus set, message not sent."
+	L["Right-click detected on QuestAnnounce MinimapButton Open Menu"] = "Right-click detected on QuestAnnounce MinimapButton Open Menu"
+	L["Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"] = "Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"
+	L["Minimap button successfully created and positioned"] = "Minimap button successfully created and positioned"
+	L["Enable / Disable Quest Links"] = "Enable / Disable Quest Links"
+	L["Enable Quest Links"] = "Enable Quest Links"	
+	L["If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."] = "If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."
+	
 end
 
 
@@ -347,8 +417,21 @@ L["Whisper and Channel Options"] = "Настройки шепота и кана�
 	L["Reset Tooltip Settings"] = "Reset Tooltip Settings"
 	L["Reset tooltip settings to default values"] = "Reset tooltip settings to default values"
 	L["Are you sure you want to reset the tooltip settings to default?"] = "Are you sure you want to reset the tooltip settings to default?"
-
-
+	L["Reset Minimap Button Position"] = "Reset Minimap Button Position"
+	L["Reset the position of the minimap button to its default location."] = "Reset the position of the minimap button to its default location."
+	L["Are you sure you want to reset the minimap button position?"] = "Are you sure you want to reset the minimap button position?"
+	L["Quest Announce 3"] = "Quest Announce 3"
+	L["Disable"] = "Disable"
+	L["Addon Status:"] = "Addon Status:"
+	L["Announcement Channel"] = "Announcement Channel"
+	L["Focus"] = "Focus"
+	L["No focus set, message not sent."] = "No focus set, message not sent."
+	L["Right-click detected on QuestAnnounce MinimapButton Open Menu"] = "Right-click detected on QuestAnnounce MinimapButton Open Menu"
+	L["Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"] = "Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"
+	L["Minimap button successfully created and positioned"] = "Minimap button successfully created and positioned"
+	L["Enable / Disable Quest Links"] = "Enable / Disable Quest Links"
+	L["Enable Quest Links"] = "Enable Quest Links"	
+	L["If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."] = "If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "zhCN")
@@ -404,7 +487,21 @@ L["Whisper and Channel Options"] = "密语和频道选项"
 	L["Reset Tooltip Settings"] = "Reset Tooltip Settings"
 	L["Reset tooltip settings to default values"] = "Reset tooltip settings to default values"
 	L["Are you sure you want to reset the tooltip settings to default?"] = "Are you sure you want to reset the tooltip settings to default?"
-
+	L["Reset Minimap Button Position"] = "Reset Minimap Button Position"
+	L["Reset the position of the minimap button to its default location."] = "Reset the position of the minimap button to its default location."
+	L["Are you sure you want to reset the minimap button position?"] = "Are you sure you want to reset the minimap button position?"
+	L["Quest Announce 3"] = "Quest Announce 3"
+	L["Disable"] = "Disable"
+	L["Addon Status:"] = "Addon Status:"
+	L["Announcement Channel"] = "Announcement Channel"
+	L["Focus"] = "Focus"
+	L["No focus set, message not sent."] = "No focus set, message not sent."
+	L["Right-click detected on QuestAnnounce MinimapButton Open Menu"] = "Right-click detected on QuestAnnounce MinimapButton Open Menu"
+	L["Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"] = "Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"
+	L["Minimap button successfully created and positioned"] = "Minimap button successfully created and positioned"
+	L["Enable / Disable Quest Links"] = "Enable / Disable Quest Links"
+	L["Enable Quest Links"] = "Enable Quest Links"	
+	L["If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."] = "If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "zhTW")
@@ -460,7 +557,21 @@ L["Whisper and Channel Options"] = "悄悄話和頻道選項"
 	L["Reset Tooltip Settings"] = "Reset Tooltip Settings"
 	L["Reset tooltip settings to default values"] = "Reset tooltip settings to default values"
 	L["Are you sure you want to reset the tooltip settings to default?"] = "Are you sure you want to reset the tooltip settings to default?"
-
+	L["Reset Minimap Button Position"] = "Reset Minimap Button Position"
+	L["Reset the position of the minimap button to its default location."] = "Reset the position of the minimap button to its default location."
+	L["Are you sure you want to reset the minimap button position?"] = "Are you sure you want to reset the minimap button position?"
+	L["Quest Announce 3"] = "Quest Announce 3"
+	L["Disable"] = "Disable"
+	L["Addon Status:"] = "Addon Status:"
+	L["Announcement Channel"] = "Announcement Channel"	
+	L["Focus"] = "Focus"
+	L["No focus set, message not sent."] = "No focus set, message not sent."
+	L["Right-click detected on QuestAnnounce MinimapButton Open Menu"] = "Right-click detected on QuestAnnounce MinimapButton Open Menu"
+	L["Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"] = "Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"
+	L["Minimap button successfully created and positioned"] = "Minimap button successfully created and positioned"
+	L["Enable / Disable Quest Links"] = "Enable / Disable Quest Links"
+	L["Enable Quest Links"] = "Enable Quest Links"	
+	L["If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."] = "If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."
 end
 
 local L = AL3:NewLocale("QuestAnnounce", "ptBR")
@@ -516,5 +627,19 @@ if L then
 	L["Reset Tooltip Settings"] = "Reset Tooltip Settings"
 	L["Reset tooltip settings to default values"] = "Reset tooltip settings to default values"
 	L["Are you sure you want to reset the tooltip settings to default?"] = "Are you sure you want to reset the tooltip settings to default?"
-    
+	L["Reset Minimap Button Position"] = "Reset Minimap Button Position"
+	L["Reset the position of the minimap button to its default location."] = "Reset the position of the minimap button to its default location."
+	L["Are you sure you want to reset the minimap button position?"] = "Are you sure you want to reset the minimap button position?"
+	L["Quest Announce 3"] = "Quest Announce 3"
+	L["Disable"] = "Disable"
+	L["Addon Status:"] = "Addon Status:"
+	L["Announcement Channel"] = "Announcement Channel"
+	L["Focus"] = "Focus"
+	L["No focus set, message not sent."] = "No focus set, message not sent."
+	L["Right-click detected on QuestAnnounce MinimapButton Open Menu"] = "Right-click detected on QuestAnnounce MinimapButton Open Menu"
+	L["Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"] = "Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"	 
+	L["Minimap button successfully created and positioned"] = "Minimap button successfully created and positioned"	
+	L["Enable / Disable Quest Links"] = "Enable / Disable Quest Links"
+	L["Enable Quest Links"] = "Enable Quest Links"	
+	L["If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."] = "If enabled, quest names will be clickable links. Clicking opens the quest in your log if available, otherwise you can copy it for websites like Wowhead."
 end

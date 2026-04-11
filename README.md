@@ -1,3 +1,23 @@
+v9.2.8.4 Multi - 29-03-2026
+		 - Update for Midnight 12.0.5
+		 - Added language variables 
+		 - Added Announce on Focus
+
+v9.2.8.3 Multi - 25-08-2024
+		 - Movable MiniMapButton
+		 - Added language variables 
+
+v9.2.8.2 Multi - 24-08-2024
+		 - Added tooltip settings in the options
+		 - Added language variables for the tooltip settings
+				 
+v9.2.8.1 Multi - 24-08-2024
+		 - MinimapButton added.
+		 - Left-click Activates or deactivates the addon
+		 - Right-click opens the options. 
+		 - MiniMapButton tooltip
+		 - Adjusting the version number
+
 v9.0.1.7 Multi - 27-07-2024
          - Supports The War Within Retail 11.0.0
          - Supports The War Within Retail 11.0.2
@@ -31,7 +51,7 @@ v9.0.1.4 Multi - 30-09-2022
          - Supports Wrath 3.4.1
          - Supports TBC 2.5.4
          - Supports Classic 1.14.3
-        
+
 v9.0.1.3 - 28-10-2022
          - Supports Retail 10.0.0
          - Supports Wrath 3.4.0
@@ -47,48 +67,69 @@ v9.0.1.1 - 30-09-2022
          - Supports TBC 2.5.4
          - Supports Classic 1.14.3
 
-Postet den Questfortschritt als Gruppennachricht
+v9.0.1 - 05-08-2021
+         - Updated TOC for 9.1.0 (Shadowlands).
+         - Updated TOC for 2.5.1 (TBC).
+         - Updated TOC for 1.13.7 (Classic).
 
+v7.0.0 - 02-08-2016
+	- Updated TOC for 7.0.0 (Legion).
+	
+v6.0.2 - 16-10-2014
+	- Updated TOC for 6.0.2.
+	
+v5.4.2 - 20-01-2014
+	- Updated TOC for 5.4.2.
+	
+v5.2.0 - 05-03-2013
+	- Updated TOC for 5.2.0.
+	
+v5.1.1 - 26-12-2012
+	- Added feature, support for instance chat.
+	- Updated version in TOC.
+	
+v5.1.0 - 03-12-2012
+	- Updated TOC for 5.1.0.
 
-Gib /qa oder /queatannounce für eine liste der befehle ein.
+v5.0.1 - 31-08-2012
+	- Removed deprecated GetNumPartyMembers function.
+	- Added feature, ability to enable/disable QuestAnnounce sound.
+	
+v5.0.0 - 28-08-2012
+	- Updated TOC for 5.0.4.
+	
+v4.3.2 - 07-08-2012
+	- Removed unused Localizations phrases.
+	- Removed command line configuration. Command line /qa will now open the options GUI.
+	- Refactored how configuration worked.
+	- Added feature, ability to announce to say, party, guild, officer, and whisper.
+	- Added feature, ability to announce to any or all of the following frames: Chat, UI Errors, and/or Raid Warning (with sound).
+	
+v4.3.1a - 28-07-2012
+	- Fixed Localizations.
 
-/qa status zeigt die Aktuelle Konfiguration
-/qa on schaltet Quest Announce ein
-/qa off schaltet Quest Announce aus
-/qa schaltet Quest announce in den Normalen modus und aktiviert es fals es Ausgeschalten war
-/qa std stellt die standart Konfiguration ein
-/qa every [num] zeigt die Gegenstände in abstanden von [num] Gegenständen an
+v4.3.1 - 25-07-2012
+	- Added feature, ability to announce when a quest is completed only. Setting /qa every 0 will only announce when the quest objective is completed.
 
-zb /qa every 5 bedeutet das es jeden ersten Gegenstand, jeden 5 gegenstand und den letzten Gegenstand ansagt
+v4.3.0 - 29-03-2012
+	- Updated TOC for 4.3.
 
-/qa pause schalten Quest Announce aus bis ihr /qa resume eingebt oder eurer Interface neu geladen wird (zb reloggen)
+v4.2.0 - 28-06-2011
+	- Updated TOC for 4.2.
 
-/qa resume schaltet die Pause Funktion wieder ab
+v4.1.0 - 19-05-2011
+	- Updated TOC for 4.1.
 
+v4.0.3 - 07-01-2011 (stable)
+	- Fixed an invalid file reference for AceDBOptions-3.0.
+	- Reworked how the enable/disable logic worked; it should now properly save this state when logging out or /reload'ing the UI.
 
+v4.0.2 - 25-12-2010 (stable)
+	- Added GUI config under Blizzard's Addon tab.
+	- Reworded "toggle" to "enable".
+	
+v4.0.1 - 21-12-2010 (stable)
+	- Added validation check to ensure the /qa every command line option could not be set outside its limit [1-10].
 
-Quest Announce v9.0.2
-
-Is Running for Shadowlands 9.2.7 and Classic, TBC and Wrath Client.
-
-
-
-Quest Announce sends a party message as you advance in a quest.
-
-Gib /qa or /queatannounce for help list
-
-/qa status List your Quest Announce Status
-
-/qa on Quest Announce is Aktiv
-
-/qa off Quest Announce is Deaktiv
-
-/qa classic is the classic mode of Quest Announce an Aktivate the Quest Announce
-
-/qa std Reset the Quest Announce
-
-/qa every [num] Post the Items in would be away of [num] zb /qa every 5 this Post the First the 5 and the Last of the Item
-
-/qa pause switch your Quest Announce off until its /qa resume enter or to your interface again one load (e.g. reloggen)
-
-/qa resume disabel the /qa pause
+v4.0.0 - 18-12-2010 (stable)
+	- Rewritten for Cataclysm (4.0.3a) using Ace-3.0.

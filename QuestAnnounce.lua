@@ -10,7 +10,8 @@ local defaults = {
             enable = true,          -- Addon aktiviert
             every = 1,              -- Benachrichtigungsfrequenz
             sound = true,           -- Soundbenachrichtigungen aktiviert
-            debug = false           -- Debug-Modus deaktiviert
+            debug = false,          -- Debug-Modus deaktiviert
+			linkQuest = true		-- Quest Link
         },
         announceTo = {
             chatFrame = true,      -- Benachrichtigungen im Chat-Fenster
@@ -25,7 +26,8 @@ local defaults = {
             whisper = false,       -- Flüstern
             whisperWho = nil,      -- Ziel des Flüsterns
             channel = false,       -- Benutzerdefinierter Channel
-            channelName = nil      -- Name des benutzerdefinierten Channels
+            channelName = nil,     -- Name des benutzerdefinierten Channels
+			focus = false		   -- an Focus Schreiben	
         },
 		tooltip = {
             font = "Friz Quadrata TT",
@@ -56,12 +58,35 @@ function QuestAnnounce:LeaveChannel(channelName)
     end
 end
 
--- ToggleChannelLeave-Methode 
+--[[ ToggleChannelLeave-Methode 
 function QuestAnnounce:ToggleChannelLeave(enable, channelName)
     if not enable then
         StaticPopup_Show("CONFIRM_LEAVE_CHANNEL", channelName)
     end
-end
+end --]]
+function QuestAnnounce:ToggleChannelLeave(enable, channelName)
+			if not enable then
+				local dialog = StaticPopup_Show("CONFIRM_LEAVE_CHANNEL", channelName)
+				if dialog then
+					dialog.data = channelName
+				end
+			end
+		end
+
+		StaticPopupDialogs["CONFIRM_LEAVE_CHANNEL"] = {
+			text = "%s Kanal verlassen?",
+			button1 = "Ja",
+			button2 = "Nein",
+			OnAccept = function(self, channelName)
+				LeaveChannelByName(channelName)
+				QuestAnnounce:Print("Verlassen des Kanals: " .. channelName)
+		end,
+			timeout = 0,
+			whileDead = true,
+			hideOnEscape = true,
+			preferredIndex = 3,
+			}
+
 
 
 
@@ -86,149 +111,7 @@ function QuestAnnounce:OnInitialize()
 	
 	
 end
-
-function QuestAnnounce:CreateCustomTooltip()
-    if not self.customTooltip then
-        self.customTooltip = CreateFrame("GameTooltip", "QuestAnnounceTooltip", UIParent, "GameTooltipTemplate")
-        self.customTooltip:SetFrameStrata("TOOLTIP")
-        self.customTooltip:SetClampedToScreen(true)
-
-        -- Entferne alle standardmäßigen Texturen und Regionen, die Teil des Tooltips sein könnten
-        for _, region in ipairs({self.customTooltip:GetRegions()}) do
-            if region:GetObjectType() == "Texture" then
-                region:SetTexture(nil)
-                region:Hide()
-            elseif region:GetObjectType() == "FontString" then
-                -- Lassen Sie die FontStrings sichtbar, wenn benötigt
-            end
-        end
-
-        -- Erstelle benutzerdefinierte Hintergrund- und Rahmentexturen
-        self.customTooltip.bgTexture = self.customTooltip:CreateTexture(nil, "BACKGROUND")
-        self.customTooltip.bgTexture:SetAllPoints(self.customTooltip)
-      --  self.customTooltip.bgTexture:SetColorTexture(0, 0, 0, 0) -- Standard: komplett transparent
-
-     --   self.customTooltip.borderTexture = self.customTooltip:CreateTexture(nil, "BORDER")
-     --   self.customTooltip.borderTexture:SetPoint("TOPLEFT", self.customTooltip, "TOPLEFT", -2, 2)
-     --   self.customTooltip.borderTexture:SetPoint("BOTTOMRIGHT", self.customTooltip, "BOTTOMRIGHT", 2, -2)
-     --   self.customTooltip.borderTexture:SetColorTexture(0, 0, 0, 0) -- Standard: komplett transparent
-    end
-end
-
--- Registrierung um den Tooltip zu Updaten ohne Reload
-function QuestAnnounce:UpdateTooltipBackground()
-   -- if not self.customTooltip or not self.customTooltip.bgTexture or not self.customTooltip.borderTexture then return end
-	if not self.customTooltip then return end
-
-    local bgColor = QuestAnnounce.db.profile.tooltip.bgColor or {0, 0, 0, 0.8}
-    local borderColor = QuestAnnounce.db.profile.tooltip.borderColor or {1, 1, 1, 1}
-
-    -- Setze die Hintergrundfarbe und den Alpha-Wert
-    self.customTooltip.bgTexture:SetColorTexture(bgColor[1], bgColor[2], bgColor[3], bgColor[4])
-    
-    -- Setze die Rahmenfarbe und den Alpha-Wert
-   -- self.customTooltip.borderTexture:SetColorTexture(borderColor[1], borderColor[2], borderColor[3], borderColor[4])
-	    -- Aktualisiert die Schriftart und -größe
-    local font = LSM:Fetch("font", QuestAnnounce.db.profile.tooltip.font)
-    local fontSize = QuestAnnounce.db.profile.tooltip.fontSize
-    local fontColor = QuestAnnounce.db.profile.tooltip.fontColor
-
-end
-
-
---function QuestAnnounce:GetTooltipColors()
---    local bgColor = QuestAnnounce.db.profile.tooltip.bgColor or {0, 0, 0, 0.8}
---    local borderColor = QuestAnnounce.db.profile.tooltip.borderColor or {1, 1, 1}
---    
---    return bgColor, borderColor
---end
-
-
-
-   function QuestAnnounce:InitializeMinimapButton()
-    print("Initialisiere Minimap-Button...")  -- Debugging-Ausgabe
-
-    local MinimapButton = CreateFrame("Button", "QuestAnnounceMinimapButton", Minimap)
-    MinimapButton:SetSize(32, 32)  -- Größe des Buttons
-    MinimapButton:SetFrameStrata("MEDIUM")
-    MinimapButton:SetFrameLevel(8)
-
-    local icon = MinimapButton:CreateTexture(nil, "BACKGROUND")
-    icon:SetTexture("Interface\\AddOns\\QuestAnnounce\\Media\\QA3Icon")  -- Pfad zur gespeicherten Grafik
-    icon:SetSize(28, 28)
-    icon:SetPoint("CENTER")
-
-    MinimapButton:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
-
-	--Anpassung des Minimap-Button Tooltips
-    MinimapButton:SetScript("OnEnter", function(self)
-		-- Sicherstellen, dass LSM verfügbar ist
-        if not LSM then
-            print("LibSharedMedia nicht geladen")
-            return
-        end
-		
-		QuestAnnounce:CreateCustomTooltip()
-		
-		local font = LSM:Fetch("font", QuestAnnounce.db.profile.tooltip.font)
-        local fontSize = QuestAnnounce.db.profile.tooltip.fontSize
-        local fontColor = QuestAnnounce.db.profile.tooltip.fontColor
-		local tooltip = QuestAnnounce.customTooltip
-		
-		tooltip:SetOwner(self, "ANCHOR_LEFT")
-		tooltip:ClearLines()  -- Wichtig, um sicherzustellen, dass alte Zeilen entfernt werden
-	    tooltip:AddLine("Quest Announce 3", fontColor[1], fontColor[2], fontColor[3])
-		tooltip:AddLine(L["Tooltip LeftClick Aktivate/deactivated"], fontColor[1], fontColor[2], fontColor[3])
-        tooltip:AddLine(L["Tooltip Right-click: Open options"], fontColor[1], fontColor[2], fontColor[3])
-
-        -- Schriftart und -größe setzen
-        for i = 1, tooltip:NumLines() do
-            local leftLine = _G["QuestAnnounceTooltipTextLeft" .. i]
-            if leftLine then
-                leftLine:SetFont(font, fontSize)
-				leftLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
-            end
-            rightLine = _G["QuestAnnounceTooltipTextRight" .. i]
-            if rightLine then
-                rightLine:SetFont(font, fontSize)
-				rightLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
-            end
-        end
-		QuestAnnounce:UpdateTooltipBackground()
-		tooltip:Show()
-    end)
-
-    MinimapButton:SetScript("OnLeave", function(self)
-        QuestAnnounce.customTooltip:Hide()
-    end)
-
-MinimapButton:RegisterForClicks("AnyUp")
-
-MinimapButton:SetScript("OnClick", function(self, button)
-    if button == "RightButton" then
-        print("Rechtsklick erkannt auf QuestAnnounceMinimapButton")  -- Debugging-Ausgabe
-        Settings.OpenToCategory("QuestAnnounce")
-    else
-        print("Linksklick erkannt auf QuestAnnounceMinimapButton")  -- Debugging-Ausgabe
-        if QuestAnnounce.db.profile.settings.enable then
-            QuestAnnounce.db.profile.settings.enable = false
-            QuestAnnounce:OnDisable()
-        else
-            QuestAnnounce.db.profile.settings.enable = true
-            QuestAnnounce:OnEnable()
-        end
-    end
-end)
-
-    MinimapButton:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
-
-    print("Minimap-Button erfolgreich erstellt und positioniert.")  -- Debugging-Ausgabe
-
-    MinimapButton:Show()  -- Sicherstellen, dass der Button angezeigt wird
 	
-	
-	
-end
 
 -- Aktivierung des Addons
 function QuestAnnounce:OnEnable()
@@ -265,26 +148,38 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
 	-- Verarbeitung der Nachricht, wenn das Addon aktiviert ist
     if (msg ~= nil) then
         if (settings.enable) then
-            local questText = gsub(msg, QUEST_INFO_REGEX, "%1", 1)
-            QuestAnnounce:SendDebugMsg("Quest Text: "..questText)
-            
-            -- Prüfen, ob die Nachricht Quest-Details enthält
-			if (questText ~= msg) then
-                local ii, jj, strItemName, iNumItems, iNumNeeded = string.find(msg, QUEST_INFO_REGEX)
-                local stillNeeded = iNumNeeded - iNumItems
-                
-                QuestAnnounce:SendDebugMsg("Item Name: "..strItemName.." :: Num Items: "..iNumItems.." :: Num Needed: "..iNumNeeded.." :: Still Need: "..stillNeeded)
+		local questTitle = gsub(msg, QUEST_INFO_REGEX, "%1", 1)
 
-                if(stillNeeded == 0 and settings.every == 0) then
-                    QuestAnnounce:SendMsg(L["Completed: "]..msg)
-                elseif(QuestAnnounce.db.profile.settings.every > 0) then
-                    local every = math.fmod(iNumItems, settings.every)
-                    QuestAnnounce:SendDebugMsg("Every fMod: "..every)
-                
-                    if(every == 0 and stillNeeded > 0) then
-                        QuestAnnounce:SendMsg(L["Progress: "]..msg)
-                    elseif(stillNeeded == 0) then
-                        QuestAnnounce:SendMsg(L["Completed: "]..msg)
+		if questTitle ~= msg then
+		local questID, level = QuestAnnounce:FindQuestByTitle(questTitle)
+
+		local displayTitle	
+		if questID then
+			displayTitle = QuestAnnounce:BuildQuestLink(questID, questTitle, level)
+		else
+			-- Fallback: trotzdem klickbar (kopierbar)
+			displayTitle = string.format("|cffffff00|Hquest:0:0|h[%s]|h|r", questTitle)
+    end
+
+    local newMsg = msg:gsub(questTitle, displayTitle)     -- Danach statt msg → newMsg verwenden
+	
+	
+
+          -- Debug
+            self:SendDebugMsg("Quest: "..questTitle.." :: "..iNumItems.."/"..iNumNeeded)
+
+            -- Logik wie vorher
+            if stillNeeded == 0 and settings.every == 0 then
+                self:SendMsg(L["Completed: "]..newMsg)
+
+            elseif settings.every > 0 then
+                local every = math.fmod(iNumItems, settings.every)
+
+                if every == 0 and stillNeeded > 0 then
+                    self:SendMsg(L["Progress: "]..newMsg)
+
+                elseif stillNeeded == 0 then
+                    self:SendMsg(L["Completed: "]..newMsg)
                     end
                 end
             end
@@ -292,6 +187,26 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
     end
 end
 
+-- Quest Link erstellen
+function QuestAnnounce:BuildQuestLink(questID, title, level)
+    if not self.db.profile.settings.linkQuest then
+        return title
+    end
+
+    level = level or 0
+
+    return string.format("|cffffff00|Hquest:%d:%d|h[%s]|h|r", questID, level, title)
+end
+
+-- Finde Quest anhand des Titels
+function QuestAnnounce:FindQuestByTitle(title)
+    for i = 1, C_QuestLog.GetNumQuestLogEntries() do
+        local info = C_QuestLog.GetInfo(i)
+        if info and info.title == title then
+            return info.questID, info.level
+        end
+    end
+end
 -- Profiländerungs-Callbacks
 function QuestAnnounce:OnProfileChanged(event, db)
     self.db.profile = db.profile
@@ -363,7 +278,16 @@ function QuestAnnounce:SendMsg(msg)
                 
                 QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(OFFICER) :: "..msg)
             end            
-            
+           --Fokus-Target Nachricht
+            if(announceIn.focus) then
+                if UnitExists("focus") then
+					SendChatMessage(msg, "FOCUS")
+					QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(FOCUS) :: "..msg)
+				else
+				QuestAnnounce:Print(L["No focus set, message not sent."])
+				end
+            end 		   
+			
             if(announceIn.whisper) then
                 local who = announceIn.whisperWho
                 if(who ~= nil and who ~= "") then
@@ -389,7 +313,7 @@ function QuestAnnounce:SendMsg(msg)
 				end
             end
         end
-        function QuestAnnounce:ToggleChannelLeave(enable, channelName)
+    --[[    function QuestAnnounce:ToggleChannelLeave(enable, channelName)
 			if not enable then
 				local dialog = StaticPopup_Show("CONFIRM_LEAVE_CHANNEL", channelName)
 				if dialog then
@@ -411,7 +335,7 @@ function QuestAnnounce:SendMsg(msg)
 			hideOnEscape = true,
 			preferredIndex = 3,
 			}
-
+]]--
 		
         if(announceTo.raidWarningFrame) then
             RaidNotice_AddMessage(RaidWarningFrame, msg, ChatTypeInfo["RAID_WARNING"])
