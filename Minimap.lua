@@ -1,17 +1,20 @@
 -- Minimap.lua
----@class QuestAnnounce
-local QuestAnnounce = LibStub("AceAddon-3.0"):GetAddon("QuestAnnounce")
--- Laden erforderlicher Bibliotheken und Lokalisierung
-local L = LibStub("AceLocale-3.0"):GetLocale("QuestAnnounce")
-local LSM = LibStub("LibSharedMedia-3.0") -- Sicherstellen, dass LibSharedMedia geladen ist
+-- Referenz auf das Haupt-Addon und die Lokalisierung
+local QuestAnnounce = _G["QuestAnnounce"]
+local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L["enUS"]
 
 
 -- Funktion zur Erstellung des Minimap-Buttons
 function QuestAnnounce:InitializeMinimapButton()
---local function CreateMinimapButton()  
-	print("Initialisiere Minimap-Button...")  -- Debugging-Ausgabe
+    -- Verhindert, dass der Minimap-Button mehrfach erstellt wird
+    if self.minimapButton then
+        return
+    end
 
-    local MinimapButton = CreateFrame("Button", "QuestAnnounceMinimapButton", Minimap)
+    QuestAnnounce:SendDebugMsg("Initialisiere Minimap-Button...") -- Debugging-Ausgabe
+
+	local MinimapButton = CreateFrame("Button", "QuestAnnounceMinimapButton", Minimap)
+	self.minimapButton = MinimapButton
     MinimapButton:SetSize(32, 32)  -- Größe des Buttons
     MinimapButton:SetFrameStrata("MEDIUM")
     MinimapButton:SetFrameLevel(8)
@@ -35,49 +38,55 @@ function QuestAnnounce:InitializeMinimapButton()
 		end
 	end)
 
-	MinimapButton:SetScript("OnDragStop", function(self)
-		self:StopMovingOrSizing()
+	-- Beendet das Ziehen des Buttons und speichert die neue Position
+    MinimapButton:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
 
-		-- Save the position
-		local point, relativeTo, relativePoint, xOfs, yOfs = self:GetPoint(1)
-		-- Speichere die Position, wobei relativeTo der Name des Frames oder "UIParent" sein kann
-		QuestAnnounce.db.profile.minimapButtonPosition = {
-			point,
-			relativeTo and relativeTo.GetName and relativeTo:GetName() or "Minimap", -- Stelle sicher, dass relativeTo ein Name oder "Minimap" ist
-			relativePoint,
-			xOfs,
-			yOfs
-		}
-	end)
+        -- Aktuelle Position des Buttons auslesen
+        local point, relativeTo, relativePoint, xOfs, yOfs = self:GetPoint(1)
 
-	-- Load the position
-	if QuestAnnounce.db.profile.minimapButtonPosition then
-		MinimapButton:ClearAllPoints()
-		local point, relativeTo, relativePoint, xOfs, yOfs = unpack(QuestAnnounce.db.profile.minimapButtonPosition)
-		if not _G[relativeTo] then
-			relativeTo = "Minimap"  -- Fallback auf Minimap, wenn das gespeicherte Frame nicht existiert
-		end
-	--	MinimapButton:SetPoint(point, _G[relativeTo] or Minimap, relativePoint, xOfs, yOfs) -- Verwende Minimap als Fallback
-	    MinimapButton:SetPoint(point or "TOPLEFT", _G[relativeTo] or Minimap, relativePoint or "TOPLEFT", xOfs or 0, yOfs or 0)
-	else
-    -- Standardposition an der Minimap, falls keine Position gespeichert ist
-		MinimapButton:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 200)
-	end
+        -- Position in der Datenbank speichern
+        QuestAnnounce.db.profile.minimapButtonPosition = {
+            point = point,
+            relativeTo = relativeTo and relativeTo.GetName and relativeTo:GetName() or "Minimap",
+            relativePoint = relativePoint,
+            x = xOfs,
+            y = yOfs,
+        }
+    end)
 
-	--Anpassung des Minimap-Button Tooltips
-    MinimapButton:SetScript("OnEnter", function(self)
-		-- Sicherstellen, dass LSM verfügbar ist
-        if not LSM then
-            print("LibSharedMedia nicht geladen")
-            return
+    -- Gespeicherte Position des Buttons wiederherstellen
+    if QuestAnnounce.db.profile.minimapButtonPosition then
+        MinimapButton:ClearAllPoints()
+
+        local pos = QuestAnnounce.db.profile.minimapButtonPosition
+        local relativeTo = pos.relativeTo
+
+        if not relativeTo or not _G[relativeTo] then
+            relativeTo = "Minimap"
         end
 
-		QuestAnnounce:CreateCustomTooltip()
+        MinimapButton:SetPoint(
+            pos.point or "TOPLEFT",
+            _G[relativeTo] or Minimap,
+            pos.relativePoint or "TOPLEFT",
+            pos.x or 0,
+            pos.y or 0
+        )
+    else
+        -- Standardposition, falls noch nichts gespeichert wurde
+        MinimapButton:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
+    end
 
-		local font = LSM:Fetch("font", QuestAnnounce.db.profile.tooltip.font)
+    -- Anpassung des Minimap-Button-Tooltips
+    MinimapButton:SetScript("OnEnter", function(self)	
+		-- Eigenen Tooltip erzeugen oder wiederverwenden
+        QuestAnnounce:CreateCustomTooltip()
+
+        local font = QuestAnnounce:GetTooltipFontPath(QuestAnnounce.db.profile.tooltip.font)
         local fontSize = QuestAnnounce.db.profile.tooltip.fontSize
         local fontColor = QuestAnnounce.db.profile.tooltip.fontColor
-		local tooltip = QuestAnnounce.customTooltip
+        local tooltip = QuestAnnounce.customTooltip
 
 		tooltip:SetOwner(self, "ANCHOR_LEFT")
 		tooltip:ClearLines()  -- Wichtig, um sicherzustellen, dass alte Zeilen entfernt werden
@@ -95,27 +104,19 @@ function QuestAnnounce:InitializeMinimapButton()
         tooltip:AddLine(L["Addon Status:"] .. addonStatus, fontColor[1], fontColor[2], fontColor[3])
 
 
-        local announceChannel = QuestAnnounce.db.profile.announceChannel or "Standard"
-        tooltip:AddLine(L["Announcement Channel"] .. announceChannel, fontColor[1], fontColor[2], fontColor[3])
+        -- Zeigt vereinfacht an, dass die Kanalwahl über die Einstellungen erfolgt
+        tooltip:AddLine(L["Announcement Channel"] .. ": " .. L["Settings"], fontColor[1], fontColor[2], fontColor[3])
 
-        local soundOnComplete = QuestAnnounce.db.profile.settings.soundOnComplete and "Ja" or "Nein"
-        tooltip:AddLine("Sound bei Abschluss: " .. soundOnComplete, fontColor[1], fontColor[2], fontColor[3])
+        local soundEnabled = QuestAnnounce.db.profile.settings.sound and L["On"] or L["Off"]
+        tooltip:AddLine(L["Sound"] .. ": " .. soundEnabled, fontColor[1], fontColor[2], fontColor[3])
 
-        local tooltipFont = QuestAnnounce.db.profile.tooltip.font or "Standard"
-        tooltip:AddLine(L["Sound"] .. tooltipFont, fontColor[1], fontColor[2], fontColor[3])
+        local tooltipFont = QuestAnnounce.db.profile.tooltip.font or "Friz Quadrata TT"
+        tooltip:AddLine(L["Tooltip Font"] .. ": " .. tooltipFont, fontColor[1], fontColor[2], fontColor[3])
 
         local tooltipFontSize = QuestAnnounce.db.profile.tooltip.fontSize or 12
-        tooltip:AddLine("Tooltip Schriftgröße: " .. tooltipFontSize, fontColor[1], fontColor[2], fontColor[3])
+        tooltip:AddLine(L["Tooltip Font Size"] .. ": " .. tooltipFontSize, fontColor[1], fontColor[2], fontColor[3])
 
-    --[[    local tooltipFontColor = QuestAnnounce.db.profile.tooltip.fontColor or {1, 1, 1}
-        tooltip:AddLine("Tooltip Schriftfarbe: RGB(" .. table.concat(tooltipFontColor, ", ") .. ")", fontColor[1], fontColor[2], fontColor[3])
 
-        local tooltipBgColor = QuestAnnounce.db.profile.tooltip.bgColor or {0, 0, 0, 0.8}
-        tooltip:AddLine("Tooltip Hintergrundfarbe: RGBA(" .. table.concat(tooltipBgColor, ", ") .. ")", fontColor[1], fontColor[2], fontColor[3])
-
-        tooltip:AddLine(L["Tooltip LeftClick Aktivate/deactivated"], fontColor[1], fontColor[2], fontColor[3])
-        tooltip:AddLine(L["Tooltip Right-click: Open options"], fontColor[1], fontColor[2], fontColor[3])
-]]
         -- Schriftart und -größe setzen
         for i = 1, tooltip:NumLines() do
             local leftLine = _G["QuestAnnounceTooltipTextLeft" .. i]
@@ -128,7 +129,7 @@ function QuestAnnounce:InitializeMinimapButton()
                     leftLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
                 end
             end
-            rightLine = _G["QuestAnnounceTooltipTextRight" .. i]
+            local rightLine = _G["QuestAnnounceTooltipTextRight" .. i]
             if rightLine then
                 rightLine:SetFont(font, fontSize)
 				rightLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
@@ -138,35 +139,47 @@ function QuestAnnounce:InitializeMinimapButton()
 		tooltip:Show()
     end)
 
+        -- Versteckt den Tooltip beim Verlassen des Buttons
     MinimapButton:SetScript("OnLeave", function(self)
-        QuestAnnounce.customTooltip:Hide()
+        if QuestAnnounce.customTooltip then
+            QuestAnnounce.customTooltip:Hide()
+        end
     end)
 
 MinimapButton:RegisterForClicks("AnyUp")
 
--- openConfig() definieren
+-- Öffnet das Hauptfenster von QuestAnnounce in den Blizzard-Einstellungen
 local function openConfig()
-    local frame = QuestAnnounce.optionsFrames.QuestAnnounce
-    if not frame then return end
-		Settings.OpenToCategory(frame.name)
-        Settings.OpenToCategory(frame.name) -- Blizzard Bugfix: muss doppelt aufgerufen werden
+    local category = QuestAnnounce.optionsCategory
+    if not category then
+        return
+    end
+
+    Settings.OpenToCategory(category:GetID())
+    Settings.OpenToCategory(category:GetID())
 end
 
-MinimapButton:SetScript("OnClick", function(self, button)
-    if button == "RightButton" then
-        QuestAnnounce:SendDebugMsg(L["Right-click detected on QuestAnnounce MinimapButton Open Menu"])  -- Debugging-Ausgabe
-		openConfig()
-	   else
-        QuestAnnounce:SendDebugMsg(L["Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"])  -- Debugging-Ausgabe
-        if QuestAnnounce.db.profile.settings.enable then
-            QuestAnnounce.db.profile.settings.enable = false
-            QuestAnnounce:OnDisable()
+    -- Reaktion auf Klicks auf den Minimap-Button
+    MinimapButton:SetScript("OnClick", function(self, button)
+        if button == "RightButton" then
+            -- Rechtsklick öffnet das Einstellungsfenster
+            QuestAnnounce:SendDebugMsg(L["Right-click detected on QuestAnnounce MinimapButton Open Menu"])
+            openConfig()
         else
-            QuestAnnounce.db.profile.settings.enable = true
-            QuestAnnounce:OnEnable()
+            -- Linksklick schaltet das Addon nur im Profil an oder aus
+            QuestAnnounce:SendDebugMsg(L["Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"])
+
+            QuestAnnounce.db.profile.settings.enable = not QuestAnnounce.db.profile.settings.enable
+
+            if QuestAnnounce.db.profile.settings.enable then
+                QuestAnnounce:Print(L["QuestAnnounce activated!"])
+                UIErrorsFrame:AddMessage(L["QuestAnnounce activated!"])
+            else
+                QuestAnnounce:Print(L["QuestAnnounce deactivated!"])
+                UIErrorsFrame:AddMessage(L["QuestAnnounce deactivated!"])
+            end
         end
-    end
-end)
+    end)
 
 --    MinimapButton:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
 QuestAnnounce:SendDebugMsg("Minimap button successfully created and positioned.")  -- Debugging-Ausgabe
@@ -174,11 +187,32 @@ QuestAnnounce:SendDebugMsg("Minimap button successfully created and positioned."
     MinimapButton:Show()  -- Sicherstellen, dass der Button angezeigt wird
 end
 
+-- Setzt die gespeicherte Position des Minimap-Buttons auf den Standard zurück
 function QuestAnnounce:ResetMinimapButtonPosition()
-    -- Setze die Position des MinimapButtonms auf die Standardeinstellungen zurück
-    self.db.profile.minimapButtonPosition = { point = "TOPLEFT", relativePoint = "TOPLEFT", x = 0, y = 0 }
-	QuestAnnounceMinimapButton:ClearAllPoints()
-    QuestAnnounceMinimapButton:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
+    self.db.profile.minimapButtonPosition = {
+        point = "TOPLEFT",
+        relativeTo = "Minimap",
+        relativePoint = "TOPLEFT",
+        x = 0,
+        y = 0,
+    }
+
+    if self.minimapButton then
+        self.minimapButton:ClearAllPoints()
+        self.minimapButton:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
+    end
+end
+
+-- Liefert passend zum gespeicherten Schriftnamen den Font-Pfad zurück
+function QuestAnnounce:GetTooltipFontPath(fontName)
+    local fonts = {
+        ["Friz Quadrata TT"] = "Fonts\\FRIZQT__.TTF",
+        ["Arial Narrow"] = "Fonts\\ARIALN.TTF",
+        ["Morpheus"] = "Fonts\\MORPHEUS.ttf",
+        ["Skurri"] = "Fonts\\skurri.ttf",
+    }
+
+    return fonts[fontName] or "Fonts\\FRIZQT__.TTF"
 end
 
 function QuestAnnounce:CreateCustomTooltip()
@@ -209,24 +243,39 @@ function QuestAnnounce:CreateCustomTooltip()
     end
 end
 
--- Registrierung um den Tooltip zu Updaten ohne Reload
+-- Aktualisiert Hintergrund, Schriftart, Schriftgröße und Schriftfarbe des eigenen Tooltips
 function QuestAnnounce:UpdateTooltipBackground()
-   -- if not self.customTooltip or not self.customTooltip.bgTexture or not self.customTooltip.borderTexture then return end
-	if not self.customTooltip then return end
+    if not self.customTooltip or not self.customTooltip.bgTexture then
+        return
+    end
 
-    local bgColor = QuestAnnounce.db.profile.tooltip.bgColor or {0, 0, 0, 0.8}
-    local borderColor = QuestAnnounce.db.profile.tooltip.borderColor or {1, 1, 1, 1}
+    local bgColor = self.db.profile.tooltip.bgColor or {0, 0, 0, 0.8}
+    local font = self:GetTooltipFontPath(self.db.profile.tooltip.font)
+    local fontSize = self.db.profile.tooltip.fontSize or 12
+    local fontColor = self.db.profile.tooltip.fontColor or {1, 1, 1}
 
-    -- Setze die Hintergrundfarbe und den Alpha-Wert
+    -- Hintergrundfarbe aktualisieren
     self.customTooltip.bgTexture:SetColorTexture(bgColor[1], bgColor[2], bgColor[3], bgColor[4])
 
-    -- Setze die Rahmenfarbe und den Alpha-Wert
-   -- self.customTooltip.borderTexture:SetColorTexture(borderColor[1], borderColor[2], borderColor[3], borderColor[4])
-	    -- Aktualisiert die Schriftart und -größe
-    local font = LSM:Fetch("font", QuestAnnounce.db.profile.tooltip.font)
-    local fontSize = QuestAnnounce.db.profile.tooltip.fontSize
-    local fontColor = QuestAnnounce.db.profile.tooltip.fontColor
+    -- Schriftart und Farbe aller Tooltip-Zeilen aktualisieren
+    for i = 1, self.customTooltip:NumLines() do
+        local leftLine = _G["QuestAnnounceTooltipTextLeft" .. i]
+        local rightLine = _G["QuestAnnounceTooltipTextRight" .. i]
 
+        if leftLine then
+            if i == 1 then
+                leftLine:SetFont(font, fontSize + 4)
+            else
+                leftLine:SetFont(font, fontSize)
+            end
+            leftLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
+        end
+
+        if rightLine then
+            rightLine:SetFont(font, fontSize)
+            rightLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
+        end
+    end
 end
 
 
