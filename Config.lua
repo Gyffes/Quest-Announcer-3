@@ -166,58 +166,48 @@ function QuestAnnounce:SetupOptions()
     end)
 
     -- Sound aktivieren / deaktivieren
-    local soundCheckbox = CreateCheckbox(content, L["Sound"], 16, -120, function(self)
+    local soundCheckbox = CreateCheckbox(content, L["Sound"], 220, -90, function(self)
         QuestAnnounce.db.profile.settings.sound = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setSettings: sound :: " .. tostring(QuestAnnounce.db.profile.settings.sound))
     end)
-
+	
+    -- Quest-Links aktivieren / deaktivieren
+    local linkQuestCheckbox = CreateCheckbox(content, L["Enable Quest Links"], 420, -90, function(self)
+        QuestAnnounce.db.profile.settings.linkQuest = self:GetChecked() and true or false
+        QuestAnnounce:SendDebugMsg("setSettings: linkQuest :: " .. tostring(QuestAnnounce.db.profile.settings.linkQuest))
+    end)
     -- Debug-Modus aktivieren / deaktivieren
-    local debugCheckbox = CreateCheckbox(content, L["Debug"], 16, -150, function(self)
+    local debugCheckbox = CreateCheckbox(content, L["Debug"], 130, -120, function(self)
         QuestAnnounce.db.profile.settings.debug = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setSettings: debug :: " .. tostring(QuestAnnounce.db.profile.settings.debug))
     end)
 
-    -- Quest-Links aktivieren / deaktivieren
-    local linkQuestCheckbox = CreateCheckbox(content, L["Enable Quest Links"], 16, -180, function(self)
-        QuestAnnounce.db.profile.settings.linkQuest = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setSettings: linkQuest :: " .. tostring(QuestAnnounce.db.profile.settings.linkQuest))
-    end)
 
 -- Trennlinie zwischen Quest-Link-Einstellung und Fortschritts-Einstellung
 	local separator = content:CreateTexture(nil, "ARTWORK")
 	separator:SetColorTexture(0.5, 0.5, 0.5, 0.6)
-	separator:SetSize(560, 1)
-	separator:SetPoint("TOPLEFT", linkQuestCheckbox, "BOTTOMLEFT", 0, -14)
+	separator:SetHeight(1)
+	separator:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -160)
+	separator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -160)
 
-    -- Text über dem Slider für die Benachrichtigungsfrequenz
-	-- Beschriftung für die Fortschritts-Ankündigung
-	local everyLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-	everyLabel:SetPoint("TOPLEFT", separator, "BOTTOMLEFT", 0, -16)
-	everyLabel:SetText(L["Announce Every"])
 
 	-- Slider für die Anzahl der Fortschrittsmeldungen
+	-- Der Slider sitzt etwas weiter mittig im Fenster
 	local everySlider = CreateFrame("Slider", nil, content, "OptionsSliderTemplate")
-	everySlider:SetPoint("TOPLEFT", everyLabel, "BOTTOMLEFT", 0, -10)
+	everySlider:SetPoint("TOPLEFT", content, "TOPLEFT", 60, -202)
 	everySlider:SetMinMaxValues(0, 100)
 	everySlider:SetValueStep(1)
 	everySlider:SetObeyStepOnDrag(true)
 	everySlider:SetWidth(260)
 	everySlider.Low:SetText("0")
 	everySlider.High:SetText("100")
-	-- everySlider.Text:SetText(L["Announce Every"])
-    
-	everySlider:SetScript("OnValueChanged", function(self, value)
-        local rounded = math.floor(value + 0.5)
-        if QuestAnnounce.db.profile.settings.every ~= rounded then
-            QuestAnnounce.db.profile.settings.every = rounded
-            QuestAnnounce:SendDebugMsg("setSettings: every :: " .. tostring(rounded))
-        end
-    end)
 	
+
 	-- Eingabefeld für numerische Eingabe der Fortschritts-Ankündigung
+	-- Das Feld sitzt rechts neben dem Slider mit etwas Abstand
 	local everyInput = CreateEditBox(content, 60, 20, 0, 0)
 	everyInput:ClearAllPoints()
-	everyInput:SetPoint("TOP", everySlider, "RIGHT", 80, 0)
+	everyInput:SetPoint("LEFT", everySlider, "RIGHT", 28, 0)
 	everyInput:SetSize(70, 20)
 	everyInput:SetNumeric(true)
 	everyInput:SetMaxLetters(3)
@@ -226,6 +216,12 @@ function QuestAnnounce:SetupOptions()
 	local everyInputLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
 	everyInputLabel:SetPoint("BOTTOM", everyInput, "TOP", 0, 6)
 	everyInputLabel:SetText("Wert")
+	
+	-- Beschriftung für die Fortschritts-Ankündigung
+    -- Der Text wird exakt mittig über dem Slider ausgerichtet
+    local everyLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    everyLabel:SetPoint("BOTTOM", everySlider, "TOP", 0, 14)
+    everyLabel:SetText(L["Announce Every"])
 
 	-- Slider und Eingabefeld miteinander synchronisieren
 	everySlider:SetScript("OnValueChanged", function(self, value)
@@ -284,92 +280,101 @@ end)
 	-- Trennlinie über dem Announce-Bereich
 	local separator2 = content:CreateTexture(nil, "ARTWORK")
 	separator2:SetColorTexture(0.5, 0.5, 0.5, 0.6)
-	separator2:SetSize(560, 1)
-	separator2:SetPoint("TOPLEFT", everySlider, "BOTTOMLEFT", 0, -30)
+	separator2:SetHeight(1)
+	separator2:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -250)
+	separator2:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -250)
 
     -- Überschrift für die Ziele der Ausgabe
+        -- Überschrift für die Ziele der Ausgabe
     local announceToHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    announceToHeader:SetPoint("TOPLEFT", everySlider, "BOTTOMLEFT", 0, -60)
+    announceToHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -266)
     announceToHeader:SetText(L["Where do you want to make the announcements?"])
 
     -- Chatfenster-Ausgabe
-    local chatFrameCheckbox = CreateCheckbox(content, L["Chat Frame"], 16, -360, function(self)
+    local chatFrameCheckbox = CreateCheckbox(content, L["Chat Frame"], 16, -300, function(self)
         QuestAnnounce.db.profile.announceTo.chatFrame = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceTo: chatFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.chatFrame))
     end)
 
     -- Raid-Warning-Ausgabe
-    local raidWarningCheckbox = CreateCheckbox(content, L["Raid Warning Frame"], 16, -390, function(self)
+    local raidWarningCheckbox = CreateCheckbox(content, L["Raid Warning Frame"], 220, -300, function(self)
         QuestAnnounce.db.profile.announceTo.raidWarningFrame = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceTo: raidWarningFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.raidWarningFrame))
     end)
 
     -- UIErrorsFrame-Ausgabe
-    local uiErrorsCheckbox = CreateCheckbox(content, L["UI Errors Frame"], 16, -420, function(self)
+    local uiErrorsCheckbox = CreateCheckbox(content, L["UI Errors Frame"], 440, -300, function(self)
         QuestAnnounce.db.profile.announceTo.uiErrorsFrame = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceTo: uiErrorsFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.uiErrorsFrame))
     end)
 
-	-- Trennlinie unter dem Announce-Bereich
-	local separator2 = content:CreateTexture(nil, "ARTWORK")
-	separator2:SetColorTexture(0.5, 0.5, 0.5, 0.6)
-	separator2:SetSize(560, 1)
-	separator2:SetPoint("TOPLEFT", everySlider, "BOTTOMLEFT", 0, -450)
+	-- Trennlinie zwischen Ausgabezielen und Chatkanälen
+	-- Etwas mehr Abstand unter den Ausgabe-Checkboxen
+	local separator3 = content:CreateTexture(nil, "ARTWORK")
+	separator3:SetColorTexture(0.5, 0.5, 0.5, 0.6)
+	separator3:SetHeight(1)
+	separator3:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -348)
+	separator3:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -348)
 	
-    -- Überschrift für die Chatkanäle
+    -- Überschrift für die Chatkanäle linksbündig und näher an den Checkboxen
     local announceInHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    announceInHeader:SetPoint("TOPLEFT", uiErrorsCheckbox, "BOTTOMLEFT", 4, -20)
+    announceInHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -374)
     announceInHeader:SetText(L["What channels do you want to make the announcements?"])
 
-    -- SAY-Kanal
-    local sayCheckbox = CreateCheckbox(content, L["Say"], 16, -490, function(self)
+     -- SAY-Kanal
+    local sayCheckbox = CreateCheckbox(content, L["Say"], 16, -404, function(self)
         QuestAnnounce.db.profile.announceIn.say = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceIn: say :: " .. tostring(QuestAnnounce.db.profile.announceIn.say))
     end)
 
     -- PARTY-Kanal
-    local partyCheckbox = CreateCheckbox(content, L["Party"], 16, -520, function(self)
+    local partyCheckbox = CreateCheckbox(content, L["Party"], 16, -434, function(self)
         QuestAnnounce.db.profile.announceIn.party = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceIn: party :: " .. tostring(QuestAnnounce.db.profile.announceIn.party))
     end)
 
     -- INSTANCE-Kanal
-    local instanceCheckbox = CreateCheckbox(content, L["Instance"], 16, -550, function(self)
+    local instanceCheckbox = CreateCheckbox(content, L["Instance"], 16, -464, function(self)
         QuestAnnounce.db.profile.announceIn.instance = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceIn: instance :: " .. tostring(QuestAnnounce.db.profile.announceIn.instance))
     end)
 
     -- GUILD-Kanal
-    local guildCheckbox = CreateCheckbox(content, L["Guild"], 16, -580, function(self)
+        local guildCheckbox = CreateCheckbox(content, L["Guild"], 220, -464, function(self)
         QuestAnnounce.db.profile.announceIn.guild = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceIn: guild :: " .. tostring(QuestAnnounce.db.profile.announceIn.guild))
     end)
 
     -- OFFICER-Kanal
-    local officerCheckbox = CreateCheckbox(content, L["Officer"], 220, -490, function(self)
+    local officerCheckbox = CreateCheckbox(content, L["Officer"], 220, -404, function(self)
         QuestAnnounce.db.profile.announceIn.officer = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceIn: officer :: " .. tostring(QuestAnnounce.db.profile.announceIn.officer))
     end)
 
     -- Fokusziel als Whisper-Empfänger
-    local focusCheckbox = CreateCheckbox(content, L["Focus"], 220, -520, function(self)
+    local focusCheckbox = CreateCheckbox(content, L["Focus"], 220, -434, function(self)
         QuestAnnounce.db.profile.announceIn.focus = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceIn: focus :: " .. tostring(QuestAnnounce.db.profile.announceIn.focus))
     end)
 
-    -- Whisper-Kanal aktivieren
-    local whisperCheckbox = CreateCheckbox(content, L["Whisper"], 220, -550, function(self)
+    -- WHISPER-Kanal
+    -- Flüstern steht mittig in einer eigenen Zeile
+    local whisperCheckbox = CreateCheckbox(content, L["Whisper"], 16, -494, function(self)
         QuestAnnounce.db.profile.announceIn.whisper = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceIn: whisper :: " .. tostring(QuestAnnounce.db.profile.announceIn.whisper))
     end)
 
     -- Beschriftung für Whisper-Ziel
+    -- Die Beschriftung steht rechts neben der Whisper-Checkbox
     local whisperWhoLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    whisperWhoLabel:SetPoint("TOPLEFT", whisperCheckbox, "BOTTOMLEFT", 4, -12)
+    whisperWhoLabel:SetPoint("LEFT", whisperCheckbox, "RIGHT", 60, 0)
     whisperWhoLabel:SetText(L["Whisper Who"])
 
     -- Eingabefeld für Whisper-Empfänger
-    local whisperWhoBox = CreateEditBox(content, 180, 20, 220, -595)
+    -- Das Feld steht direkt rechts neben der Beschriftung
+    local whisperWhoBox = CreateEditBox(content, 140, 20, 0, 0)
+    whisperWhoBox:ClearAllPoints()
+    whisperWhoBox:SetPoint("LEFT", whisperWhoLabel, "RIGHT", 12, -2)
     whisperWhoBox:SetScript("OnEnterPressed", function(self)
         QuestAnnounce.db.profile.announceIn.whisperWho = self:GetText()
         QuestAnnounce:SendDebugMsg("setAnnounceIn: whisperWho :: " .. tostring(QuestAnnounce.db.profile.announceIn.whisperWho))
@@ -380,8 +385,8 @@ end)
         QuestAnnounce:SendDebugMsg("setAnnounceIn: whisperWho :: " .. tostring(QuestAnnounce.db.profile.announceIn.whisperWho))
     end)
 
-    -- Benutzerdefinierter Chatkanal
-    local channelCheckbox = CreateCheckbox(content, L["Channel"], 420, -470, function(self)
+    -- CHANNEL-Kanal
+    local channelCheckbox = CreateCheckbox(content, L["Channel"], 16, -524, function(self)
         local value = self:GetChecked() and true or false
         QuestAnnounce.db.profile.announceIn.channel = value
         QuestAnnounce:SendDebugMsg("setAnnounceIn: channel :: " .. tostring(value))
@@ -400,12 +405,16 @@ end)
     end)
 
     -- Beschriftung für Kanalname
+    -- Die Beschriftung steht rechts neben der Kanal-Checkbox
     local channelNameLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    channelNameLabel:SetPoint("TOPLEFT", channelCheckbox, "BOTTOMLEFT", 4, -12)
+    channelNameLabel:SetPoint("LEFT", channelCheckbox, "RIGHT", 60, 0)
     channelNameLabel:SetText(L["Channel Name"])
 
-    -- Eingabefeld für benutzerdefinierten Kanalnamen
-    local channelNameBox = CreateEditBox(content, 180, 20, 420, -535)
+    -- Eingabefeld für den benutzerdefinierten Kanalnamen
+    -- Das Feld steht direkt rechts neben der Kanalname-Beschriftung
+    local channelNameBox = CreateEditBox(content, 140, 20, 0, 0)
+    channelNameBox:ClearAllPoints()
+    channelNameBox:SetPoint("LEFT", channelNameLabel, "RIGHT", 12, -2)
     channelNameBox:SetScript("OnEnterPressed", function(self)
         QuestAnnounce.db.profile.announceIn.channelName = self:GetText()
         QuestAnnounce:SendDebugMsg("setAnnounceIn: channelName :: " .. tostring(QuestAnnounce.db.profile.announceIn.channelName))
@@ -417,39 +426,42 @@ end)
     end)
 
     -- Testbutton zum Senden einer Testnachricht
-    local testButton = CreateButton(content, L["Test Frame Messages"], 180, 24, 420, -590, function()
+    -- Der Button sitzt rechts neben der Debug-Checkbox
+    local testButton = CreateButton(content, L["Test Frame Messages"], 180, 24, 340, -120, function()
         QuestAnnounce:SendMsg(L["QuestAnnounce Test Message"])
     end)
 
     -- Aktualisiert alle Werte im Hauptpanel beim Öffnen
-    local function Refreshcontent()
-        if not QuestAnnounce.db or not QuestAnnounce.db.profile then
-            return
-        end
+-- Aktualisiert alle Werte im Hauptfenster beim Öffnen
+local function RefreshGeneralPanel()
+	if not QuestAnnounce.db or not QuestAnnounce.db.profile then
+		return
+	end
 
-        enableCheckbox:SetChecked(QuestAnnounce.db.profile.settings.enable)
-        soundCheckbox:SetChecked(QuestAnnounce.db.profile.settings.sound)
-        debugCheckbox:SetChecked(QuestAnnounce.db.profile.settings.debug)
-        linkQuestCheckbox:SetChecked(QuestAnnounce.db.profile.settings.linkQuest)
-        everySlider:SetValue(QuestAnnounce.db.profile.settings.every or 1)
-		everyInput:SetText(tostring(QuestAnnounce.db.profile.settings.every or 1))
+    enableCheckbox:SetChecked(QuestAnnounce.db.profile.settings.enable)
+    soundCheckbox:SetChecked(QuestAnnounce.db.profile.settings.sound)
+    debugCheckbox:SetChecked(QuestAnnounce.db.profile.settings.debug)
+    linkQuestCheckbox:SetChecked(QuestAnnounce.db.profile.settings.linkQuest)
 
-        chatFrameCheckbox:SetChecked(QuestAnnounce.db.profile.announceTo.chatFrame)
-        raidWarningCheckbox:SetChecked(QuestAnnounce.db.profile.announceTo.raidWarningFrame)
-        uiErrorsCheckbox:SetChecked(QuestAnnounce.db.profile.announceTo.uiErrorsFrame)
+    everySlider:SetValue(QuestAnnounce.db.profile.settings.every or 1)
+    everyInput:SetText(tostring(QuestAnnounce.db.profile.settings.every or 1))
 
-        sayCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.say)
-        partyCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.party)
-        instanceCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.instance)
-        guildCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.guild)
-        officerCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.officer)
-        focusCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.focus)
-        whisperCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.whisper)
-        channelCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.channel)
+    chatFrameCheckbox:SetChecked(QuestAnnounce.db.profile.announceTo.chatFrame)
+    raidWarningCheckbox:SetChecked(QuestAnnounce.db.profile.announceTo.raidWarningFrame)
+    uiErrorsCheckbox:SetChecked(QuestAnnounce.db.profile.announceTo.uiErrorsFrame)
 
-        whisperWhoBox:SetText(QuestAnnounce.db.profile.announceIn.whisperWho or "")
-        channelNameBox:SetText(QuestAnnounce.db.profile.announceIn.channelName or "")
-    end
+    sayCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.say)
+    partyCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.party)
+    instanceCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.instance)
+    guildCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.guild)
+    officerCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.officer)
+    focusCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.focus)
+    whisperCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.whisper)
+    channelCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.channel)
+
+    whisperWhoBox:SetText(QuestAnnounce.db.profile.announceIn.whisperWho or "")
+    channelNameBox:SetText(QuestAnnounce.db.profile.announceIn.channelName or "")
+end
 
     -- Hauptpanel beim Anzeigen aktualisieren
     generalPanel:SetScript("OnShow", RefreshGeneralPanel)
@@ -592,10 +604,9 @@ end)
     -- Tooltip-Panel beim Anzeigen aktualisieren
     tooltipPanel:SetScript("OnShow", RefreshTooltipPanel)
 
-    -- Tooltip-Unterfenster in den Blizzard-Einstellungen registrieren
-    local tooltipCategory = Settings.RegisterCanvasLayoutCategory(tooltipPanel, L["Tooltip Settings"])
-    tooltipCategory:SetParentCategory(generalCategory:GetID())
-    Settings.RegisterAddOnCategory(tooltipCategory)
+	-- Tooltip-Unterfenster als echte Unterkategorie registrieren
+	local tooltipCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, tooltipPanel, L["Tooltip Settings"])
+	Settings.RegisterAddOnCategory(tooltipCategory)
 	
 	-- Speichert optional auch die Tooltip-Kategorie für spätere Nutzung
     self.tooltipOptionsCategory = tooltipCategory
@@ -605,7 +616,7 @@ end)
     SlashCmdList["QUESTANNOUNCE"] = openConfig
 	
 	-- Conten-Höhe
-	content:SetHeight(950) -- ggf. anpassen!
+	content:SetHeight(700) -- ggf. anpassen!
 	
 	-- Scrollbar etwas nach innen:
 	scrollFrame.ScrollBar:SetPoint("TOPLEFT", scrollFrame, "TOPRIGHT", -16, -16)
