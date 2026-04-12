@@ -77,7 +77,7 @@ function QuestAnnounce:SetupOptions()
         return dropdown
     end
 
-     -- Hilfsfunktion: Erstellt einen Button mit Farbvorschau.
+    -- Hilfsfunktion: Erstellt einen Button mit Farbvorschau.
     -- Beim Klick öffnet sich der Blizzard-Farbwähler.
     local function CreateColorButton(parent, text, x, y, onColorChanged)
         local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
@@ -99,17 +99,17 @@ function QuestAnnounce:SetupOptions()
 
             local info = {}
 
-            -- Aktuelle Farbe übernehmen
+            -- Aktuelle Farbe und Transparenz an den Farbpicker übergeben
             info.r = r
             info.g = g
             info.b = b
             info.opacity = 1 - a
             info.hasOpacity = true
 
-            -- Callback bei Änderung
+            -- Wird ausgeführt, wenn Farbe oder Alpha geändert werden
             info.swatchFunc = function()
                 local nr, ng, nb = ColorPickerFrame:GetColorRGB()
-                local na = 1 - OpacitySliderFrame:GetValue()
+                local na = 1 - (ColorPickerFrame:GetColorAlpha() or 0)
 
                 button.r, button.g, button.b, button.a = nr, ng, nb, na
                 button.swatch:SetColorTexture(nr, ng, nb, na)
@@ -119,10 +119,10 @@ function QuestAnnounce:SetupOptions()
                 end
             end
 
-            -- Callback bei Transparenz-Änderung
+            -- Für Transparenz-Änderungen dieselbe Funktion verwenden
             info.opacityFunc = info.swatchFunc
 
-            -- Callback bei Abbrechen
+            -- Wird ausgeführt, wenn der Benutzer abbricht
             info.cancelFunc = function(previousValues)
                 if not previousValues then
                     return
