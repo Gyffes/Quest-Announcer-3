@@ -28,36 +28,184 @@ function QuestAnnounce:SetupOptions()
     -- Tabelle für spätere Referenzen auf Optionsfenster
     self.optionsFrames = {}
 
+    -- ---------------------------------------------------------
+    -- Tooltip-Helfer
+    -- ---------------------------------------------------------
+
+    -- Liefert die aktuell konfigurierten Tooltip-Einstellungen mit Fallbacks
+    local function GetTooltipSettings()
+        local tooltipDB = QuestAnnounce
+            and QuestAnnounce.db
+            and QuestAnnounce.db.profile
+            and QuestAnnounce.db.profile.tooltip
+
+        if not tooltipDB then
+            return {
+                font = "Friz Quadrata TT",
+                fontSize = 12,
+                fontColor = {0.11, 1, 0.3},
+                bgColor = {0, 0, 0, 0.8},
+                borderColor = {0, 0, 0, 0.8},
+            }
+        end
+
+        return {
+            font = tooltipDB.font or "Friz Quadrata TT",
+            fontSize = tooltipDB.fontSize or 12,
+            fontColor = tooltipDB.fontColor or {0.11, 1, 0.3},
+            bgColor = tooltipDB.bgColor or {0, 0, 0, 0.8},
+            borderColor = tooltipDB.borderColor or {0, 0, 0, 0.8},
+        }
+    end
+
+    -- Wendet die gespeicherten Tooltip-Stile auf ein Tooltip-Frame an
+    local function ApplyConfiguredTooltipStyle(tooltip)
+        if not tooltip then
+            return
+        end
+
+        local settings = GetTooltipSettings()
+
+        local font = settings.font
+        local fontSize = settings.fontSize
+        local fontColor = settings.fontColor
+        local bgColor = settings.bgColor
+        local borderColor = settings.borderColor
+
+        -- Hintergrund / Rahmen
+        if tooltip.SetBackdropColor then
+            tooltip:SetBackdropColor(
+                bgColor[1] or 0,
+                bgColor[2] or 0,
+                bgColor[3] or 0,
+                bgColor[4] or 0.8
+            )
+        end
+
+        if tooltip.SetBackdropBorderColor then
+            tooltip:SetBackdropBorderColor(
+                borderColor[1] or 0,
+                borderColor[2] or 0,
+                borderColor[3] or 0,
+                borderColor[4] or 0.8
+            )
+        end
+
+        -- FontObject für die Tooltip-Zeilen aktualisieren
+        local name = tooltip:GetName()
+        if name then
+            for i = 1, 30 do
+                local left = _G[name .. "TextLeft" .. i]
+                local right = _G[name .. "TextRight" .. i]
+
+                if left then
+                    left:SetFont(font, fontSize)
+                    left:SetTextColor(
+                        fontColor[1] or 1,
+                        fontColor[2] or 1,
+                        fontColor[3] or 1
+                    )
+                end
+
+                if right then
+                    right:SetFont(font, fontSize)
+                    right:SetTextColor(
+                        fontColor[1] or 1,
+                        fontColor[2] or 1,
+                        fontColor[3] or 1
+                    )
+                end
+            end
+        end
+    end
+
+    -- Fügt einem UI-Element einen Hover-Tooltip hinzu
+    local function AttachTooltip(widget, title, text)
+        if not widget then
+            return
+        end
+
+        widget:HookScript("OnEnter", function(self)
+            ApplyConfiguredTooltipStyle(GameTooltip)
+
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+
+            local settings = GetTooltipSettings()
+            local fontColor = settings.fontColor or {1, 1, 1}
+
+            GameTooltip:ClearLines()
+            GameTooltip:SetText(
+                title or "",
+                fontColor[1] or 1,
+                fontColor[2] or 1,
+                fontColor[3] or 1
+            )
+
+            if text and text ~= "" then
+                GameTooltip:AddLine(
+                    text,
+                    fontColor[1] or 1,
+                    fontColor[2] or 1,
+                    fontColor[3] or 1,
+                    true
+                )
+            end
+
+            ApplyConfiguredTooltipStyle(GameTooltip)
+            GameTooltip:Show()
+        end)
+
+        widget:HookScript("OnLeave", function()
+            GameTooltip:Hide()
+        end)
+    end
+
+    -- ---------------------------------------------------------
+    -- UI-Helfer
+    -- ---------------------------------------------------------
+
     -- Hilfsfunktion: Erstellt eine Checkbox an einer festen Position
-    local function CreateCheckbox(parent, text, x, y, onClick)
+    local function CreateCheckbox(parent, text, x, y, onClick, tooltipTitle, tooltipText)
         local cb = CreateFrame("CheckButton", nil, parent, "InterfaceOptionsCheckButtonTemplate")
         cb:SetPoint("TOPLEFT", x, y)
         cb.Text:SetText(text)
         cb:SetScript("OnClick", onClick)
+
+        AttachTooltip(cb, tooltipTitle or text, tooltipText)
+        if cb.Text then
+            AttachTooltip(cb.Text, tooltipTitle or text, tooltipText)
+        end
+
         return cb
     end
 
     -- Hilfsfunktion: Erstellt ein Eingabefeld für Texte
-    local function CreateEditBox(parent, width, height, x, y)
+    local function CreateEditBox(parent, width, height, x, y, tooltipTitle, tooltipText)
         local box = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
         box:SetSize(width, height)
         box:SetPoint("TOPLEFT", x, y)
         box:SetAutoFocus(false)
+
+        AttachTooltip(box, tooltipTitle, tooltipText)
+
         return box
     end
 
     -- Hilfsfunktion: Erstellt einen normalen Button
-    local function CreateButton(parent, text, width, height, x, y, onClick)
+    local function CreateButton(parent, text, width, height, x, y, onClick, tooltipTitle, tooltipText)
         local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
         button:SetSize(width, height)
         button:SetPoint("TOPLEFT", x, y)
         button:SetText(text)
         button:SetScript("OnClick", onClick)
+
+        AttachTooltip(button, tooltipTitle or text, tooltipText)
+
         return button
     end
 
     -- Hilfsfunktion: Erstellt ein Dropdown-Menü mit einer Liste von Einträgen
-    local function CreateDropdown(parent, width, x, y, items, onSelect)
+    local function CreateDropdown(parent, width, x, y, items, onSelect, tooltipTitle, tooltipText)
         local dropdown = CreateFrame("Frame", nil, parent, "UIDropDownMenuTemplate")
         dropdown:SetPoint("TOPLEFT", x - 16, y + 10)
         UIDropDownMenu_SetWidth(dropdown, width)
@@ -74,12 +222,14 @@ function QuestAnnounce:SetupOptions()
             end
         end)
 
+        AttachTooltip(dropdown, tooltipTitle, tooltipText)
+
         return dropdown
     end
 
     -- Hilfsfunktion: Erstellt einen Button mit Farbvorschau.
     -- Beim Klick öffnet sich der Blizzard-Farbwähler.
-    local function CreateColorButton(parent, text, x, y, onColorChanged)
+    local function CreateColorButton(parent, text, x, y, onColorChanged, tooltipTitle, tooltipText)
         local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
         button:SetSize(180, 22)
         button:SetPoint("TOPLEFT", x, y)
@@ -144,6 +294,8 @@ function QuestAnnounce:SetupOptions()
             ColorPickerFrame:SetupColorPickerAndShow(info)
         end)
 
+        AttachTooltip(button, tooltipTitle or text, tooltipText)
+
         return button
     end
 
@@ -180,29 +332,67 @@ function QuestAnnounce:SetupOptions()
 	local settingsHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
 	settingsHeader:SetPoint("TOPLEFT", 16, -60)
 	settingsHeader:SetText(L["Settings"])
+	    AttachTooltip(
+        settingsHeader,
+        L["Settings"],
+        L["General settings for QuestAnnounce."]
+    )
 
     -- Addon aktivieren / deaktivieren
-    local enableCheckbox = CreateCheckbox(content, L["Enable"], 16, -90, function(self)
-        QuestAnnounce.db.profile.settings.enable = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setSettings: enable :: " .. tostring(QuestAnnounce.db.profile.settings.enable))
-    end)
+    local enableCheckbox = CreateCheckbox(
+        content,
+        L["Enable"],
+        16,
+        -90,
+        function(self)
+            QuestAnnounce.db.profile.settings.enable = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setSettings: enable :: " .. tostring(QuestAnnounce.db.profile.settings.enable))
+        end,
+        L["Enable"],
+        L["Enable or disable the addon."]
+    )
 
     -- Sound aktivieren / deaktivieren
-    local soundCheckbox = CreateCheckbox(content, L["Sound"], 220, -90, function(self)
-        QuestAnnounce.db.profile.settings.sound = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setSettings: sound :: " .. tostring(QuestAnnounce.db.profile.settings.sound))
-    end)
+    local soundCheckbox = CreateCheckbox(
+        content,
+        L["Sound"],
+        220,
+        -90,
+        function(self)
+            QuestAnnounce.db.profile.settings.sound = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setSettings: sound :: " .. tostring(QuestAnnounce.db.profile.settings.sound))
+        end,
+        L["Sound"],
+        L["Play a sound when a quest message is announced."]
+    )
 	
     -- Quest-Links aktivieren / deaktivieren
-    local linkQuestCheckbox = CreateCheckbox(content, L["Enable Quest Links"], 420, -90, function(self)
-        QuestAnnounce.db.profile.settings.linkQuest = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setSettings: linkQuest :: " .. tostring(QuestAnnounce.db.profile.settings.linkQuest))
-    end)
+    local linkQuestCheckbox = CreateCheckbox(
+        content,
+        L["Enable Quest Links"],
+        420,
+        -90,
+        function(self)
+            QuestAnnounce.db.profile.settings.linkQuest = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setSettings: linkQuest :: " .. tostring(QuestAnnounce.db.profile.settings.linkQuest))
+        end,
+        L["Enable Quest Links"],
+        L["Show quest titles as clickable quest links in announcements."]
+    )
+	
     -- Debug-Modus aktivieren / deaktivieren
-    local debugCheckbox = CreateCheckbox(content, L["Debug"], 130, -120, function(self)
-        QuestAnnounce.db.profile.settings.debug = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setSettings: debug :: " .. tostring(QuestAnnounce.db.profile.settings.debug))
-    end)
+    local debugCheckbox = CreateCheckbox(
+        content,
+        L["Debug"],
+        130,
+        -120,
+        function(self)
+            QuestAnnounce.db.profile.settings.debug = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setSettings: debug :: " .. tostring(QuestAnnounce.db.profile.settings.debug))
+        end,
+        L["Debug"],
+        L["Enable debug messages in the chat frame."]
+    )
 
 
 -- Trennlinie zwischen Quest-Link-Einstellung und Fortschritts-Einstellung
@@ -214,7 +404,6 @@ function QuestAnnounce:SetupOptions()
 
 
 	-- Slider für die Anzahl der Fortschrittsmeldungen
-	-- Der Slider sitzt etwas weiter mittig im Fenster
 	local everySlider = CreateFrame("Slider", nil, content, "OptionsSliderTemplate")
 	everySlider:SetPoint("TOPLEFT", content, "TOPLEFT", 60, -202)
 	everySlider:SetMinMaxValues(0, 100)
@@ -223,11 +412,24 @@ function QuestAnnounce:SetupOptions()
 	everySlider:SetWidth(260)
 	everySlider.Low:SetText("0")
 	everySlider.High:SetText("100")
-	
+	everySlider.Text:SetText("")
+
+    AttachTooltip(
+        everySlider,
+        L["Announce Every"],
+        L["Set how often progress updates should be announced. Value range: 0 to 100."]
+    )
 
 	-- Eingabefeld für numerische Eingabe der Fortschritts-Ankündigung
-	-- Das Feld sitzt rechts neben dem Slider mit etwas Abstand
-	local everyInput = CreateEditBox(content, 60, 20, 0, 0)
+	local everyInput = CreateEditBox(
+        content,
+        60,
+        20,
+        0,
+        0,
+        L["Announce Every"],
+        L["Set how often progress updates should be announced. Value range: 0 to 100."]
+    )
 	everyInput:ClearAllPoints()
 	everyInput:SetPoint("LEFT", everySlider, "RIGHT", 28, 0)
 	everyInput:SetSize(70, 20)
@@ -238,31 +440,42 @@ function QuestAnnounce:SetupOptions()
 	local everyInputLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
 	everyInputLabel:SetPoint("BOTTOM", everyInput, "TOP", 0, 6)
 	everyInputLabel:SetText("Wert")
-	
+
+    AttachTooltip(
+        everyInputLabel,
+        L["Announce Every"],
+        L["Set how often progress updates should be announced. Value range: 0 to 100."]
+    )
+
 	-- Beschriftung für die Fortschritts-Ankündigung
-    -- Der Text wird exakt mittig über dem Slider ausgerichtet
     local everyLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     everyLabel:SetPoint("BOTTOM", everySlider, "TOP", 0, 14)
     everyLabel:SetText(L["Announce Every"])
 
+    AttachTooltip(
+        everyLabel,
+        L["Announce Every"],
+        L["Set how often progress updates should be announced. Value range: 0 to 100."]
+    )
+
 	-- Slider und Eingabefeld miteinander synchronisieren
 	everySlider:SetScript("OnValueChanged", function(self, value)
-	local rounded = math.floor(value + 0.5)
+		local rounded = math.floor(value + 0.5)
 
 		if self:GetValue() ~= rounded then
 			self:SetValue(rounded)
-        return
-    end
+			return
+		end
 
-    if QuestAnnounce.db.profile.settings.every ~= rounded then
-       QuestAnnounce.db.profile.settings.every = rounded
-       QuestAnnounce:SendDebugMsg("setSettings: every :: " .. tostring(rounded))
-    end
+		if QuestAnnounce.db.profile.settings.every ~= rounded then
+			QuestAnnounce.db.profile.settings.every = rounded
+			QuestAnnounce:SendDebugMsg("setSettings: every :: " .. tostring(rounded))
+		end
 
-    if everyInput:GetText() ~= tostring(rounded) then
-        everyInput:SetText(tostring(rounded))
-    end
-end)
+		if everyInput:GetText() ~= tostring(rounded) then
+			everyInput:SetText(tostring(rounded))
+		end
+	end)
 
 	-- Übernimmt den Wert aus dem Eingabefeld beim Drücken von Enter
 	everyInput:SetScript("OnEnterPressed", function(self)
@@ -272,14 +485,14 @@ end)
 			value = 0
 		elseif value > 100 then
 			value = 100
-    end
+		end
 
-    QuestAnnounce.db.profile.settings.every = value
-    everySlider:SetValue(value)
-    self:SetText(tostring(value))
-    self:ClearFocus()
+		QuestAnnounce.db.profile.settings.every = value
+		everySlider:SetValue(value)
+		self:SetText(tostring(value))
+		self:ClearFocus()
 
-    QuestAnnounce:SendDebugMsg("setSettings: every :: " .. tostring(value))
+		QuestAnnounce:SendDebugMsg("setSettings: every :: " .. tostring(value))
 	end)
 
 	-- Übernimmt den Wert auch, wenn das Feld den Fokus verliert
@@ -292,11 +505,11 @@ end)
 			value = 100
 		end
 
-    QuestAnnounce.db.profile.settings.every = value
-    everySlider:SetValue(value)
-    self:SetText(tostring(value))
+		QuestAnnounce.db.profile.settings.every = value
+		everySlider:SetValue(value)
+		self:SetText(tostring(value))
 
-    QuestAnnounce:SendDebugMsg("setSettings: every :: " .. tostring(value))
+		QuestAnnounce:SendDebugMsg("setSettings: every :: " .. tostring(value))
 	end)
 
 	-- Trennlinie über dem Announce-Bereich
@@ -311,24 +524,53 @@ end)
     local announceToHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     announceToHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -266)
     announceToHeader:SetText(L["Where do you want to make the announcements?"])
+    AttachTooltip(
+        announceToHeader,
+        L["Where do you want to make the announcements?"],
+        L["Choose where QuestAnnounce should display messages."]
+    )
 
     -- Chatfenster-Ausgabe
-    local chatFrameCheckbox = CreateCheckbox(content, L["Chat Frame"], 16, -300, function(self)
-        QuestAnnounce.db.profile.announceTo.chatFrame = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setAnnounceTo: chatFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.chatFrame))
-    end)
+    local chatFrameCheckbox = CreateCheckbox(
+        content,
+        L["Chat Frame"],
+        16,
+        -300,
+        function(self)
+            QuestAnnounce.db.profile.announceTo.chatFrame = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setAnnounceTo: chatFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.chatFrame))
+        end,
+        L["Chat Frame"],
+        L["Send announcements to chat channels such as party, guild, whisper, or custom channel."]
+    )
 
     -- Raid-Warning-Ausgabe
-    local raidWarningCheckbox = CreateCheckbox(content, L["Raid Warning Frame"], 220, -300, function(self)
-        QuestAnnounce.db.profile.announceTo.raidWarningFrame = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setAnnounceTo: raidWarningFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.raidWarningFrame))
-    end)
+    local raidWarningCheckbox = CreateCheckbox(
+        content,
+        L["Raid Warning Frame"],
+        220,
+        -300,
+        function(self)
+            QuestAnnounce.db.profile.announceTo.raidWarningFrame = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setAnnounceTo: raidWarningFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.raidWarningFrame))
+        end,
+        L["Raid Warning Frame"],
+        L["Show announcements in the Raid Warning frame."]
+    )
 
     -- UIErrorsFrame-Ausgabe
-    local uiErrorsCheckbox = CreateCheckbox(content, L["UI Errors Frame"], 440, -300, function(self)
-        QuestAnnounce.db.profile.announceTo.uiErrorsFrame = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setAnnounceTo: uiErrorsFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.uiErrorsFrame))
-    end)
+    local uiErrorsCheckbox = CreateCheckbox(
+        content,
+        L["UI Errors Frame"],
+        440,
+        -300,
+        function(self)
+            QuestAnnounce.db.profile.announceTo.uiErrorsFrame = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setAnnounceTo: uiErrorsFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.uiErrorsFrame))
+        end,
+        L["UI Errors Frame"],
+        L["Show announcements in the UI error message area."]
+    )
 
 	-- Trennlinie zwischen Ausgabezielen und Chatkanälen
 	-- Etwas mehr Abstand unter den Ausgabe-Checkboxen
@@ -342,50 +584,125 @@ end)
     local announceInHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     announceInHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -374)
     announceInHeader:SetText(L["What channels do you want to make the announcements?"])
+    AttachTooltip(
+        announceInHeader,
+        L["What channels do you want to make the announcements?"],
+        L["Choose which chat channels QuestAnnounce should use."]
+    )
 
     -- Linke Spalte: Say / Party / Instance
-    local sayCheckbox = CreateCheckbox(content, L["Say"], 16, -404, function(self)
-        QuestAnnounce.db.profile.announceIn.say = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setAnnounceIn: say :: " .. tostring(QuestAnnounce.db.profile.announceIn.say))
-    end)
+    local sayCheckbox = CreateCheckbox(
+        content,
+        L["Say"],
+        16,
+        -404,
+        function(self)
+            QuestAnnounce.db.profile.announceIn.say = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setAnnounceIn: say :: " .. tostring(QuestAnnounce.db.profile.announceIn.say))
+        end,
+        L["Say"],
+        L["Send announcements to the /say channel."]
+    )
 
-    local partyCheckbox = CreateCheckbox(content, L["Party"], 16, -434, function(self)
-        QuestAnnounce.db.profile.announceIn.party = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setAnnounceIn: party :: " .. tostring(QuestAnnounce.db.profile.announceIn.party))
-    end)
+    local partyCheckbox = CreateCheckbox(
+        content,
+        L["Party"],
+        16,
+        -434,
+        function(self)
+            QuestAnnounce.db.profile.announceIn.party = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setAnnounceIn: party :: " .. tostring(QuestAnnounce.db.profile.announceIn.party))
+        end,
+        L["Party"],
+        L["Send announcements to your party chat."]
+    )
 
-    local instanceCheckbox = CreateCheckbox(content, L["Instance"], 16, -464, function(self)
-        QuestAnnounce.db.profile.announceIn.instance = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setAnnounceIn: instance :: " .. tostring(QuestAnnounce.db.profile.announceIn.instance))
-    end)
+    local instanceCheckbox = CreateCheckbox(
+        content,
+        L["Instance"],
+        16,
+        -464,
+        function(self)
+            QuestAnnounce.db.profile.announceIn.instance = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setAnnounceIn: instance :: " .. tostring(QuestAnnounce.db.profile.announceIn.instance))
+        end,
+        L["Instance"],
+        L["Send announcements to the instance chat channel when available."]
+    )
 
     -- Mittlere Spalte: Officer / Focus / Gilde
-    local officerCheckbox = CreateCheckbox(content, L["Officer"], 220, -404, function(self)
-        QuestAnnounce.db.profile.announceIn.officer = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setAnnounceIn: officer :: " .. tostring(QuestAnnounce.db.profile.announceIn.officer))
-    end)
+    local officerCheckbox = CreateCheckbox(
+        content,
+        L["Officer"],
+        220,
+        -404,
+        function(self)
+            QuestAnnounce.db.profile.announceIn.officer = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setAnnounceIn: officer :: " .. tostring(QuestAnnounce.db.profile.announceIn.officer))
+        end,
+        L["Officer"],
+        L["Send announcements to the guild officer chat."]
+    )
 
-    local focusCheckbox = CreateCheckbox(content, L["Focus"], 220, -434, function(self)
-        QuestAnnounce.db.profile.announceIn.focus = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setAnnounceIn: focus :: " .. tostring(QuestAnnounce.db.profile.announceIn.focus))
-    end)
+    local focusCheckbox = CreateCheckbox(
+        content,
+        L["Focus"],
+        220,
+        -434,
+        function(self)
+            QuestAnnounce.db.profile.announceIn.focus = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setAnnounceIn: focus :: " .. tostring(QuestAnnounce.db.profile.announceIn.focus))
+        end,
+        L["Focus"],
+        L["Send announcements as whispers to your current focus target."]
+    )
 
-    local guildCheckbox = CreateCheckbox(content, L["Guild"], 220, -464, function(self)
-        QuestAnnounce.db.profile.announceIn.guild = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setAnnounceIn: guild :: " .. tostring(QuestAnnounce.db.profile.announceIn.guild))
-    end)
+    local guildCheckbox = CreateCheckbox(
+        content,
+        L["Guild"],
+        220,
+        -464,
+        function(self)
+            QuestAnnounce.db.profile.announceIn.guild = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setAnnounceIn: guild :: " .. tostring(QuestAnnounce.db.profile.announceIn.guild))
+        end,
+        L["Guild"],
+        L["Send announcements to guild chat."]
+    )
 
     -- Zeile 4: Flüstern + An wen flüstern + Eingabefeld
-    local whisperCheckbox = CreateCheckbox(content, L["Whisper"], 16, -514, function(self)
-        QuestAnnounce.db.profile.announceIn.whisper = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setAnnounceIn: whisper :: " .. tostring(QuestAnnounce.db.profile.announceIn.whisper))
-    end)
+    local whisperCheckbox = CreateCheckbox(
+        content,
+        L["Whisper"],
+        16,
+        -514,
+        function(self)
+            QuestAnnounce.db.profile.announceIn.whisper = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setAnnounceIn: whisper :: " .. tostring(QuestAnnounce.db.profile.announceIn.whisper))
+        end,
+        L["Whisper"],
+        L["Send announcements as whispers to the character entered in Whisper Who."]
+    )
 
     local whisperWhoLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
     whisperWhoLabel:SetPoint("LEFT", whisperCheckbox, "RIGHT", 180, 0)
     whisperWhoLabel:SetText(L["Whisper Who"])
 
-    local whisperWhoBox = CreateEditBox(content, 150, 20, 0, 0)
+    AttachTooltip(
+        whisperWhoLabel,
+        L["Whisper Who"],
+        L["Enter the name of the character that should receive whisper announcements."]
+    )
+
+    local whisperWhoBox = CreateEditBox(
+        content,
+        150,
+        20,
+        0,
+        0,
+        L["Whisper Who"],
+        L["Enter the name of the character that should receive whisper announcements."]
+    )
     whisperWhoBox:ClearAllPoints()
     whisperWhoBox:SetPoint("LEFT", whisperWhoLabel, "RIGHT", 12, -2)
     whisperWhoBox:SetScript("OnEnterPressed", function(self)
@@ -399,29 +716,51 @@ end)
     end)
 
     -- Zeile 5: Kanal + Kanalname + Eingabefeld
-    local channelCheckbox = CreateCheckbox(content, L["Channel"], 16, -544, function(self)
-        local value = self:GetChecked() and true or false
-        QuestAnnounce.db.profile.announceIn.channel = value
-        QuestAnnounce:SendDebugMsg("setAnnounceIn: channel :: " .. tostring(value))
+    local channelCheckbox = CreateCheckbox(
+        content,
+        L["Channel"],
+        16,
+        -544,
+        function(self)
+            local value = self:GetChecked() and true or false
+            QuestAnnounce.db.profile.announceIn.channel = value
+            QuestAnnounce:SendDebugMsg("setAnnounceIn: channel :: " .. tostring(value))
 
-        if value then
-            if QuestAnnounce.db.profile.announceIn.channelName == "" or not QuestAnnounce.db.profile.announceIn.channelName then
-                StaticPopup_Show("MISSING_CHANNEL_NAME")
+            if value then
+                if QuestAnnounce.db.profile.announceIn.channelName == "" or not QuestAnnounce.db.profile.announceIn.channelName then
+                    StaticPopup_Show("MISSING_CHANNEL_NAME")
+                else
+                    QuestAnnounce:JoinChannel(QuestAnnounce.db.profile.announceIn.channelName)
+                end
             else
-                QuestAnnounce:JoinChannel(QuestAnnounce.db.profile.announceIn.channelName)
+                if QuestAnnounce.db.profile.announceIn.channelName and QuestAnnounce.db.profile.announceIn.channelName ~= "" then
+                    QuestAnnounce:ToggleChannelLeave(false, QuestAnnounce.db.profile.announceIn.channelName)
+                end
             end
-        else
-            if QuestAnnounce.db.profile.announceIn.channelName and QuestAnnounce.db.profile.announceIn.channelName ~= "" then
-                QuestAnnounce:ToggleChannelLeave(false, QuestAnnounce.db.profile.announceIn.channelName)
-            end
-        end
-    end)
+        end,
+        L["Channel"],
+        L["Send announcements to a custom chat channel."]
+    )
 
     local channelNameLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
     channelNameLabel:SetPoint("LEFT", channelCheckbox, "RIGHT", 180, 0)
     channelNameLabel:SetText(L["Channel Name"])
 
-    local channelNameBox = CreateEditBox(content, 150, 20, 0, 0)
+    AttachTooltip(
+        channelNameLabel,
+        L["Channel Name"],
+        L["Enter the name of the custom channel used for announcements."]
+    )
+
+    local channelNameBox = CreateEditBox(
+        content,
+        150,
+        20,
+        0,
+        0,
+        L["Channel Name"],
+        L["Enter the name of the custom channel used for announcements."]
+    )
     channelNameBox:ClearAllPoints()
     channelNameBox:SetPoint("LEFT", channelNameLabel, "RIGHT", 12, -2)
     channelNameBox:SetScript("OnEnterPressed", function(self)
@@ -435,9 +774,19 @@ end)
     end)
 
     -- Testbutton zum Senden einer Testnachricht
-    local testButton = CreateButton(content, L["Test Frame Messages"], 180, 24, 340, -120, function()
-        QuestAnnounce:SendMsg(L["QuestAnnounce Test Message"])
-    end)
+    local testButton = CreateButton(
+        content,
+        L["Test Frame Messages"],
+        180,
+        24,
+        340,
+        -120,
+        function()
+            QuestAnnounce:SendMsg(L["QuestAnnounce Test Message"])
+        end,
+        L["Test Frame Messages"],
+        L["Send a test message using the currently selected output settings."]
+    )
 
     -- Aktualisiert alle Werte im Hauptpanel beim Öffnen
 -- Aktualisiert alle Werte im Hauptfenster beim Öffnen
@@ -472,7 +821,7 @@ local function RefreshGeneralPanel()
 end
 
     -- Hauptpanel beim Anzeigen aktualisieren
-    generalPanel:SetScript("OnShow", RefreshGeneralPanel)
+    generalPanel:HookScript("OnShow", RefreshGeneralPanel)
 
     -- Hauptpanel in den Blizzard-Einstellungen registrieren
     local generalCategory = Settings.RegisterCanvasLayoutCategory(generalPanel, "QuestAnnounce")
@@ -486,7 +835,7 @@ end
     -- =========================================================
     local tooltipPanel = CreateFrame("Frame")
 
-       -- Titel des Tooltip-Unterfensters
+    -- Titel des Tooltip-Unterfensters
     local tooltipTitle = tooltipPanel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
     tooltipTitle:SetPoint("TOPLEFT", 16, -16)
     tooltipTitle:SetText(L["Tooltip Settings"])
@@ -498,10 +847,20 @@ end
     tooltipSubtitle:SetJustifyH("LEFT")
     tooltipSubtitle:SetText(L["Settings to customize the tooltip appearance"])
 
+    -- Einheitliche Breite und Höhe für Tooltip-Buttons
+    local tooltipButtonWidth = 260
+    local tooltipButtonHeight = 24
+
     -- Beschriftung für Tooltip-Schriftart
     local tooltipFontLabel = tooltipPanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     tooltipFontLabel:SetPoint("TOPLEFT", tooltipSubtitle, "BOTTOMLEFT", 4, -20)
     tooltipFontLabel:SetText(L["Tooltip Font"])
+	
+	AttachTooltip(
+        tooltipFontLabel,
+        L["Tooltip Font"],
+        L["Select the font used for QuestAnnounce tooltips."]
+    )
 
     -- Liste der auswählbaren Tooltip-Schriften
     local tooltipFonts = {
@@ -512,12 +871,21 @@ end
     }
 
     -- Dropdown zur Auswahl der Tooltip-Schriftart
-    local tooltipFontDropdown = CreateDropdown(tooltipPanel, 180, 16, -90, tooltipFonts, function(value)
-        QuestAnnounce.db.profile.tooltip.font = value
-        if QuestAnnounce.UpdateTooltipBackground then
-            QuestAnnounce:UpdateTooltipBackground()
-        end
-    end)
+    local tooltipFontDropdown = CreateDropdown(
+        tooltipPanel,
+        180,
+        16,
+        -90,
+        tooltipFonts,
+        function(value)
+            QuestAnnounce.db.profile.tooltip.font = value
+            if QuestAnnounce.UpdateTooltipBackground then
+                QuestAnnounce:UpdateTooltipBackground()
+            end
+        end,
+        L["Tooltip Font"],
+        L["Select the font used for QuestAnnounce tooltips."]
+    )
 
     -- Beschriftung für Tooltip-Schriftgröße
     local tooltipFontSizeLabel = tooltipPanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
@@ -543,89 +911,149 @@ end
             end
         end
     end)
+	
+	    AttachTooltip(
+        tooltipFontSizeSlider,
+        L["Tooltip Font Size"],
+        L["Set the font size used for QuestAnnounce tooltips."]
+    )
 
-    -- Einheitliche Breite für alle Tooltip-Buttons
-    local tooltipButtonWidth = 260
-    local tooltipButtonHeight = 24
+    AttachTooltip(
+        tooltipFontSizeLabel,
+        L["Tooltip Font Size"],
+        L["Set the font size used for QuestAnnounce tooltips."]
+    )
 
     -- Button zum Ändern der Tooltip-Schriftfarbe
-    local tooltipFontColorButton = CreateColorButton(tooltipPanel, L["Tooltip Font Color"], 16, -180, function(r, g, b)
-        QuestAnnounce.db.profile.tooltip.fontColor = {r, g, b}
-        if QuestAnnounce.UpdateTooltipBackground then
-            QuestAnnounce:UpdateTooltipBackground()
-        end
-    end)
-    tooltipFontColorButton:SetSize(tooltipButtonWidth, 22)
+    local tooltipFontColorButton = CreateColorButton(
+        tooltipPanel,
+        L["Tooltip Font Color"],
+        16,
+        -180,
+        function(r, g, b)
+            QuestAnnounce.db.profile.tooltip.fontColor = {r, g, b}
+            if QuestAnnounce.UpdateTooltipBackground then
+                QuestAnnounce:UpdateTooltipBackground()
+            end
+        end,
+        L["Tooltip Font Color"],
+        L["Choose the font color used for QuestAnnounce tooltips."]
+    )
+    tooltipFontColorButton:SetSize(tooltipButtonWidth, tooltipButtonHeight)
 
     -- Button zum Ändern der Tooltip-Hintergrundfarbe
-    local tooltipBgColorButton = CreateColorButton(tooltipPanel, L["Tooltip Background Color"], 320, -180, function(r, g, b, a)
-        QuestAnnounce.db.profile.tooltip.bgColor = {r, g, b, a}
-        if QuestAnnounce.UpdateTooltipBackground then
-            QuestAnnounce:UpdateTooltipBackground()
-        end
-    end)
-    tooltipBgColorButton:SetSize(tooltipButtonWidth, 22)
+    local tooltipBgColorButton = CreateColorButton(
+        tooltipPanel,
+        L["Tooltip Background Color"],
+        320,
+        -180,
+        function(r, g, b, a)
+            QuestAnnounce.db.profile.tooltip.bgColor = {r, g, b, a}
+            if QuestAnnounce.UpdateTooltipBackground then
+                QuestAnnounce:UpdateTooltipBackground()
+            end
+        end,
+        L["Tooltip Background Color"],
+        L["Choose the background color and transparency used for QuestAnnounce tooltips."]
+    )
+    tooltipBgColorButton:SetSize(tooltipButtonWidth, tooltipButtonHeight)
 
-    -- Button zum Zurücksetzen aller Tooltip-Einstellungen auf Standardwerte
-    local tooltipResetButton = CreateButton(tooltipPanel, L["Reset Tooltip Settings"], tooltipButtonWidth, tooltipButtonHeight, 16, -220, function()
-        QuestAnnounce.db.profile.tooltip.font = "Friz Quadrata TT"
-        QuestAnnounce.db.profile.tooltip.fontSize = 12
-        QuestAnnounce.db.profile.tooltip.fontColor = {0.11, 1, 0.3}
-        QuestAnnounce.db.profile.tooltip.bgColor = {0, 0, 0, 0.8}
-        QuestAnnounce.db.profile.tooltip.borderColor = {0, 0, 0, 0.8}
-
-        if QuestAnnounce.UpdateTooltipBackground then
-            QuestAnnounce:UpdateTooltipBackground()
-        end
-
-        local onShow = tooltipPanel:GetScript("OnShow")
-        if onShow then
-            onShow(tooltipPanel)
-        end
-    end)
-
-    -- Button zum Zurücksetzen der Minimap-Button-Position
-    local resetMinimapButton = CreateButton(tooltipPanel, L["Reset Minimap Button Position"], tooltipButtonWidth, tooltipButtonHeight, 320, -220, function()
-        if QuestAnnounce.ResetMinimapButtonPosition then
-            QuestAnnounce:ResetMinimapButtonPosition()
-        end
-    end)   
-   
-   
-   
+    -- Vorwärtsdeklaration für spätere Nutzung im Reset-Button
+    local RefreshTooltipPanel
 
     -- Aktualisiert alle Werte im Tooltip-Panel beim Öffnen
-    local function RefreshTooltipPanel()
-        if not QuestAnnounce.db or not QuestAnnounce.db.profile then
+    -- Dadurch werden gespeicherte Schriftarten, Größen und Farben korrekt
+    -- aus der Datenbank in die sichtbaren UI-Elemente übernommen.
+    RefreshTooltipPanel = function()
+        if not QuestAnnounce.db or not QuestAnnounce.db.profile or not QuestAnnounce.db.profile.tooltip then
             return
         end
 
-        UIDropDownMenu_SetSelectedName(tooltipFontDropdown, QuestAnnounce.db.profile.tooltip.font or "Friz Quadrata TT")
-        tooltipFontSizeSlider:SetValue(QuestAnnounce.db.profile.tooltip.fontSize or 12)
+        local tooltipDB = QuestAnnounce.db.profile.tooltip
 
-        local fontColor = QuestAnnounce.db.profile.tooltip.fontColor or {0.11, 1, 0.3}
-        tooltipFontColorButton.r = fontColor[1]
-        tooltipFontColorButton.g = fontColor[2]
-        tooltipFontColorButton.b = fontColor[3]
+        -- Gespeicherte Schriftart im Dropdown anzeigen
+        UIDropDownMenu_SetSelectedName(tooltipFontDropdown, tooltipDB.font or "Friz Quadrata TT")
+
+        -- Gespeicherte Schriftgröße im Slider anzeigen
+        tooltipFontSizeSlider:SetValue(tooltipDB.fontSize or 12)
+
+        -- Gespeicherte Schriftfarbe in den Farbbutton übernehmen
+        local fontColor = tooltipDB.fontColor or {0.11, 1, 0.3}
+        tooltipFontColorButton.r = fontColor[1] or 0.11
+        tooltipFontColorButton.g = fontColor[2] or 1
+        tooltipFontColorButton.b = fontColor[3] or 0.3
         tooltipFontColorButton.a = 1
-        tooltipFontColorButton.swatch:SetColorTexture(fontColor[1], fontColor[2], fontColor[3], 1)
+        tooltipFontColorButton.swatch:SetColorTexture(
+            tooltipFontColorButton.r,
+            tooltipFontColorButton.g,
+            tooltipFontColorButton.b,
+            1
+        )
 
-        local bgColor = QuestAnnounce.db.profile.tooltip.bgColor or {0, 0, 0, 0.8}
-        tooltipBgColorButton.r = bgColor[1]
-        tooltipBgColorButton.g = bgColor[2]
-        tooltipBgColorButton.b = bgColor[3]
+        -- Gespeicherte Hintergrundfarbe in den Farbbutton übernehmen
+        local bgColor = tooltipDB.bgColor or {0, 0, 0, 0.8}
+        tooltipBgColorButton.r = bgColor[1] or 0
+        tooltipBgColorButton.g = bgColor[2] or 0
+        tooltipBgColorButton.b = bgColor[3] or 0
         tooltipBgColorButton.a = bgColor[4] or 0.8
-        tooltipBgColorButton.swatch:SetColorTexture(bgColor[1], bgColor[2], bgColor[3], bgColor[4] or 0.8)
+        tooltipBgColorButton.swatch:SetColorTexture(
+            tooltipBgColorButton.r,
+            tooltipBgColorButton.g,
+            tooltipBgColorButton.b,
+            tooltipBgColorButton.a
+        )
     end
 
-    -- Tooltip-Panel beim Anzeigen aktualisieren
-    tooltipPanel:SetScript("OnShow", RefreshTooltipPanel)
+    -- Button zum Zurücksetzen aller Tooltip-Einstellungen auf Standardwerte
+    local tooltipResetButton = CreateButton(
+        tooltipPanel,
+        L["Reset Tooltip Settings"],
+        tooltipButtonWidth,
+        tooltipButtonHeight,
+        16,
+        -220,
+        function()
+            QuestAnnounce.db.profile.tooltip.font = "Friz Quadrata TT"
+            QuestAnnounce.db.profile.tooltip.fontSize = 12
+            QuestAnnounce.db.profile.tooltip.fontColor = {0.11, 1, 0.3}
+            QuestAnnounce.db.profile.tooltip.bgColor = {0, 0, 0, 0.8}
+            QuestAnnounce.db.profile.tooltip.borderColor = {0, 0, 0, 0.8}
 
-	-- Tooltip-Unterfenster als echte Unterkategorie registrieren
-	local tooltipCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, tooltipPanel, L["Tooltip Settings"])
-	Settings.RegisterAddOnCategory(tooltipCategory)
-	
-	-- Speichert optional auch die Tooltip-Kategorie für spätere Nutzung
+            if QuestAnnounce.UpdateTooltipBackground then
+                QuestAnnounce:UpdateTooltipBackground()
+            end
+
+            RefreshTooltipPanel()
+        end,
+        L["Reset Tooltip Settings"],
+        L["Reset all tooltip appearance settings to their default values."]
+    )
+
+    -- Button zum Zurücksetzen der Minimap-Button-Position
+    local resetMinimapButton = CreateButton(
+        tooltipPanel,
+        L["Reset Minimap Button Position"],
+        tooltipButtonWidth,
+        tooltipButtonHeight,
+        320,
+        -220,
+        function()
+            if QuestAnnounce.ResetMinimapButtonPosition then
+                QuestAnnounce:ResetMinimapButtonPosition()
+            end
+        end,
+        L["Reset Minimap Button Position"],
+        L["Reset the minimap button to its default position."]
+    )
+
+    -- Tooltip-Panel beim Anzeigen aktualisieren
+    tooltipPanel:HookScript("OnShow", RefreshTooltipPanel)
+
+    -- Tooltip-Unterfenster als echte Unterkategorie registrieren
+    local tooltipCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, tooltipPanel, L["Tooltip Settings"])
+    Settings.RegisterAddOnCategory(tooltipCategory)
+
+    -- Speichert optional auch die Tooltip-Kategorie für spätere Nutzung
     self.tooltipOptionsCategory = tooltipCategory
 
     -- Slash-Befehl /qa registrieren, um die Einstellungen zu öffnen
@@ -639,6 +1067,8 @@ end
 	scrollFrame.ScrollBar:SetPoint("TOPLEFT", scrollFrame, "TOPRIGHT", -16, -16)
 	scrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", scrollFrame, "BOTTOMRIGHT", -16, 16)
 	
+	RefreshGeneralPanel()
+	RefreshTooltipPanel()
 end
 
 

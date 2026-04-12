@@ -2,6 +2,7 @@
 QuestAnnounce = CreateFrame("Frame")
 QuestAnnounce.events = {}
 QuestAnnounce.questCache = {}
+QuestAnnounce.objectiveCache = {}
 QuestAnnounce.lastMessage = nil
 
 local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L["enUS"]
@@ -88,7 +89,26 @@ StaticPopupDialogs["CONFIRM_LEAVE_CHANNEL"] = {
     preferredIndex = 3,
 }
 
+-- Führt einen rekursiven Merge von Standardwerten in eine vorhandene Tabelle durch.
+-- Bereits vorhandene Werte bleiben erhalten.
+local function DeepMergeDefaults(target, defaults)
+    if type(target) ~= "table" then
+        target = {}
+    end
 
+    for key, value in pairs(defaults) do
+        if type(value) == "table" then
+            if type(target[key]) ~= "table" then
+                target[key] = {}
+            end
+            DeepMergeDefaults(target[key], value)
+        elseif target[key] == nil then
+            target[key] = value
+        end
+    end
+
+    return target
+end
 
 
 --[[ Initialisierung des Addons ]]--
@@ -96,25 +116,15 @@ function QuestAnnounce:Initialize()
 QuestAnnounceDB = QuestAnnounceDB or {} -- Gespeicherte Datenbank initialisieren
 
     if not QuestAnnounceDB.profile then
-        QuestAnnounceDB.profile = {}
-    end
+    QuestAnnounceDB.profile = {}
+	end
 
-    -- Defaults sauber mergen
-    for k, v in pairs(defaults.profile) do
-        if QuestAnnounceDB.profile[k] == nil then
-            if type(v) == "table" then
-                QuestAnnounceDB.profile[k] = {}
-                for k2, v2 in pairs(v) do
-                    QuestAnnounceDB.profile[k][k2] = v2
-                end
-            else
-                QuestAnnounceDB.profile[k] = v
-            end
-        end
-    end
+	-- Fehlende Standardwerte rekursiv ergänzen, vorhandene Werte behalten
+	DeepMergeDefaults(QuestAnnounceDB.profile, defaults.profile)
 
     self.db = QuestAnnounceDB
-    self:BuildQuestCache()
+	
+	self:BuildQuestCache()
 	self:SetupOptions() 																-- Einrichten der Optionen
 	
 	if self.InitializeMinimapButton then
@@ -150,28 +160,116 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
 
 end)
 
--- cache Builder Funktion
+-- ==============================
+-- Quest- und Objective-Cache Builder (ROBUST)
+-- ==============================
 function QuestAnnounce:BuildQuestCache()
-
     wipe(self.questCache)
+    wipe(self.objectiveCache)
 
-    for i = 1, C_QuestLog.GetNumQuestLogEntries() do
+    local questCount = 0
+    local objectiveCount = 0
+    local numEntries = C_QuestLog.GetNumQuestLogEntries()
+
+    for i = 1, numEntries do
         local info = C_QuestLog.GetInfo(i)
 
-        if info and info.title then
-            self.questCache[info.title] = {
+        if info and info.title and info.questID and not info.isHeader then
+            local normalizedTitle = self:NormalizeQuestTitle(info.title)
+
+            self.questCache[normalizedTitle] = {
                 questID = info.questID,
                 level = info.level,
-                index = i
+                index = i,
+                title = info.title,
             }
+            questCount = questCount + 1
+
+            local objectives = C_QuestLog.GetQuestObjectives(info.questID)
+            if objectives then
+                for _, objective in ipairs(objectives) do
+                    if objective and objective.text and objective.text ~= "" then
+                        local normalizedObjective = self:NormalizeQuestTitle(objective.text)
+
+                        self.objectiveCache[normalizedObjective] = {
+                            questID = info.questID,
+                            level = info.level,
+                            index = i,
+                            title = info.title,
+                            objectiveText = objective.text,
+                        }
+                        objectiveCount = objectiveCount + 1
+                    end
+                end
+            end
         end
     end
 
+    self:SendDebugMsg("QuestCache rebuilt. Quests: " .. tostring(questCount) .. " / Objectives: " .. tostring(objectiveCount))
 end
 
 function QuestAnnounce:Print(msg)
     DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99QuestAnnounce|r: " .. msg)
 end	
+
+-- ==============================
+-- Quest Link Helper Funktionen
+-- ==============================
+
+-- ==============================
+-- Text-Normalisierung für Questtitel und Objectives
+-- ==============================
+function QuestAnnounce:NormalizeQuestTitle(title)
+    if not title then
+        return nil
+    end
+
+    title = tostring(title):lower()
+
+    -- führende / nachgestellte Leerzeichen entfernen
+    title = title:gsub("^%s*(.-)%s*$", "%1")
+
+    -- mehrfache Leerzeichen vereinheitlichen
+    title = title:gsub("%s+", " ")
+
+    -- Objective-Zähler am Ende entfernen, z. B.:
+    -- "Späher der Nordwacht getötet: 0/5"
+    -- "Kaktusapfel 1/6"
+    title = title:gsub("%s*:%s*[-%d]+%s*/%s*[-%d]+$", "")
+    title = title:gsub("%s+[-%d]+%s*/%s*[-%d]+$", "")
+
+    -- trailing Doppelpunkte / Leerzeichen entfernen
+    title = title:gsub("%s*:%s*$", "")
+    title = title:gsub("^%s*(.-)%s*$", "%1")
+
+    return title
+end
+
+function QuestAnnounce:BuildLocalQuestAddonLink(questID, title)
+    if not questID or not title or title == "" then
+        return title or ""
+    end
+
+    return string.format("|cffffff00|Haddon:QuestAnnounce:quest:%d|h[%s]|h|r", questID, title)
+end
+
+function QuestAnnounce:GetOfficialQuestLink(questID, fallbackTitle)
+    if not questID or questID == 0 then
+        return fallbackTitle or ""
+    end
+
+    local questLink = C_QuestLog.GetQuestLink and C_QuestLog.GetQuestLink(questID) or GetQuestLink(questID)
+    return questLink or fallbackTitle or ""
+end
+
+function QuestAnnounce:GetWowheadQuestURL(questID)
+    if not questID or questID == 0 then
+        return nil
+    end
+
+	-- Retail-/deDE-kompatibel genug; bei Bedarf später Region/Locale dynamisch machen
+    return string.format("https://www.wowhead.com/quest=%d", questID)
+end
 
 --[[ QuestAnnounce ZeichenTabelle Chinese / Regex zum Erfassen von Questinformationen, abhängig von der Spielregion]]--
 local QUEST_INFO_REGEX
@@ -204,27 +302,31 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
         return
     end
 
-    local questID, level = QuestAnnounce:FindQuestByTitle(questTitle)
+	local questID, level, realQuestTitle, cachedIndex = QuestAnnounce:FindQuestByTitle(questTitle)
 
-    local displayTitle
+	self:SendDebugMsg("questTitle :: " .. tostring(questTitle))
+	self:SendDebugMsg("realQuestTitle :: " .. tostring(realQuestTitle))
+	self:SendDebugMsg("questID :: " .. tostring(questID))
+	self:SendDebugMsg("questLink :: " .. tostring(questID and (C_QuestLog.GetQuestLink and C_QuestLog.GetQuestLink(questID) or GetQuestLink(questID)) or nil))
 
-    if questID then
-        displayTitle = QuestAnnounce:BuildQuestLink(questID, questTitle, level)
-    else
-        displayTitle = string.format("|cffffff00|Hquest:0:0|h[%s]|h|r", questTitle)
-    end
+	local linkTitle = realQuestTitle or questTitle
+	local displayTitle = QuestAnnounce:BuildQuestLink(questID, linkTitle, level)
 
-    local newMsg = msg:gsub(questTitle, displayTitle, 1)
+	local escapedQuestTitle = questTitle:gsub("([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1")
+	local newMsg = msg:gsub(escapedQuestTitle, displayTitle, 1)
 
-    -- QuestLog Lookup (OPTIMIZED)
-    local logIndex
-    local numEntries = C_QuestLog.GetNumQuestLogEntries()
+    -- QuestLog Lookup
+    local logIndex = cachedIndex
 
-    for i = 1, numEntries do
-        local info = C_QuestLog.GetInfo(i)
-        if info and info.title == questTitle then
-            logIndex = i
-            break
+    if not logIndex then
+        local numEntries = C_QuestLog.GetNumQuestLogEntries()
+
+        for i = 1, numEntries do
+            local info = C_QuestLog.GetInfo(i)
+            if info and info.questID == questID then
+                logIndex = i
+                break
+            end
         end
     end
 
@@ -248,28 +350,63 @@ end
 
 
 
--- Quest Link erstellen
 function QuestAnnounce:BuildQuestLink(questID, title, level)
-    if not self.db.profile.settings.linkQuest then
+    if not title or title == "" then
+        return ""
+    end
+
+    if not self.db or not self.db.profile or not self.db.profile.settings or not self.db.profile.settings.linkQuest then
         return title
     end
 
-    level = level or 0
-
-    return string.format("|cffffff00|Hquest:%d:%d|h[%s]|h|r", questID, level, title)
-end
-
--- Finde Quest anhand des Titels
-function QuestAnnounce:FindQuestByTitle(title)
-
-    local data = self.questCache[title]
-
-    if data then
-        return data.questID, data.level
+    if not questID or questID == 0 then
+        return title
     end
 
+    local questLink = C_QuestLog.GetQuestLink and C_QuestLog.GetQuestLink(questID) or GetQuestLink(questID)
+
+    if questLink and questLink ~= "" then
+        return questLink
+    end
+
+    return title
 end
 
+-- ==============================
+-- Questsuche über Titel und Objectives
+-- ==============================
+function QuestAnnounce:FindQuestByTitle(title)
+    local normalizedTitle = self:NormalizeQuestTitle(title)
+    if not normalizedTitle then
+        return
+    end
+
+    -- 1. Exakter Titel-Treffer
+    local questData = self.questCache[normalizedTitle]
+    if questData then
+        self:SendDebugMsg("Quest found by TITLE :: " .. tostring(title))
+        return questData.questID, questData.level, questData.title, questData.index
+    end
+
+    -- 2. Exakter Objective-Treffer
+    local objectiveData = self.objectiveCache[normalizedTitle]
+    if objectiveData then
+        self:SendDebugMsg("Quest found by OBJECTIVE :: " .. tostring(title) .. " -> " .. tostring(objectiveData.title))
+        return objectiveData.questID, objectiveData.level, objectiveData.title, objectiveData.index
+    end
+
+    -- 3. Fallback: unscharfer Vergleich über Objectives
+    for normalizedObjective, data in pairs(self.objectiveCache) do
+        if normalizedObjective == normalizedTitle
+            or normalizedObjective:find(normalizedTitle, 1, true)
+            or normalizedTitle:find(normalizedObjective, 1, true) then
+            self:SendDebugMsg("Quest found by OBJECTIVE FALLBACK :: " .. tostring(title) .. " -> " .. tostring(data.title))
+            return data.questID, data.level, data.title, data.index
+        end
+    end
+
+    self:SendDebugMsg("Quest NOT FOUND in title/objective cache :: " .. tostring(title))
+end
 
 --[[ Sends a debugging message if debug is enabled and we have a message to send ]]--
 function QuestAnnounce:SendDebugMsg(msg)
