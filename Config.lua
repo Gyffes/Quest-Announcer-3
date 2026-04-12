@@ -77,7 +77,7 @@ function QuestAnnounce:SetupOptions()
         return dropdown
     end
 
-    -- Hilfsfunktion: Erstellt einen Button mit Farbvorschau.
+     -- Hilfsfunktion: Erstellt einen Button mit Farbvorschau.
     -- Beim Klick öffnet sich der Blizzard-Farbwähler.
     local function CreateColorButton(parent, text, x, y, onColorChanged)
         local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
@@ -89,37 +89,59 @@ function QuestAnnounce:SetupOptions()
         button.swatch = button:CreateTexture(nil, "ARTWORK")
         button.swatch:SetSize(16, 16)
         button.swatch:SetPoint("RIGHT", button, "RIGHT", -6, 0)
+        button.swatch:SetColorTexture(1, 1, 1, 1)
 
         button:SetScript("OnClick", function()
-            local r, g, b, a = button.r or 1, button.g or 1, button.b or 1, button.a or 1
+            local r = button.r or 1
+            local g = button.g or 1
+            local b = button.b or 1
+            local a = button.a or 1
 
-            ColorPickerFrame:Hide()
-            ColorPickerFrame.hasOpacity = (a ~= nil)
-            ColorPickerFrame.opacity = 1 - a
-            ColorPickerFrame.previousValues = {r, g, b, a}
+            local info = {}
 
-            -- Wird ausgeführt, wenn eine neue Farbe ausgewählt wird
-            ColorPickerFrame.func = function()
+            -- Aktuelle Farbe übernehmen
+            info.r = r
+            info.g = g
+            info.b = b
+            info.opacity = 1 - a
+            info.hasOpacity = true
+
+            -- Callback bei Änderung
+            info.swatchFunc = function()
                 local nr, ng, nb = ColorPickerFrame:GetColorRGB()
                 local na = 1 - OpacitySliderFrame:GetValue()
+
                 button.r, button.g, button.b, button.a = nr, ng, nb, na
                 button.swatch:SetColorTexture(nr, ng, nb, na)
-                onColorChanged(nr, ng, nb, na)
+
+                if onColorChanged then
+                    onColorChanged(nr, ng, nb, na)
+                end
             end
 
-            -- Wird ausgeführt, wenn nur die Transparenz geändert wird
-            ColorPickerFrame.opacityFunc = ColorPickerFrame.func
+            -- Callback bei Transparenz-Änderung
+            info.opacityFunc = info.swatchFunc
 
-            -- Wird ausgeführt, wenn der Benutzer den Farbdialog abbricht
-            ColorPickerFrame.cancelFunc = function(previousValues)
-                local pr, pg, pb, pa = unpack(previousValues)
+            -- Callback bei Abbrechen
+            info.cancelFunc = function(previousValues)
+                if not previousValues then
+                    return
+                end
+
+                local pr = previousValues.r or 1
+                local pg = previousValues.g or 1
+                local pb = previousValues.b or 1
+                local pa = 1 - (previousValues.opacity or 0)
+
                 button.r, button.g, button.b, button.a = pr, pg, pb, pa
                 button.swatch:SetColorTexture(pr, pg, pb, pa)
-                onColorChanged(pr, pg, pb, pa)
+
+                if onColorChanged then
+                    onColorChanged(pr, pg, pb, pa)
+                end
             end
 
-            ColorPickerFrame:SetColorRGB(r, g, b)
-            ColorPickerFrame:Show()
+            ColorPickerFrame:SetupColorPickerAndShow(info)
         end)
 
         return button
@@ -316,63 +338,54 @@ end)
 	separator3:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -348)
 	separator3:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -348)
 	
-    -- Überschrift für die Chatkanäle linksbündig und näher an den Checkboxen
+        -- Überschrift für die Chatkanäle linksbündig und näher an den Checkboxen
     local announceInHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     announceInHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -374)
     announceInHeader:SetText(L["What channels do you want to make the announcements?"])
 
-     -- SAY-Kanal
+    -- Linke Spalte: Say / Party / Instance
     local sayCheckbox = CreateCheckbox(content, L["Say"], 16, -404, function(self)
         QuestAnnounce.db.profile.announceIn.say = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceIn: say :: " .. tostring(QuestAnnounce.db.profile.announceIn.say))
     end)
 
-    -- PARTY-Kanal
     local partyCheckbox = CreateCheckbox(content, L["Party"], 16, -434, function(self)
         QuestAnnounce.db.profile.announceIn.party = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceIn: party :: " .. tostring(QuestAnnounce.db.profile.announceIn.party))
     end)
 
-    -- INSTANCE-Kanal
     local instanceCheckbox = CreateCheckbox(content, L["Instance"], 16, -464, function(self)
         QuestAnnounce.db.profile.announceIn.instance = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceIn: instance :: " .. tostring(QuestAnnounce.db.profile.announceIn.instance))
     end)
 
-    -- GUILD-Kanal
-        local guildCheckbox = CreateCheckbox(content, L["Guild"], 220, -464, function(self)
-        QuestAnnounce.db.profile.announceIn.guild = self:GetChecked() and true or false
-        QuestAnnounce:SendDebugMsg("setAnnounceIn: guild :: " .. tostring(QuestAnnounce.db.profile.announceIn.guild))
-    end)
-
-    -- OFFICER-Kanal
+    -- Mittlere Spalte: Officer / Focus / Gilde
     local officerCheckbox = CreateCheckbox(content, L["Officer"], 220, -404, function(self)
         QuestAnnounce.db.profile.announceIn.officer = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceIn: officer :: " .. tostring(QuestAnnounce.db.profile.announceIn.officer))
     end)
 
-    -- Fokusziel als Whisper-Empfänger
     local focusCheckbox = CreateCheckbox(content, L["Focus"], 220, -434, function(self)
         QuestAnnounce.db.profile.announceIn.focus = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceIn: focus :: " .. tostring(QuestAnnounce.db.profile.announceIn.focus))
     end)
 
-    -- WHISPER-Kanal
-    -- Flüstern steht mittig in einer eigenen Zeile
-    local whisperCheckbox = CreateCheckbox(content, L["Whisper"], 16, -494, function(self)
+    local guildCheckbox = CreateCheckbox(content, L["Guild"], 220, -464, function(self)
+        QuestAnnounce.db.profile.announceIn.guild = self:GetChecked() and true or false
+        QuestAnnounce:SendDebugMsg("setAnnounceIn: guild :: " .. tostring(QuestAnnounce.db.profile.announceIn.guild))
+    end)
+
+    -- Zeile 4: Flüstern + An wen flüstern + Eingabefeld
+    local whisperCheckbox = CreateCheckbox(content, L["Whisper"], 16, -514, function(self)
         QuestAnnounce.db.profile.announceIn.whisper = self:GetChecked() and true or false
         QuestAnnounce:SendDebugMsg("setAnnounceIn: whisper :: " .. tostring(QuestAnnounce.db.profile.announceIn.whisper))
     end)
 
-    -- Beschriftung für Whisper-Ziel
-    -- Die Beschriftung steht rechts neben der Whisper-Checkbox
     local whisperWhoLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    whisperWhoLabel:SetPoint("LEFT", whisperCheckbox, "RIGHT", 60, 0)
+    whisperWhoLabel:SetPoint("LEFT", whisperCheckbox, "RIGHT", 180, 0)
     whisperWhoLabel:SetText(L["Whisper Who"])
 
-    -- Eingabefeld für Whisper-Empfänger
-    -- Das Feld steht direkt rechts neben der Beschriftung
-    local whisperWhoBox = CreateEditBox(content, 140, 20, 0, 0)
+    local whisperWhoBox = CreateEditBox(content, 150, 20, 0, 0)
     whisperWhoBox:ClearAllPoints()
     whisperWhoBox:SetPoint("LEFT", whisperWhoLabel, "RIGHT", 12, -2)
     whisperWhoBox:SetScript("OnEnterPressed", function(self)
@@ -385,8 +398,8 @@ end)
         QuestAnnounce:SendDebugMsg("setAnnounceIn: whisperWho :: " .. tostring(QuestAnnounce.db.profile.announceIn.whisperWho))
     end)
 
-    -- CHANNEL-Kanal
-    local channelCheckbox = CreateCheckbox(content, L["Channel"], 16, -524, function(self)
+    -- Zeile 5: Kanal + Kanalname + Eingabefeld
+    local channelCheckbox = CreateCheckbox(content, L["Channel"], 16, -544, function(self)
         local value = self:GetChecked() and true or false
         QuestAnnounce.db.profile.announceIn.channel = value
         QuestAnnounce:SendDebugMsg("setAnnounceIn: channel :: " .. tostring(value))
@@ -404,15 +417,11 @@ end)
         end
     end)
 
-    -- Beschriftung für Kanalname
-    -- Die Beschriftung steht rechts neben der Kanal-Checkbox
     local channelNameLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    channelNameLabel:SetPoint("LEFT", channelCheckbox, "RIGHT", 60, 0)
+    channelNameLabel:SetPoint("LEFT", channelCheckbox, "RIGHT", 180, 0)
     channelNameLabel:SetText(L["Channel Name"])
 
-    -- Eingabefeld für den benutzerdefinierten Kanalnamen
-    -- Das Feld steht direkt rechts neben der Kanalname-Beschriftung
-    local channelNameBox = CreateEditBox(content, 140, 20, 0, 0)
+    local channelNameBox = CreateEditBox(content, 150, 20, 0, 0)
     channelNameBox:ClearAllPoints()
     channelNameBox:SetPoint("LEFT", channelNameLabel, "RIGHT", 12, -2)
     channelNameBox:SetScript("OnEnterPressed", function(self)
@@ -426,7 +435,6 @@ end)
     end)
 
     -- Testbutton zum Senden einer Testnachricht
-    -- Der Button sitzt rechts neben der Debug-Checkbox
     local testButton = CreateButton(content, L["Test Frame Messages"], 180, 24, 340, -120, function()
         QuestAnnounce:SendMsg(L["QuestAnnounce Test Message"])
     end)
@@ -478,7 +486,7 @@ end
     -- =========================================================
     local tooltipPanel = CreateFrame("Frame")
 
-    -- Titel des Tooltip-Unterfensters
+       -- Titel des Tooltip-Unterfensters
     local tooltipTitle = tooltipPanel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
     tooltipTitle:SetPoint("TOPLEFT", 16, -16)
     tooltipTitle:SetText(L["Tooltip Settings"])
@@ -491,7 +499,7 @@ end
     tooltipSubtitle:SetText(L["Settings to customize the tooltip appearance"])
 
     -- Beschriftung für Tooltip-Schriftart
-    local tooltipFontLabel = tooltipPanel:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+    local tooltipFontLabel = tooltipPanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     tooltipFontLabel:SetPoint("TOPLEFT", tooltipSubtitle, "BOTTOMLEFT", 4, -20)
     tooltipFontLabel:SetText(L["Tooltip Font"])
 
@@ -512,8 +520,8 @@ end
     end)
 
     -- Beschriftung für Tooltip-Schriftgröße
-    local tooltipFontSizeLabel = tooltipPanel:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    tooltipFontSizeLabel:SetPoint("TOPLEFT", tooltipSubtitle, "BOTTOMLEFT", 260, -20)
+    local tooltipFontSizeLabel = tooltipPanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    tooltipFontSizeLabel:SetPoint("TOPLEFT", tooltipSubtitle, "BOTTOMLEFT", 320, -20)
     tooltipFontSizeLabel:SetText(L["Tooltip Font Size"])
 
     -- Slider für Tooltip-Schriftgröße
@@ -522,10 +530,10 @@ end
     tooltipFontSizeSlider:SetMinMaxValues(8, 20)
     tooltipFontSizeSlider:SetValueStep(1)
     tooltipFontSizeSlider:SetObeyStepOnDrag(true)
-    tooltipFontSizeSlider:SetWidth(180)
+    tooltipFontSizeSlider:SetWidth(220)
     tooltipFontSizeSlider.Low:SetText("8")
     tooltipFontSizeSlider.High:SetText("20")
-    tooltipFontSizeSlider.Text:SetText(L["Tooltip Font Size"])
+    tooltipFontSizeSlider.Text:SetText("")
     tooltipFontSizeSlider:SetScript("OnValueChanged", function(self, value)
         local rounded = math.floor(value + 0.5)
         if QuestAnnounce.db.profile.tooltip.fontSize ~= rounded then
@@ -536,6 +544,10 @@ end
         end
     end)
 
+    -- Einheitliche Breite für alle Tooltip-Buttons
+    local tooltipButtonWidth = 260
+    local tooltipButtonHeight = 24
+
     -- Button zum Ändern der Tooltip-Schriftfarbe
     local tooltipFontColorButton = CreateColorButton(tooltipPanel, L["Tooltip Font Color"], 16, -180, function(r, g, b)
         QuestAnnounce.db.profile.tooltip.fontColor = {r, g, b}
@@ -543,17 +555,19 @@ end
             QuestAnnounce:UpdateTooltipBackground()
         end
     end)
+    tooltipFontColorButton:SetSize(tooltipButtonWidth, 22)
 
     -- Button zum Ändern der Tooltip-Hintergrundfarbe
-    local tooltipBgColorButton = CreateColorButton(tooltipPanel, L["Tooltip Background Color"], 220, -180, function(r, g, b, a)
+    local tooltipBgColorButton = CreateColorButton(tooltipPanel, L["Tooltip Background Color"], 320, -180, function(r, g, b, a)
         QuestAnnounce.db.profile.tooltip.bgColor = {r, g, b, a}
         if QuestAnnounce.UpdateTooltipBackground then
             QuestAnnounce:UpdateTooltipBackground()
         end
     end)
+    tooltipBgColorButton:SetSize(tooltipButtonWidth, 22)
 
     -- Button zum Zurücksetzen aller Tooltip-Einstellungen auf Standardwerte
-    local tooltipResetButton = CreateButton(tooltipPanel, L["Reset Tooltip Settings"], 220, 24, 16, -220, function()
+    local tooltipResetButton = CreateButton(tooltipPanel, L["Reset Tooltip Settings"], tooltipButtonWidth, tooltipButtonHeight, 16, -220, function()
         QuestAnnounce.db.profile.tooltip.font = "Friz Quadrata TT"
         QuestAnnounce.db.profile.tooltip.fontSize = 12
         QuestAnnounce.db.profile.tooltip.fontColor = {0.11, 1, 0.3}
@@ -571,11 +585,14 @@ end
     end)
 
     -- Button zum Zurücksetzen der Minimap-Button-Position
-    local resetMinimapButton = CreateButton(tooltipPanel, L["Reset Minimap Button Position"], 260, 24, 260, -220, function()
+    local resetMinimapButton = CreateButton(tooltipPanel, L["Reset Minimap Button Position"], tooltipButtonWidth, tooltipButtonHeight, 320, -220, function()
         if QuestAnnounce.ResetMinimapButtonPosition then
             QuestAnnounce:ResetMinimapButtonPosition()
         end
-    end)
+    end)   
+   
+   
+   
 
     -- Aktualisiert alle Werte im Tooltip-Panel beim Öffnen
     local function RefreshTooltipPanel()
@@ -616,7 +633,7 @@ end
     SlashCmdList["QUESTANNOUNCE"] = openConfig
 	
 	-- Conten-Höhe
-	content:SetHeight(700) -- ggf. anpassen!
+	content:SetHeight(760) -- ggf. anpassen!
 	
 	-- Scrollbar etwas nach innen:
 	scrollFrame.ScrollBar:SetPoint("TOPLEFT", scrollFrame, "TOPRIGHT", -16, -16)
