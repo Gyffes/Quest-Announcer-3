@@ -14,6 +14,8 @@ local defaults = {
             enable = true,          -- Addon aktiviert
             every = 1,              -- Benachrichtigungsfrequenz
             sound = true,           -- Soundbenachrichtigungen aktiviert
+			progressSound = 8959,     -- Standard: UI Quest Progress
+			completeSound = 6199,    -- Standard: Quest Complete
             debug = false,          -- Debug-Modus deaktiviert
 			linkQuest = true		-- Quest Link
         },
@@ -126,6 +128,7 @@ QuestAnnounceDB = QuestAnnounceDB or {} -- Gespeicherte Datenbank initialisieren
 	
 	self:BuildQuestCache()
 	self:SetupOptions() 																-- Einrichten der Optionen
+	self:InitializeLinkHandler()
 	
 	if self.InitializeMinimapButton then
 		self:InitializeMinimapButton()
@@ -250,7 +253,14 @@ function QuestAnnounce:BuildLocalQuestAddonLink(questID, title)
         return title or ""
     end
 
-    return string.format("|cffffff00|Haddon:QuestAnnounce:quest:%d|h[%s]|h|r", questID, title)
+   -- einzigartiger Counter gegen WoW-Link-Cache
+	self.linkCounter = (self.linkCounter or 0) + 1
+
+	return string.format("|cffffff00|Haddon:QuestAnnounce:quest:%d:%d|h[%s]|h|r",
+		questID,
+		self.linkCounter,
+		title
+	)
 end
 
 function QuestAnnounce:GetOfficialQuestLink(questID, fallbackTitle)
@@ -269,6 +279,137 @@ function QuestAnnounce:GetWowheadQuestURL(questID)
 
 	-- Retail-/deDE-kompatibel genug; bei Bedarf später Region/Locale dynamisch machen
     return string.format("https://www.wowhead.com/quest=%d", questID)
+end
+
+-- ==============================
+-- Quest im Questlog robust öffnen
+-- ==============================
+function QuestAnnounce:OpenQuestInLog(questID)
+    if not questID or questID == 0 then
+        return
+    end
+
+    -- Beste verfügbare Blizzard-Funktion zuerst benutzen
+    if QuestMapFrame_OpenToQuestDetails then
+        QuestMapFrame_OpenToQuestDetails(questID)
+        return
+    end
+
+    -- Fallback
+    if not QuestMapFrame or not QuestMapFrame:IsShown() then
+        ToggleQuestLog()
+    end
+
+    -- Einen Tick später auswählen/anzeigen, damit das UI sicher da ist
+    C_Timer.After(0, function()
+        if C_QuestLog and C_QuestLog.SetSelectedQuest then
+            C_QuestLog.SetSelectedQuest(questID)
+        end
+
+        if QuestMapFrame_SetFocusedQuest then
+            QuestMapFrame_SetFocusedQuest(questID)
+        end
+
+        if QuestMapFrame_ShowQuestDetails then
+            QuestMapFrame_ShowQuestDetails(questID)
+        end
+    end)
+end
+
+-- ==============================
+-- Copy-Fenster für Wowhead-Links
+-- ==============================
+function QuestAnnounce:ShowCopyDialog(text, title)
+    if not self.copyFrame then
+        local frame = CreateFrame("Frame", "QuestAnnounceCopyFrame", UIParent, "BasicFrameTemplateWithInset")
+        frame:SetSize(520, 140)
+        frame:SetPoint("CENTER")
+        frame:SetFrameStrata("DIALOG")
+        frame:Hide()
+
+        frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        frame.title:SetPoint("TOP", 0, -10)
+        frame.title:SetText("QuestAnnounce Copy")
+
+        local editBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
+        editBox:SetSize(460, 30)
+        editBox:SetPoint("TOP", 0, -45)
+        editBox:SetAutoFocus(true)
+        editBox:SetFontObject("ChatFontNormal")
+        editBox:SetScript("OnEscapePressed", function(self)
+            self:ClearFocus()
+            frame:Hide()
+        end)
+        editBox:SetScript("OnEditFocusGained", function(self)
+            self:HighlightText()
+        end)
+
+        local hint = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        hint:SetPoint("TOP", editBox, "BOTTOM", 0, -10)
+        hint:SetText("Strg+C zum Kopieren, Esc zum Schließen")
+
+        frame.editBox = editBox
+        self.copyFrame = frame
+    end
+
+    self.copyFrame.title:SetText(title or "Copy")
+    self.copyFrame.editBox:SetText(text or "")
+    self.copyFrame:Show()
+    self.copyFrame.editBox:SetFocus()
+    self.copyFrame.editBox:HighlightText()
+end
+
+-- ==============================
+-- Eigener Link-Handler für lokale Addon-Links
+-- ==============================
+function QuestAnnounce:InitializeLinkHandler()
+    if self.linkHandlerInitialized then
+        return
+    end
+    self.linkHandlerInitialized = true
+
+    hooksecurefunc("SetItemRef", function(link, text, button, chatFrame)
+        local linkType, addonName, kind, questIDText = strsplit(":", link)
+
+        if linkType ~= "addon" or addonName ~= "QuestAnnounce" or kind ~= "quest" then
+            return
+        end
+
+        local questID = tonumber(questIDText)
+        if not questID then
+            return
+        end
+
+        -- ==============================
+        -- SHIFT-Klick → in Chat einfügen
+        -- ==============================
+        if IsShiftKeyDown() then
+            local questLink = QuestAnnounce:GetOfficialQuestLink(questID)
+            if questLink and questLink ~= "" then
+                ChatEdit_InsertLink(questLink)
+            end
+            return
+        end
+
+        -- ==============================
+        -- Rechtsklick → Wowhead
+        -- ==============================
+        if button == "RightButton" then
+            local url = QuestAnnounce:GetWowheadQuestURL(questID)
+            if url then
+                QuestAnnounce:ShowCopyDialog(url, "Wowhead Quest URL")
+            end
+            return
+        end
+
+        -- ==============================
+        -- Linksklick → Quest öffnen
+        -- ==============================
+        if button == "LeftButton" then
+            QuestAnnounce:OpenQuestInLog(questID)
+            return
+        end
+    end)
 end
 
 --[[ QuestAnnounce ZeichenTabelle Chinese / Regex zum Erfassen von Questinformationen, abhängig von der Spielregion]]--
@@ -310,10 +451,13 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
 	self:SendDebugMsg("questLink :: " .. tostring(questID and (C_QuestLog.GetQuestLink and C_QuestLog.GetQuestLink(questID) or GetQuestLink(questID)) or nil))
 
 	local linkTitle = realQuestTitle or questTitle
-	local displayTitle = QuestAnnounce:BuildQuestLink(questID, linkTitle, level)
+
+	local localDisplayTitle = QuestAnnounce:BuildLocalQuestAddonLink(questID, linkTitle)
+	local chatDisplayTitle = QuestAnnounce:BuildQuestLink(questID, linkTitle, level)
 
 	local escapedQuestTitle = questTitle:gsub("([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1")
-	local newMsg = msg:gsub(escapedQuestTitle, displayTitle, 1)
+	local localMsg = msg:gsub(escapedQuestTitle, localDisplayTitle, 1)
+	local newMsg = msg:gsub(escapedQuestTitle, chatDisplayTitle, 1)
 
     -- QuestLog Lookup
     local logIndex = cachedIndex
@@ -332,16 +476,25 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
 
     -- Send Logic
     if not logIndex then
-        self:SendMsg(L["Progress: "] .. newMsg)
+        if questID then
+            self:Print(L["Progress: "] .. localMsg)
+        end
+        self:SendMsg(L["Progress: "] .. newMsg, false)
         return
     end
 
     local isComplete = C_QuestLog.IsComplete(logIndex)
 
     if isComplete then
-        self:SendMsg(L["Completed: "] .. newMsg)
+        if questID then
+            self:Print(L["Completed: "] .. localMsg)
+        end
+        self:SendMsg(L["Completed: "] .. newMsg, true)
     else
-        self:SendMsg(L["Progress: "] .. newMsg)
+        if questID then
+            self:Print(L["Progress: "] .. localMsg)
+        end
+        self:SendMsg(L["Progress: "] .. newMsg, false)
     end
 
     self:SendDebugMsg("Quest processed: " .. questTitle)
@@ -418,7 +571,7 @@ end
 --[[ Sends a chat message to the selected chat channels and frames where applicable,
     if we have a message to send; will also send a debugging message if debug is enabled ]]--
 -- Sendet die Nachricht an die aktivierten Ausgabekanäle und Ausgabefenster
-function QuestAnnounce:SendMsg(msg)
+function QuestAnnounce:SendMsg(msg, isComplete)
     -- Sicherheitsabbruch, wenn keine Nachricht vorhanden ist
     if not msg then
         return
@@ -529,10 +682,34 @@ function QuestAnnounce:SendMsg(msg)
         UIErrorsFrame:AddMessage(msg, 1.0, 1.0, 0.0, 7)
     end
 
-    -- Sound abspielen, wenn aktiviert
-    if self.db.profile.settings.sound then
-        PlaySound(SOUNDKIT.RAID_WARNING)
-    end
+-- ==============================
+-- Sound Logik mit Anti-Spam
+-- ==============================
+if self.db.profile.settings.sound then
+    self.lastSoundTime = self.lastSoundTime or 0
+    local now = GetTime()
 
+    if now - self.lastSoundTime >= 1 then
+        local soundID
+
+        if isComplete == true then
+            soundID = tonumber(self.db.profile.settings.completeSound) or 6199
+            self:SendDebugMsg("Play COMPLETE sound :: " .. tostring(soundID))
+        else
+            soundID = tonumber(self.db.profile.settings.progressSound) or 8959
+            self:SendDebugMsg("Play PROGRESS sound :: " .. tostring(soundID))
+        end
+
+        local success = PlaySound(soundID, "Master")
+        if not success then
+            self:SendDebugMsg("Sound failed -> fallback RAID_WARNING")
+            PlaySound(SOUNDKIT.RAID_WARNING, "Master")
+        end
+
+        self.lastSoundTime = now
+    else
+        self:SendDebugMsg("Sound skipped (Anti-Spam)")
+    end
+end
     QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg - " .. msg)
 end

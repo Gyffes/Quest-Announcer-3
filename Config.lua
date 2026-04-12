@@ -191,18 +191,23 @@ function QuestAnnounce:SetupOptions()
         return box
     end
 
-    -- Hilfsfunktion: Erstellt einen normalen Button
-    local function CreateButton(parent, text, width, height, x, y, onClick, tooltipTitle, tooltipText)
-        local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
-        button:SetSize(width, height)
-        button:SetPoint("TOPLEFT", x, y)
-        button:SetText(text)
-        button:SetScript("OnClick", onClick)
+local function CreateButton(parent, text, width, height, x, y, onClick, tooltipTitle, tooltipText)
+    local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    button:SetPoint("TOPLEFT", x, y)
+    button:SetText(text)
+    button:SetScript("OnClick", onClick)
 
-        AttachTooltip(button, tooltipTitle or text, tooltipText)
+    -- 🔥 AUTO WIDTH
+    local padding = 20
+    local textWidth = button.Text:GetStringWidth()
+    local finalWidth = math.max(width or 80, textWidth + padding)
 
-        return button
-    end
+    button:SetSize(finalWidth, height or 22)
+
+    AttachTooltip(button, tooltipTitle or text, tooltipText)
+
+    return button
+end
 
     -- Hilfsfunktion: Erstellt ein Dropdown-Menü mit einer Liste von Einträgen
     local function CreateDropdown(parent, width, x, y, items, onSelect, tooltipTitle, tooltipText)
@@ -352,19 +357,6 @@ function QuestAnnounce:SetupOptions()
         L["Enable or disable the addon."]
     )
 
-    -- Sound aktivieren / deaktivieren
-    local soundCheckbox = CreateCheckbox(
-        content,
-        L["Sound"],
-        220,
-        -90,
-        function(self)
-            QuestAnnounce.db.profile.settings.sound = self:GetChecked() and true or false
-            QuestAnnounce:SendDebugMsg("setSettings: sound :: " .. tostring(QuestAnnounce.db.profile.settings.sound))
-        end,
-        L["Sound"],
-        L["Play a sound when a quest message is announced."]
-    )
 	
     -- Quest-Links aktivieren / deaktivieren
     local linkQuestCheckbox = CreateCheckbox(
@@ -384,8 +376,8 @@ function QuestAnnounce:SetupOptions()
     local debugCheckbox = CreateCheckbox(
         content,
         L["Debug"],
-        130,
-        -120,
+        220,
+        -90,
         function(self)
             QuestAnnounce.db.profile.settings.debug = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setSettings: debug :: " .. tostring(QuestAnnounce.db.profile.settings.debug))
@@ -395,17 +387,233 @@ function QuestAnnounce:SetupOptions()
     )
 
 
--- Trennlinie zwischen Quest-Link-Einstellung und Fortschritts-Einstellung
+
+-- Trennlinie zwischen Haupt-Einstellung und Sound Settings 
 	local separator = content:CreateTexture(nil, "ARTWORK")
 	separator:SetColorTexture(0.5, 0.5, 0.5, 0.6)
 	separator:SetHeight(1)
 	separator:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -160)
 	separator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -160)
 
+-- ==============================
+-- Sound Settings Bereich
+-- ==============================
+
+local soundHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+soundHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -180)
+soundHeader:SetText(L["Sound Settings"])
+
+AttachTooltip(
+    soundHeader,
+    L["Sound Settings"],
+    L["Configure quest progress and completion sounds."]
+)
+
+local soundCheckbox = CreateCheckbox(
+    content,
+    "",
+    16,
+    -210,
+    function(self)
+        QuestAnnounce.db.profile.settings.sound = self:GetChecked() and true or false
+
+        if self.Text then
+            if QuestAnnounce.db.profile.settings.sound then
+                self.Text:SetText(L["Sound On"])
+            else
+                self.Text:SetText(L["Sound Off"])
+            end
+        end
+
+        QuestAnnounce:SendDebugMsg("setSettings: sound :: " .. tostring(QuestAnnounce.db.profile.settings.sound))
+    end,
+    L["Sound"],
+    L["Enable or disable all quest announcement sounds."]
+)
+
+if soundCheckbox.Text then
+    if QuestAnnounce.db.profile.settings.sound then
+        soundCheckbox.Text:SetText(L["Sound On"])
+    else
+        soundCheckbox.Text:SetText(L["Sound Off"])
+    end
+end
+
+AttachTooltip(
+    soundCheckbox,
+    L["Sound"],
+    L["Enable or disable all quest announcement sounds."]
+)
+
+if soundCheckbox.Text then
+    AttachTooltip(
+        soundCheckbox.Text,
+        L["Sound"],
+        L["Enable or disable all quest announcement sounds."]
+    )
+end
+
+local progressLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+progressLabel:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -246)
+progressLabel:SetText(L["Progress Sound ID"])
+AttachTooltip(
+    progressLabel,
+    L["Progress Sound ID"],
+    L["Sound ID played for quest progress updates."]
+)
+
+local progressBox = CreateEditBox(
+    content,
+    90,
+    20,
+    16,
+    -268,
+    L["Progress Sound ID"],
+    L["Sound ID played for quest progress updates."]
+)
+progressBox:SetNumeric(true)
+progressBox:SetMaxLetters(10)
+progressBox:SetNumber(tonumber(QuestAnnounce.db.profile.settings.progressSound or 8959))
+progressBox:SetScript("OnEnterPressed", function(self)
+    local val = tonumber(self:GetText())
+    if val then
+        QuestAnnounce.db.profile.settings.progressSound = val
+        self:SetText(tostring(val))
+    else
+        self:SetText(tostring(QuestAnnounce.db.profile.settings.progressSound or 8959))
+    end
+    self:ClearFocus()
+end)
+progressBox:SetScript("OnEditFocusLost", function(self)
+    local val = tonumber(self:GetText())
+    if val then
+        QuestAnnounce.db.profile.settings.progressSound = val
+        self:SetText(tostring(val))
+    else
+        self:SetText(tostring(QuestAnnounce.db.profile.settings.progressSound or 8959))
+    end
+end)
+
+local resetProgress = CreateButton(
+    content,
+    L["Reset"],
+    70,
+    22,
+    120,
+    -268,
+    function()
+        QuestAnnounce.db.profile.settings.progressSound = 8959
+        progressBox:SetNumber(8959)
+    end,
+    L["Reset Progress Sound"],
+    L["Reset the progress sound ID to default."]
+)
+resetProgress:ClearAllPoints()
+resetProgress:SetPoint("LEFT", progressBox, "RIGHT", 12, 0)
+
+local testProgressSound = CreateButton(
+    content,
+    L["Test Progress Sound"],
+    180,
+    22,
+    210,
+    -268,
+    function()
+        local soundID = QuestAnnounce.db.profile.settings.progressSound or 8959
+        PlaySound(soundID, "Master")
+        QuestAnnounce:SendDebugMsg("Test Progress Sound :: " .. tostring(soundID))
+    end,
+    L["Test Progress Sound"],
+    L["Play the current progress sound."]
+)
+testProgressSound:ClearAllPoints()
+testProgressSound:SetPoint("LEFT", resetProgress, "RIGHT", 12, 0)
+
+local completeLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+completeLabel:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -304)
+completeLabel:SetText(L["Completion Sound ID"])
+AttachTooltip(
+    completeLabel,
+    L["Completion Sound ID"],
+    L["Sound ID played when a quest is completed."]
+)
+
+local completeBox = CreateEditBox(
+    content,
+    90,
+    20,
+    16,
+    -326,
+    L["Completion Sound ID"],
+    L["Sound ID played when a quest is completed."]
+)
+completeBox:SetNumeric(true)
+completeBox:SetMaxLetters(10)
+completeBox:SetNumber(tonumber(QuestAnnounce.db.profile.settings.completeSound or 6199))
+completeBox:SetScript("OnEnterPressed", function(self)
+    local val = tonumber(self:GetText())
+    if val then
+        QuestAnnounce.db.profile.settings.completeSound = val
+        self:SetText(tostring(val))
+    else
+        self:SetText(tostring(QuestAnnounce.db.profile.settings.completeSound or 6199))
+    end
+    self:ClearFocus()
+end)
+completeBox:SetScript("OnEditFocusLost", function(self)
+    local val = tonumber(self:GetText())
+    if val then
+        QuestAnnounce.db.profile.settings.completeSound = val
+        self:SetText(tostring(val))
+    else
+        self:SetText(tostring(QuestAnnounce.db.profile.settings.completeSound or 6199))
+    end
+end)
+
+local resetComplete = CreateButton(
+    content,
+    L["Reset"],
+    70,
+    22,
+    120,
+    -326,
+    function()
+        QuestAnnounce.db.profile.settings.completeSound = 6199
+        completeBox:SetNumber(6199)
+    end,
+    L["Reset Completion Sound"],
+    L["Reset the completion sound ID to default."]
+)
+resetComplete:ClearAllPoints()
+resetComplete:SetPoint("LEFT", completeBox, "RIGHT", 12, 0)
+
+local testCompleteSound = CreateButton(
+    content,
+    L["Test Complete Sound"],
+    180,
+    22,
+    210,
+    -326,
+    function()
+        local soundID = QuestAnnounce.db.profile.settings.completeSound or 6199
+        PlaySound(soundID, "Master")
+        QuestAnnounce:SendDebugMsg("Test Complete Sound :: " .. tostring(soundID))
+    end,
+    L["Test Complete Sound"],
+    L["Play the current completion sound."]
+)
+testCompleteSound:ClearAllPoints()
+testCompleteSound:SetPoint("LEFT", resetComplete, "RIGHT", 12, 0)
+
+local soundSeparator = content:CreateTexture(nil, "ARTWORK")
+soundSeparator:SetColorTexture(0.5, 0.5, 0.5, 0.6)
+soundSeparator:SetHeight(1)
+soundSeparator:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -365)
+soundSeparator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -365)
 
 	-- Slider für die Anzahl der Fortschrittsmeldungen
 	local everySlider = CreateFrame("Slider", nil, content, "OptionsSliderTemplate")
-	everySlider:SetPoint("TOPLEFT", content, "TOPLEFT", 60, -202)
+	everySlider:SetPoint("TOPLEFT", content, "TOPLEFT", 60, -410)
 	everySlider:SetMinMaxValues(0, 100)
 	everySlider:SetValueStep(1)
 	everySlider:SetObeyStepOnDrag(true)
@@ -435,11 +643,12 @@ function QuestAnnounce:SetupOptions()
 	everyInput:SetSize(70, 20)
 	everyInput:SetNumeric(true)
 	everyInput:SetMaxLetters(3)
+	everyInput:SetNumber(tonumber(QuestAnnounce.db.profile.settings.every or 1))
 
 	-- Beschriftung für das Eingabefeld
 	local everyInputLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
 	everyInputLabel:SetPoint("BOTTOM", everyInput, "TOP", 0, 6)
-	everyInputLabel:SetText("Wert")
+	everyInputLabel:SetText(L["Value"])
 
     AttachTooltip(
         everyInputLabel,
@@ -472,8 +681,8 @@ function QuestAnnounce:SetupOptions()
 			QuestAnnounce:SendDebugMsg("setSettings: every :: " .. tostring(rounded))
 		end
 
-		if everyInput:GetText() ~= tostring(rounded) then
-			everyInput:SetText(tostring(rounded))
+		if tonumber(everyInput:GetText()) ~= rounded then
+			everyInput:SetNumber(rounded)
 		end
 	end)
 
@@ -489,7 +698,7 @@ function QuestAnnounce:SetupOptions()
 
 		QuestAnnounce.db.profile.settings.every = value
 		everySlider:SetValue(value)
-		self:SetText(tostring(value))
+		self:SetNumber(value)
 		self:ClearFocus()
 
 		QuestAnnounce:SendDebugMsg("setSettings: every :: " .. tostring(value))
@@ -507,7 +716,7 @@ function QuestAnnounce:SetupOptions()
 
 		QuestAnnounce.db.profile.settings.every = value
 		everySlider:SetValue(value)
-		self:SetText(tostring(value))
+		self:SetNumber(value)
 
 		QuestAnnounce:SendDebugMsg("setSettings: every :: " .. tostring(value))
 	end)
@@ -516,13 +725,13 @@ function QuestAnnounce:SetupOptions()
 	local separator2 = content:CreateTexture(nil, "ARTWORK")
 	separator2:SetColorTexture(0.5, 0.5, 0.5, 0.6)
 	separator2:SetHeight(1)
-	separator2:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -250)
-	separator2:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -250)
+	separator2:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -458)
+	separator2:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -458)
 
     -- Überschrift für die Ziele der Ausgabe
         -- Überschrift für die Ziele der Ausgabe
     local announceToHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    announceToHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -266)
+    announceToHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -480)
     announceToHeader:SetText(L["Where do you want to make the announcements?"])
     AttachTooltip(
         announceToHeader,
@@ -535,7 +744,7 @@ function QuestAnnounce:SetupOptions()
         content,
         L["Chat Frame"],
         16,
-        -300,
+        -514,
         function(self)
             QuestAnnounce.db.profile.announceTo.chatFrame = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceTo: chatFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.chatFrame))
@@ -549,7 +758,7 @@ function QuestAnnounce:SetupOptions()
         content,
         L["Raid Warning Frame"],
         220,
-        -300,
+        -514,
         function(self)
             QuestAnnounce.db.profile.announceTo.raidWarningFrame = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceTo: raidWarningFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.raidWarningFrame))
@@ -563,7 +772,7 @@ function QuestAnnounce:SetupOptions()
         content,
         L["UI Errors Frame"],
         440,
-        -300,
+        -514,
         function(self)
             QuestAnnounce.db.profile.announceTo.uiErrorsFrame = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceTo: uiErrorsFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.uiErrorsFrame))
@@ -577,12 +786,12 @@ function QuestAnnounce:SetupOptions()
 	local separator3 = content:CreateTexture(nil, "ARTWORK")
 	separator3:SetColorTexture(0.5, 0.5, 0.5, 0.6)
 	separator3:SetHeight(1)
-	separator3:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -348)
-	separator3:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -348)
+	separator3:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -562)
+	separator3:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -562)
 	
         -- Überschrift für die Chatkanäle linksbündig und näher an den Checkboxen
     local announceInHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    announceInHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -374)
+    announceInHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -588)
     announceInHeader:SetText(L["What channels do you want to make the announcements?"])
     AttachTooltip(
         announceInHeader,
@@ -595,7 +804,7 @@ function QuestAnnounce:SetupOptions()
         content,
         L["Say"],
         16,
-        -404,
+        -618,
         function(self)
             QuestAnnounce.db.profile.announceIn.say = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: say :: " .. tostring(QuestAnnounce.db.profile.announceIn.say))
@@ -608,7 +817,7 @@ function QuestAnnounce:SetupOptions()
         content,
         L["Party"],
         16,
-        -434,
+        -648,
         function(self)
             QuestAnnounce.db.profile.announceIn.party = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: party :: " .. tostring(QuestAnnounce.db.profile.announceIn.party))
@@ -621,7 +830,7 @@ function QuestAnnounce:SetupOptions()
         content,
         L["Instance"],
         16,
-        -464,
+        -678,
         function(self)
             QuestAnnounce.db.profile.announceIn.instance = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: instance :: " .. tostring(QuestAnnounce.db.profile.announceIn.instance))
@@ -635,7 +844,7 @@ function QuestAnnounce:SetupOptions()
         content,
         L["Officer"],
         220,
-        -404,
+        -618,
         function(self)
             QuestAnnounce.db.profile.announceIn.officer = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: officer :: " .. tostring(QuestAnnounce.db.profile.announceIn.officer))
@@ -648,7 +857,7 @@ function QuestAnnounce:SetupOptions()
         content,
         L["Focus"],
         220,
-        -434,
+        -648,
         function(self)
             QuestAnnounce.db.profile.announceIn.focus = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: focus :: " .. tostring(QuestAnnounce.db.profile.announceIn.focus))
@@ -661,7 +870,7 @@ function QuestAnnounce:SetupOptions()
         content,
         L["Guild"],
         220,
-        -464,
+        -678,
         function(self)
             QuestAnnounce.db.profile.announceIn.guild = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: guild :: " .. tostring(QuestAnnounce.db.profile.announceIn.guild))
@@ -675,7 +884,7 @@ function QuestAnnounce:SetupOptions()
         content,
         L["Whisper"],
         16,
-        -514,
+        -728,
         function(self)
             QuestAnnounce.db.profile.announceIn.whisper = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: whisper :: " .. tostring(QuestAnnounce.db.profile.announceIn.whisper))
@@ -720,7 +929,7 @@ function QuestAnnounce:SetupOptions()
         content,
         L["Channel"],
         16,
-        -544,
+        -758,
         function(self)
             local value = self:GetChecked() and true or false
             QuestAnnounce.db.profile.announceIn.channel = value
@@ -779,7 +988,7 @@ function QuestAnnounce:SetupOptions()
         L["Test Frame Messages"],
         180,
         24,
-        340,
+        220,
         -120,
         function()
             QuestAnnounce:SendMsg(L["QuestAnnounce Test Message"])
@@ -800,8 +1009,19 @@ local function RefreshGeneralPanel()
     debugCheckbox:SetChecked(QuestAnnounce.db.profile.settings.debug)
     linkQuestCheckbox:SetChecked(QuestAnnounce.db.profile.settings.linkQuest)
 
-    everySlider:SetValue(QuestAnnounce.db.profile.settings.every or 1)
-    everyInput:SetText(tostring(QuestAnnounce.db.profile.settings.every or 1))
+    if soundCheckbox.Text then
+        if QuestAnnounce.db.profile.settings.sound then
+            soundCheckbox.Text:SetText(L["Sound On"])
+        else
+            soundCheckbox.Text:SetText(L["Sound Off"])
+        end
+    end
+
+	progressBox:SetNumber(tonumber(QuestAnnounce.db.profile.settings.progressSound or 8959))
+	completeBox:SetNumber(tonumber(QuestAnnounce.db.profile.settings.completeSound or 6199))
+
+	everySlider:SetValue(tonumber(QuestAnnounce.db.profile.settings.every or 1))
+	everyInput:SetNumber(tonumber(QuestAnnounce.db.profile.settings.every or 1))
 
     chatFrameCheckbox:SetChecked(QuestAnnounce.db.profile.announceTo.chatFrame)
     raidWarningCheckbox:SetChecked(QuestAnnounce.db.profile.announceTo.raidWarningFrame)
@@ -1061,7 +1281,7 @@ end
     SlashCmdList["QUESTANNOUNCE"] = openConfig
 	
 	-- Conten-Höhe
-	content:SetHeight(760) -- ggf. anpassen!
+	content:SetHeight(1080) -- ggf. anpassen!
 	
 	-- Scrollbar etwas nach innen:
 	scrollFrame.ScrollBar:SetPoint("TOPLEFT", scrollFrame, "TOPRIGHT", -16, -16)
