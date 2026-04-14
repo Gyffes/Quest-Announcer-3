@@ -1,20 +1,31 @@
+v9.3.0.0 Multi - 14-04-2026
+         - Standalone-Umstellung abgeschlossen (Ace/Fremd-Addon-Abhängigkeiten entfernt)
+         - Große Teile auf Basis des Altcodes neu aufgebaut
+         - Quest-Linking erweitert (klickbare Questtexte + Wowhead-Copy-Flow)
+         - Fokus-Flüstern stabilisiert/finalisiert
+         - Optionen robuster gemacht (Werte-Refresh + Numeric-EditBox-Anzeige korrigiert)
+         - Minimap-Button-Icon rund maskiert (kein eckiger Hintergrund mehr)
+         - Lokalisierung erweitert und vereinheitlicht (inkl. Fallback auf enUS)
+         - Questfortschritt/Abschluss-Erkennung beim Parsing verbessert
+         - Zusätzliche TOC-Dateien für weitere aktuelle WoW-Spielvarianten hinzugefügt
+
 v9.2.8.4 Multi - 29-03-2026
 		 - Update for Midnight 12.0.5
-		 - Added language variables 
+		 - Added language variables
 		 - Added Announce on Focus
 
 v9.2.8.3 Multi - 25-08-2024
 		 - Movable MiniMapButton
-		 - Added language variables 
+		 - Added language variables
 
 v9.2.8.2 Multi - 24-08-2024
 		 - Added tooltip settings in the options
 		 - Added language variables for the tooltip settings
-				 
+
 v9.2.8.1 Multi - 24-08-2024
 		 - MinimapButton added.
 		 - Left-click Activates or deactivates the addon
-		 - Right-click opens the options. 
+		 - Right-click opens the options.
 		 - MiniMapButton tooltip
 		 - Adjusting the version number
 
@@ -74,37 +85,37 @@ v9.0.1 - 05-08-2021
 
 v7.0.0 - 02-08-2016
 	- Updated TOC for 7.0.0 (Legion).
-	
+
 v6.0.2 - 16-10-2014
 	- Updated TOC for 6.0.2.
-	
+
 v5.4.2 - 20-01-2014
 	- Updated TOC for 5.4.2.
-	
+
 v5.2.0 - 05-03-2013
 	- Updated TOC for 5.2.0.
-	
+
 v5.1.1 - 26-12-2012
 	- Added feature, support for instance chat.
 	- Updated version in TOC.
-	
+
 v5.1.0 - 03-12-2012
 	- Updated TOC for 5.1.0.
 
 v5.0.1 - 31-08-2012
 	- Removed deprecated GetNumPartyMembers function.
 	- Added feature, ability to enable/disable QuestAnnounce sound.
-	
+
 v5.0.0 - 28-08-2012
 	- Updated TOC for 5.0.4.
-	
+
 v4.3.2 - 07-08-2012
 	- Removed unused Localizations phrases.
 	- Removed command line configuration. Command line /qa will now open the options GUI.
 	- Refactored how configuration worked.
 	- Added feature, ability to announce to say, party, guild, officer, and whisper.
 	- Added feature, ability to announce to any or all of the following frames: Chat, UI Errors, and/or Raid Warning (with sound).
-	
+
 v4.3.1a - 28-07-2012
 	- Fixed Localizations.
 
@@ -127,7 +138,7 @@ v4.0.3 - 07-01-2011 (stable)
 v4.0.2 - 25-12-2010 (stable)
 	- Added GUI config under Blizzard's Addon tab.
 	- Reworded "toggle" to "enable".
-	
+
 v4.0.1 - 21-12-2010 (stable)
 	- Added validation check to ensure the /qa every command line option could not be set outside its limit [1-10].
 
