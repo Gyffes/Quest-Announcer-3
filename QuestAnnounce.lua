@@ -61,7 +61,7 @@ function QuestAnnounce:LeaveChannel(channelName)
     local id, name = GetChannelName(channelName)
     if id and id > 0 then
         LeaveChannelByName(channelName)
-        QuestAnnounce:Print(L["Exiting the Channel "] .. channelName)
+        QuestAnnounce:Print(L["Exiting the Channel: "] .. channelName)
     end
 end
 
@@ -78,12 +78,12 @@ end
 
 -- Bestätigungsdialog zum Verlassen eines benutzerdefinierten Kanals
 StaticPopupDialogs["CONFIRM_LEAVE_CHANNEL"] = {
-    text = "%s Kanal verlassen?",
-    button1 = "Ja",
-    button2 = "Nein",
+    text = L["Leave channel confirmation"],
+    button1 = L["Yes"],
+    button2 = L["No"],
     OnAccept = function(_, channelName)
         LeaveChannelByName(channelName)
-        QuestAnnounce:Print("Verlassen des Kanals: " .. channelName)
+        QuestAnnounce:Print(L["Leaving Channel: "] .. channelName)
     end,
     timeout = 0,
     whileDead = true,
@@ -329,7 +329,7 @@ function QuestAnnounce:ShowCopyDialog(text, title)
 
         frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
         frame.title:SetPoint("TOP", 0, -10)
-        frame.title:SetText("QuestAnnounce Copy")
+        frame.title:SetText(L["QuestAnnounce Copy"])
 
         local editBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
         editBox:SetSize(460, 30)
@@ -346,13 +346,13 @@ function QuestAnnounce:ShowCopyDialog(text, title)
 
         local hint = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         hint:SetPoint("TOP", editBox, "BOTTOM", 0, -10)
-        hint:SetText("Strg+C zum Kopieren, Esc zum Schließen")
+        hint:SetText(L["Ctrl+C to copy, Esc to close"])
 
         frame.editBox = editBox
         self.copyFrame = frame
     end
 
-    self.copyFrame.title:SetText(title or "Copy")
+    self.copyFrame.title:SetText(title or L["Copy"])
     self.copyFrame.editBox:SetText(text or "")
     self.copyFrame:Show()
     self.copyFrame.editBox:SetFocus()
@@ -397,7 +397,7 @@ function QuestAnnounce:InitializeLinkHandler()
         if button == "RightButton" then
             local url = QuestAnnounce:GetWowheadQuestURL(questID)
             if url then
-                QuestAnnounce:ShowCopyDialog(url, "Wowhead Quest URL")
+                QuestAnnounce:ShowCopyDialog(url, L["Wowhead Quest URL"])
             end
             return
         end
@@ -437,7 +437,7 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
     end
 
     -- Quest Parsing
-    local questTitle = msg:match(QUEST_INFO_REGEX)
+    local questTitle, currentAmountText, requiredAmountText = msg:match(QUEST_INFO_REGEX)
 
     if not questTitle then
         return
@@ -474,16 +474,35 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
         end
     end
 
+    local currentAmount = tonumber(currentAmountText)
+    local requiredAmount = tonumber(requiredAmountText)
+    local objectiveLooksComplete = currentAmount
+        and requiredAmount
+        and requiredAmount > 0
+        and currentAmount >= requiredAmount
+
     -- Send Logic
     if not logIndex then
+        local announceAsComplete = objectiveLooksComplete and true or false
         if questID then
-            self:Print(L["Progress: "] .. localMsg)
+            if announceAsComplete then
+                self:Print(L["Completed: "] .. localMsg)
+            else
+                self:Print(L["Progress: "] .. localMsg)
+            end
         end
-        self:SendMsg(L["Progress: "] .. newMsg, false)
+        if announceAsComplete then
+            self:SendMsg(L["Completed: "] .. newMsg, true)
+        else
+            self:SendMsg(L["Progress: "] .. newMsg, false)
+        end
         return
     end
 
     local isComplete = C_QuestLog.IsComplete(logIndex)
+    if not isComplete and objectiveLooksComplete then
+        isComplete = true
+    end
 
     if isComplete then
         if questID then
