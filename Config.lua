@@ -185,6 +185,11 @@ function QuestAnnounce:SetupOptions()
         box:SetSize(width, height)
         box:SetPoint("TOPLEFT", x, y)
         box:SetAutoFocus(false)
+        box:SetFontObject("ChatFontNormal")
+        box:SetJustifyH("LEFT")
+        if box.SetTextInsets then
+            box:SetTextInsets(6, 6, 0, 0)
+        end
 
         AttachTooltip(box, tooltipTitle, tooltipText)
 
@@ -473,7 +478,18 @@ local progressBox = CreateEditBox(
 )
 progressBox:SetNumeric(true)
 progressBox:SetMaxLetters(10)
-progressBox:SetNumber(tonumber(QuestAnnounce.db.profile.settings.progressSound or 8959))
+local function SetNumericEditBoxValue(box, value, fallback)
+    local numeric = tonumber(value)
+    if not numeric then
+        numeric = fallback
+    end
+
+    box:SetText(tostring(numeric))
+    box:SetCursorPosition(0)
+    box:HighlightText(0, 0)
+end
+
+SetNumericEditBoxValue(progressBox, QuestAnnounce.db.profile.settings.progressSound, 8959)
 progressBox:SetScript("OnEnterPressed", function(self)
     local val = tonumber(self:GetText())
     if val then
@@ -503,7 +519,7 @@ local resetProgress = CreateButton(
     -268,
     function()
         QuestAnnounce.db.profile.settings.progressSound = 8959
-        progressBox:SetNumber(8959)
+        SetNumericEditBoxValue(progressBox, 8959, 8959)
     end,
     L["Reset Progress Sound"],
     L["Reset the progress sound ID to default."]
@@ -549,7 +565,7 @@ local completeBox = CreateEditBox(
 )
 completeBox:SetNumeric(true)
 completeBox:SetMaxLetters(10)
-completeBox:SetNumber(tonumber(QuestAnnounce.db.profile.settings.completeSound or 6199))
+SetNumericEditBoxValue(completeBox, QuestAnnounce.db.profile.settings.completeSound, 6199)
 completeBox:SetScript("OnEnterPressed", function(self)
     local val = tonumber(self:GetText())
     if val then
@@ -579,7 +595,7 @@ local resetComplete = CreateButton(
     -326,
     function()
         QuestAnnounce.db.profile.settings.completeSound = 6199
-        completeBox:SetNumber(6199)
+        SetNumericEditBoxValue(completeBox, 6199, 6199)
     end,
     L["Reset Completion Sound"],
     L["Reset the completion sound ID to default."]
@@ -643,7 +659,7 @@ soundSeparator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -365)
 	everyInput:SetSize(70, 20)
 	everyInput:SetNumeric(true)
 	everyInput:SetMaxLetters(3)
-	everyInput:SetNumber(tonumber(QuestAnnounce.db.profile.settings.every or 1))
+	SetNumericEditBoxValue(everyInput, QuestAnnounce.db.profile.settings.every, 1)
 
 	-- Beschriftung für das Eingabefeld
 	local everyInputLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
@@ -681,11 +697,11 @@ soundSeparator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -365)
 			QuestAnnounce:SendDebugMsg("setSettings: every :: " .. tostring(rounded))
 		end
 
-		if tonumber(everyInput:GetText()) ~= rounded then
-			everyInput:SetNumber(rounded)
-		end
-	end)
-
+			if tonumber(everyInput:GetText()) ~= rounded then
+				SetNumericEditBoxValue(everyInput, rounded, 1)
+			end
+		end)
+		
 	-- Übernimmt den Wert aus dem Eingabefeld beim Drücken von Enter
 	everyInput:SetScript("OnEnterPressed", function(self)
 		local value = tonumber(self:GetText()) or 0
@@ -696,10 +712,10 @@ soundSeparator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -365)
 			value = 100
 		end
 
-		QuestAnnounce.db.profile.settings.every = value
-		everySlider:SetValue(value)
-		self:SetNumber(value)
-		self:ClearFocus()
+			QuestAnnounce.db.profile.settings.every = value
+			everySlider:SetValue(value)
+			SetNumericEditBoxValue(self, value, 1)
+			self:ClearFocus()
 
 		QuestAnnounce:SendDebugMsg("setSettings: every :: " .. tostring(value))
 	end)
@@ -714,9 +730,9 @@ soundSeparator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -365)
 			value = 100
 		end
 
-		QuestAnnounce.db.profile.settings.every = value
-		everySlider:SetValue(value)
-		self:SetNumber(value)
+			QuestAnnounce.db.profile.settings.every = value
+			everySlider:SetValue(value)
+			SetNumericEditBoxValue(self, value, 1)
 
 		QuestAnnounce:SendDebugMsg("setSettings: every :: " .. tostring(value))
 	end)
@@ -1004,44 +1020,59 @@ local function RefreshGeneralPanel()
 		return
 	end
 
-    enableCheckbox:SetChecked(QuestAnnounce.db.profile.settings.enable)
-    soundCheckbox:SetChecked(QuestAnnounce.db.profile.settings.sound)
-    debugCheckbox:SetChecked(QuestAnnounce.db.profile.settings.debug)
-    linkQuestCheckbox:SetChecked(QuestAnnounce.db.profile.settings.linkQuest)
+    local settings = QuestAnnounce.db.profile.settings or {}
+    local announceTo = QuestAnnounce.db.profile.announceTo or {}
+    local announceIn = QuestAnnounce.db.profile.announceIn or {}
+
+    local function GetNumberOrDefault(value, defaultValue)
+        local n = tonumber(value)
+        if not n then
+            return defaultValue
+        end
+        return n
+    end
+
+    enableCheckbox:SetChecked(settings.enable and true or false)
+    soundCheckbox:SetChecked(settings.sound and true or false)
+    debugCheckbox:SetChecked(settings.debug and true or false)
+    linkQuestCheckbox:SetChecked(settings.linkQuest and true or false)
 
     if soundCheckbox.Text then
-        if QuestAnnounce.db.profile.settings.sound then
+        if settings.sound then
             soundCheckbox.Text:SetText(L["Sound On"])
         else
             soundCheckbox.Text:SetText(L["Sound Off"])
         end
     end
 
-	progressBox:SetNumber(tonumber(QuestAnnounce.db.profile.settings.progressSound or 8959))
-	completeBox:SetNumber(tonumber(QuestAnnounce.db.profile.settings.completeSound or 6199))
+	SetNumericEditBoxValue(progressBox, GetNumberOrDefault(settings.progressSound, 8959), 8959)
+	SetNumericEditBoxValue(completeBox, GetNumberOrDefault(settings.completeSound, 6199), 6199)
 
-	everySlider:SetValue(tonumber(QuestAnnounce.db.profile.settings.every or 1))
-	everyInput:SetNumber(tonumber(QuestAnnounce.db.profile.settings.every or 1))
+	everySlider:SetValue(GetNumberOrDefault(settings.every, 1))
+	SetNumericEditBoxValue(everyInput, GetNumberOrDefault(settings.every, 1), 1)
 
-    chatFrameCheckbox:SetChecked(QuestAnnounce.db.profile.announceTo.chatFrame)
-    raidWarningCheckbox:SetChecked(QuestAnnounce.db.profile.announceTo.raidWarningFrame)
-    uiErrorsCheckbox:SetChecked(QuestAnnounce.db.profile.announceTo.uiErrorsFrame)
+    chatFrameCheckbox:SetChecked(announceTo.chatFrame and true or false)
+    raidWarningCheckbox:SetChecked(announceTo.raidWarningFrame and true or false)
+    uiErrorsCheckbox:SetChecked(announceTo.uiErrorsFrame and true or false)
 
-    sayCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.say)
-    partyCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.party)
-    instanceCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.instance)
-    guildCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.guild)
-    officerCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.officer)
-    focusCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.focus)
-    whisperCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.whisper)
-    channelCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.channel)
+    sayCheckbox:SetChecked(announceIn.say and true or false)
+    partyCheckbox:SetChecked(announceIn.party and true or false)
+    instanceCheckbox:SetChecked(announceIn.instance and true or false)
+    guildCheckbox:SetChecked(announceIn.guild and true or false)
+    officerCheckbox:SetChecked(announceIn.officer and true or false)
+    focusCheckbox:SetChecked(announceIn.focus and true or false)
+    whisperCheckbox:SetChecked(announceIn.whisper and true or false)
+    channelCheckbox:SetChecked(announceIn.channel and true or false)
 
-    whisperWhoBox:SetText(QuestAnnounce.db.profile.announceIn.whisperWho or "")
-    channelNameBox:SetText(QuestAnnounce.db.profile.announceIn.channelName or "")
+    whisperWhoBox:SetText(announceIn.whisperWho or "")
+    channelNameBox:SetText(announceIn.channelName or "")
 end
 
     -- Hauptpanel beim Anzeigen aktualisieren
     generalPanel:HookScript("OnShow", RefreshGeneralPanel)
+    content:HookScript("OnShow", RefreshGeneralPanel)
+    scrollFrame:HookScript("OnShow", RefreshGeneralPanel)
+    RefreshGeneralPanel()
 
     -- Hauptpanel in den Blizzard-Einstellungen registrieren
     local generalCategory = Settings.RegisterCanvasLayoutCategory(generalPanel, "QuestAnnounce")
@@ -1301,4 +1332,3 @@ StaticPopupDialogs["MISSING_CHANNEL_NAME"] = {
     whileDead = true,
     hideOnEscape = true,
 }
-
