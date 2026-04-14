@@ -61,7 +61,7 @@ function QuestAnnounce:LeaveChannel(channelName)
     local id, name = GetChannelName(channelName)
     if id and id > 0 then
         LeaveChannelByName(channelName)
-        QuestAnnounce:Print(L["Exiting the Channel "] .. channelName)
+        QuestAnnounce:Print(L["Exiting the Channel: "] .. channelName)
     end
 end
 

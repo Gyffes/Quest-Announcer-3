@@ -95,11 +95,38 @@ QuestAnnounce_L.enUS = {
 	["Sound ID played when a quest is completed."] = "Sound ID played when a quest is completed.",
 	["Play the current progress sound."] = "Play the current progress sound.",
 	["Play the current completion sound."] = "Play the current completion sound.",
-	["Reset the progress sound ID to default."] = "Reset the progress sound ID to default.",
-	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",
-	["Value"] = "Value",
-	
-	
+		["Reset the progress sound ID to default."] = "Reset the progress sound ID to default.",
+		["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",
+		["Value"] = "Value",
+		["General settings for QuestAnnounce."] = "General settings for QuestAnnounce.",
+		["Enable or disable the addon."] = "Enable or disable the addon.",
+		["Show quest titles as clickable quest links in announcements."] = "Show quest titles as clickable quest links in announcements.",
+		["Enable debug messages in the chat frame."] = "Enable debug messages in the chat frame.",
+		["Set how often progress updates should be announced. Value range: 0 to 100."] = "Set how often progress updates should be announced. Value range: 0 to 100.",
+		["Choose where QuestAnnounce should display messages."] = "Choose where QuestAnnounce should display messages.",
+		["Choose which chat channels QuestAnnounce should use."] = "Choose which chat channels QuestAnnounce should use.",
+		["Send announcements to chat channels such as party, guild, whisper, or custom channel."] = "Send announcements to chat channels such as party, guild, whisper, or custom channel.",
+		["Show announcements in the Raid Warning frame."] = "Show announcements in the Raid Warning frame.",
+		["Show announcements in the UI error message area."] = "Show announcements in the UI error message area.",
+		["Send announcements to the /say channel."] = "Send announcements to the /say channel.",
+		["Send announcements to your party chat."] = "Send announcements to your party chat.",
+		["Send announcements to the instance chat channel when available."] = "Send announcements to the instance chat channel when available.",
+		["Send announcements to the guild officer chat."] = "Send announcements to the guild officer chat.",
+		["Send announcements as whispers to your current focus target."] = "Send announcements as whispers to your current focus target.",
+		["Send announcements to guild chat."] = "Send announcements to guild chat.",
+		["Send announcements as whispers to the character entered in Whisper Who."] = "Send announcements as whispers to the character entered in Whisper Who.",
+		["Enter the name of the character that should receive whisper announcements."] = "Enter the name of the character that should receive whisper announcements.",
+		["Send announcements to a custom chat channel."] = "Send announcements to a custom chat channel.",
+		["Enter the name of the custom channel used for announcements."] = "Enter the name of the custom channel used for announcements.",
+		["Send a test message using the currently selected output settings."] = "Send a test message using the currently selected output settings.",
+		["Select the font used for QuestAnnounce tooltips."] = "Select the font used for QuestAnnounce tooltips.",
+		["Set the font size used for QuestAnnounce tooltips."] = "Set the font size used for QuestAnnounce tooltips.",
+		["Choose the font color used for QuestAnnounce tooltips."] = "Choose the font color used for QuestAnnounce tooltips.",
+		["Choose the background color and transparency used for QuestAnnounce tooltips."] = "Choose the background color and transparency used for QuestAnnounce tooltips.",
+		["Reset all tooltip appearance settings to their default values."] = "Reset all tooltip appearance settings to their default values.",
+		["Reset the minimap button to its default position."] = "Reset the minimap button to its default position.",
+
+
 }
 
 QuestAnnounce_L.deDE = {
@@ -284,7 +311,7 @@ QuestAnnounce_L.esMX = {
 	["Play the current progress sound."] = "Play the current progress sound.",
 	["Play the current completion sound."] = "Play the current completion sound.",
 	["Reset the progress sound ID to default."] = "Reset the progress sound ID to default.",
-	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",	
+	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",
 	["Value"] = "Value",
 }
 
@@ -376,7 +403,7 @@ QuestAnnounce_L.esES = {
 	["Play the current progress sound."] = "Play the current progress sound.",
 	["Play the current completion sound."] = "Play the current completion sound.",
 	["Reset the progress sound ID to default."] = "Reset the progress sound ID to default.",
-	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",	
+	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",
 	["Value"] = "Value",
 }
 
@@ -468,7 +495,7 @@ QuestAnnounce_L.frFR = {
 	["Play the current progress sound."] = "Play the current progress sound.",
 	["Play the current completion sound."] = "Play the current completion sound.",
 	["Reset the progress sound ID to default."] = "Reset the progress sound ID to default.",
-	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",	
+	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",
 	["Value"] = "Value",
 }
 
@@ -560,7 +587,7 @@ QuestAnnounce_L.koKR = {
 	["Play the current progress sound."] = "Play the current progress sound.",
 	["Play the current completion sound."] = "Play the current completion sound.",
 	["Reset the progress sound ID to default."] = "Reset the progress sound ID to default.",
-	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",	
+	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",
 	["Value"] = "Value",
 }
 
@@ -653,7 +680,7 @@ QuestAnnounce_L.ruRU = {
 	["Play the current progress sound."] = "Play the current progress sound.",
 	["Play the current completion sound."] = "Play the current completion sound.",
 	["Reset the progress sound ID to default."] = "Reset the progress sound ID to default.",
-	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",	
+	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",
 	["Value"] = "Value",
 }
 
@@ -745,7 +772,7 @@ QuestAnnounce_L.zhCN = {
 	["Play the current progress sound."] = "Play the current progress sound.",
 	["Play the current completion sound."] = "Play the current completion sound.",
 	["Reset the progress sound ID to default."] = "Reset the progress sound ID to default.",
-	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",	
+	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",
 	["Value"] = "Value",
 }
 
@@ -837,7 +864,7 @@ QuestAnnounce_L.zhTW = {
 	["Play the current progress sound."] = "Play the current progress sound.",
 	["Play the current completion sound."] = "Play the current completion sound.",
 	["Reset the progress sound ID to default."] = "Reset the progress sound ID to default.",
-	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",	
+	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",
 	["Value"] = "Value",
 
 }
@@ -930,6 +957,16 @@ QuestAnnounce_L.ptBR = {
 	["Play the current progress sound."] = "Play the current progress sound.",
 	["Play the current completion sound."] = "Play the current completion sound.",
 	["Reset the progress sound ID to default."] = "Reset the progress sound ID to default.",
-	["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",	
-	["Value"] = "Value",
-}
+		["Reset the completion sound ID to default."] = "Reset the completion sound ID to default.",
+		["Value"] = "Value",
+	}
+
+-- Fallback: fehlende Schlüssel in anderen Locales automatisch aus enUS beziehen.
+do
+    local fallback = QuestAnnounce_L.enUS or {}
+    for locale, localeTable in pairs(QuestAnnounce_L) do
+        if locale ~= "enUS" and type(localeTable) == "table" then
+            setmetatable(localeTable, { __index = fallback })
+        end
+    end
+end
