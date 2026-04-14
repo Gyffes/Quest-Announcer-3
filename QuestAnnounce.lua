@@ -437,7 +437,7 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
     end
 
     -- Quest Parsing
-    local questTitle = msg:match(QUEST_INFO_REGEX)
+    local questTitle, currentAmountText, requiredAmountText = msg:match(QUEST_INFO_REGEX)
 
     if not questTitle then
         return
@@ -474,16 +474,35 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
         end
     end
 
+    local currentAmount = tonumber(currentAmountText)
+    local requiredAmount = tonumber(requiredAmountText)
+    local objectiveLooksComplete = currentAmount
+        and requiredAmount
+        and requiredAmount > 0
+        and currentAmount >= requiredAmount
+
     -- Send Logic
     if not logIndex then
+        local announceAsComplete = objectiveLooksComplete and true or false
         if questID then
-            self:Print(L["Progress: "] .. localMsg)
+            if announceAsComplete then
+                self:Print(L["Completed: "] .. localMsg)
+            else
+                self:Print(L["Progress: "] .. localMsg)
+            end
         end
-        self:SendMsg(L["Progress: "] .. newMsg, false)
+        if announceAsComplete then
+            self:SendMsg(L["Completed: "] .. newMsg, true)
+        else
+            self:SendMsg(L["Progress: "] .. newMsg, false)
+        end
         return
     end
 
     local isComplete = C_QuestLog.IsComplete(logIndex)
+    if not isComplete and objectiveLooksComplete then
+        isComplete = true
+    end
 
     if isComplete then
         if questID then

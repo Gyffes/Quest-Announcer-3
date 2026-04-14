@@ -1004,44 +1004,59 @@ local function RefreshGeneralPanel()
 		return
 	end
 
-    enableCheckbox:SetChecked(QuestAnnounce.db.profile.settings.enable)
-    soundCheckbox:SetChecked(QuestAnnounce.db.profile.settings.sound)
-    debugCheckbox:SetChecked(QuestAnnounce.db.profile.settings.debug)
-    linkQuestCheckbox:SetChecked(QuestAnnounce.db.profile.settings.linkQuest)
+    local settings = QuestAnnounce.db.profile.settings or {}
+    local announceTo = QuestAnnounce.db.profile.announceTo or {}
+    local announceIn = QuestAnnounce.db.profile.announceIn or {}
+
+    local function GetNumberOrDefault(value, defaultValue)
+        local n = tonumber(value)
+        if not n then
+            return defaultValue
+        end
+        return n
+    end
+
+    enableCheckbox:SetChecked(settings.enable and true or false)
+    soundCheckbox:SetChecked(settings.sound and true or false)
+    debugCheckbox:SetChecked(settings.debug and true or false)
+    linkQuestCheckbox:SetChecked(settings.linkQuest and true or false)
 
     if soundCheckbox.Text then
-        if QuestAnnounce.db.profile.settings.sound then
+        if settings.sound then
             soundCheckbox.Text:SetText(L["Sound On"])
         else
             soundCheckbox.Text:SetText(L["Sound Off"])
         end
     end
 
-	progressBox:SetNumber(tonumber(QuestAnnounce.db.profile.settings.progressSound or 8959))
-	completeBox:SetNumber(tonumber(QuestAnnounce.db.profile.settings.completeSound or 6199))
+	progressBox:SetNumber(GetNumberOrDefault(settings.progressSound, 8959))
+	completeBox:SetNumber(GetNumberOrDefault(settings.completeSound, 6199))
 
-	everySlider:SetValue(tonumber(QuestAnnounce.db.profile.settings.every or 1))
-	everyInput:SetNumber(tonumber(QuestAnnounce.db.profile.settings.every or 1))
+	everySlider:SetValue(GetNumberOrDefault(settings.every, 1))
+	everyInput:SetNumber(GetNumberOrDefault(settings.every, 1))
 
-    chatFrameCheckbox:SetChecked(QuestAnnounce.db.profile.announceTo.chatFrame)
-    raidWarningCheckbox:SetChecked(QuestAnnounce.db.profile.announceTo.raidWarningFrame)
-    uiErrorsCheckbox:SetChecked(QuestAnnounce.db.profile.announceTo.uiErrorsFrame)
+    chatFrameCheckbox:SetChecked(announceTo.chatFrame and true or false)
+    raidWarningCheckbox:SetChecked(announceTo.raidWarningFrame and true or false)
+    uiErrorsCheckbox:SetChecked(announceTo.uiErrorsFrame and true or false)
 
-    sayCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.say)
-    partyCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.party)
-    instanceCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.instance)
-    guildCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.guild)
-    officerCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.officer)
-    focusCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.focus)
-    whisperCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.whisper)
-    channelCheckbox:SetChecked(QuestAnnounce.db.profile.announceIn.channel)
+    sayCheckbox:SetChecked(announceIn.say and true or false)
+    partyCheckbox:SetChecked(announceIn.party and true or false)
+    instanceCheckbox:SetChecked(announceIn.instance and true or false)
+    guildCheckbox:SetChecked(announceIn.guild and true or false)
+    officerCheckbox:SetChecked(announceIn.officer and true or false)
+    focusCheckbox:SetChecked(announceIn.focus and true or false)
+    whisperCheckbox:SetChecked(announceIn.whisper and true or false)
+    channelCheckbox:SetChecked(announceIn.channel and true or false)
 
-    whisperWhoBox:SetText(QuestAnnounce.db.profile.announceIn.whisperWho or "")
-    channelNameBox:SetText(QuestAnnounce.db.profile.announceIn.channelName or "")
+    whisperWhoBox:SetText(announceIn.whisperWho or "")
+    channelNameBox:SetText(announceIn.channelName or "")
 end
 
     -- Hauptpanel beim Anzeigen aktualisieren
     generalPanel:HookScript("OnShow", RefreshGeneralPanel)
+    content:HookScript("OnShow", RefreshGeneralPanel)
+    scrollFrame:HookScript("OnShow", RefreshGeneralPanel)
+    RefreshGeneralPanel()
 
     -- Hauptpanel in den Blizzard-Einstellungen registrieren
     local generalCategory = Settings.RegisterCanvasLayoutCategory(generalPanel, "QuestAnnounce")
