@@ -701,7 +701,7 @@ soundSeparator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -365)
 				SetNumericEditBoxValue(everyInput, rounded, 1)
 			end
 		end)
-
+		
 	-- Übernimmt den Wert aus dem Eingabefeld beim Drücken von Enter
 	everyInput:SetScript("OnEnterPressed", function(self)
 		local value = tonumber(self:GetText()) or 0
@@ -1332,4 +1332,3 @@ StaticPopupDialogs["MISSING_CHANNEL_NAME"] = {
     whileDead = true,
     hideOnEscape = true,
 }
-

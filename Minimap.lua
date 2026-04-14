@@ -23,6 +23,7 @@ function QuestAnnounce:InitializeMinimapButton()
     icon:SetTexture("Interface\\AddOns\\QuestAnnounce\\Media\\QA3Icon")  -- Pfad zur gespeicherten Grafik
     icon:SetSize(28, 28)
     icon:SetPoint("CENTER")
+	   
     icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
     -- Rundes Masking, damit kein eckiger Hintergrund sichtbar ist
@@ -31,6 +32,8 @@ function QuestAnnounce:InitializeMinimapButton()
     iconMask:SetPoint("CENTER", icon, "CENTER")
     iconMask:SetSize(28, 28)
     icon:AddMaskTexture(iconMask)
+
+
 
     MinimapButton:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
 
