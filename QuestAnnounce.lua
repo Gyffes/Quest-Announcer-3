@@ -78,12 +78,12 @@ end
 
 -- Bestätigungsdialog zum Verlassen eines benutzerdefinierten Kanals
 StaticPopupDialogs["CONFIRM_LEAVE_CHANNEL"] = {
-    text = "%s Kanal verlassen?",
-    button1 = "Ja",
-    button2 = "Nein",
+    text = L["Leave channel confirmation"],
+    button1 = L["Yes"],
+    button2 = L["No"],
     OnAccept = function(_, channelName)
         LeaveChannelByName(channelName)
-        QuestAnnounce:Print("Verlassen des Kanals: " .. channelName)
+        QuestAnnounce:Print(L["Leaving Channel: "] .. channelName)
     end,
     timeout = 0,
     whileDead = true,
@@ -329,7 +329,7 @@ function QuestAnnounce:ShowCopyDialog(text, title)
 
         frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
         frame.title:SetPoint("TOP", 0, -10)
-        frame.title:SetText("QuestAnnounce Copy")
+        frame.title:SetText(L["QuestAnnounce Copy"])
 
         local editBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
         editBox:SetSize(460, 30)
@@ -346,13 +346,13 @@ function QuestAnnounce:ShowCopyDialog(text, title)
 
         local hint = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         hint:SetPoint("TOP", editBox, "BOTTOM", 0, -10)
-        hint:SetText("Strg+C zum Kopieren, Esc zum Schließen")
+        hint:SetText(L["Ctrl+C to copy, Esc to close"])
 
         frame.editBox = editBox
         self.copyFrame = frame
     end
 
-    self.copyFrame.title:SetText(title or "Copy")
+    self.copyFrame.title:SetText(title or L["Copy"])
     self.copyFrame.editBox:SetText(text or "")
     self.copyFrame:Show()
     self.copyFrame.editBox:SetFocus()
@@ -397,7 +397,7 @@ function QuestAnnounce:InitializeLinkHandler()
         if button == "RightButton" then
             local url = QuestAnnounce:GetWowheadQuestURL(questID)
             if url then
-                QuestAnnounce:ShowCopyDialog(url, "Wowhead Quest URL")
+                QuestAnnounce:ShowCopyDialog(url, L["Wowhead Quest URL"])
             end
             return
         end
