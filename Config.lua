@@ -1430,7 +1430,7 @@ end
         240,
         24,
         16,
-        -108,
+        -108, -- DE: Zusätzlicher Abstand unter Label / EN: Extra spacing below label
         L["Profile Name"],
         L["Enter a profile name. Default suggestion is Character-Realm."]
     )
@@ -1440,18 +1440,18 @@ end
     profileSelectLabel:SetText(L["Profile Selection"])
 
     local profileDropdown = CreateFrame("Frame", nil, profilePanel, "UIDropDownMenuTemplate")
-    profileDropdown:SetPoint("TOPLEFT", profilePanel, "TOPLEFT", 300, -108)
+    profileDropdown:SetPoint("TOPLEFT", profilePanel, "TOPLEFT", 300, -108) -- DE: Gleiche Höhe wie Eingabefeld / EN: Same height as name input
     UIDropDownMenu_SetWidth(profileDropdown, 240)
     UIDropDownMenu_SetText(profileDropdown, L["No profile selected."])
     AttachTooltip(profileDropdown, L["Profile Selection"], L["Select a saved profile to load, copy, delete, overwrite, or inspect."])
 
     local profileOverviewHeader = profilePanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    profileOverviewHeader:SetPoint("TOPLEFT", profilePanel, "TOPLEFT", 16, -286)
+    profileOverviewHeader:SetPoint("TOPLEFT", profilePanel, "TOPLEFT", 16, -286) -- DE: Tiefer nach Buttons / EN: Moved lower below buttons
     profileOverviewHeader:SetText(L["Profile Overview"])
 
     local overviewBackground = CreateFrame("Frame", nil, profilePanel, "BackdropTemplate")
     overviewBackground:SetPoint("TOPLEFT", profileOverviewHeader, "BOTTOMLEFT", -4, -8)
-    overviewBackground:SetSize(640, 240)
+    overviewBackground:SetSize(640, 240) -- DE: Schmaler Container passend zum Panel / EN: Narrower container fitting panel width
     overviewBackground:SetBackdrop({
         bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -1615,7 +1615,7 @@ end
         profileButtonWidth,
         profileButtonHeight,
         16,
-        -170,
+        -170, -- DE: Zwei Absätze unter Feldern / EN: Two-paragraph gap below inputs
         function()
             local name = Trim(profileNameBox:GetText())
             if SaveCurrentToProfile(name, false) then
@@ -1632,7 +1632,7 @@ end
         profileButtonWidth,
         profileButtonHeight,
         176,
-        -170,
+        -170, -- DE: Einheitliche erste Button-Reihe / EN: Aligned first button row
         function()
             local name = selectedProfileName or Trim(profileNameBox:GetText())
             if LoadProfile(name) then
@@ -1649,7 +1649,7 @@ end
         profileButtonWidth,
         profileButtonHeight,
         336,
-        -170,
+        -170, -- DE: Einheitliche erste Button-Reihe / EN: Aligned first button row
         function()
             local sourceName = selectedProfileName
             local targetName = Trim(profileNameBox:GetText())

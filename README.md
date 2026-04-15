@@ -1,8 +1,12 @@
-# Quest Announce 3
+﻿# Quest Announce 3
 
 Quest Announce 3 ist ein World-of-Warcraft-Addon, das Quest-Fortschritt und Quest-Abschlüsse automatisch in gewählte Ausgabekanäle meldet.
 
 ## Projektstatus
+
+## Version
+
+Aktueller Stand: **9.3.0.1**
 
 Das Addon wurde in der aktuellen Entwicklungsphase grundlegend modernisiert:
 
@@ -12,6 +16,7 @@ Das Addon wurde in der aktuellen Entwicklungsphase grundlegend modernisiert:
 - Fokus-Flüstern wurde überarbeitet und stabilisiert.
 - Umfangreiche Lokalisierungs-Überarbeitung (inkl. Fallback auf `enUS`).
 - Minimap-Button optisch/technisch verbessert (rundes Icon-Masking).
+- Neues Profilverwaltungs-Untermenü mit Speichern/Laden/Kopieren/Überschreiben/Löschen und Profilübersicht.
 
 ## Hauptfunktionen
 

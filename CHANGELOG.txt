@@ -1,3 +1,10 @@
+﻿v9.3.0.1 Multi - 15-04-2026
+         - Neues Profilverwaltungs-Untermenü ergänzt (Speichern/Laden/Kopieren/Überschreiben/Löschen)
+         - Profilübersicht mit wichtigsten Einstellungswerten hinzugefügt
+         - Profilnamen-Standard auf Charakter-Server gesetzt
+         - UI-Layout der Profilverwaltung überarbeitet (Abstände, Ausrichtung, Containerbreite)
+         - Lokalisierungen für neue Profiltexte erweitert
+
 v9.3.0.0 Multi - 14-04-2026
          - Standalone-Umstellung abgeschlossen (Ace/Fremd-Addon-Abhängigkeiten entfernt)
          - Große Teile auf Basis des Altcodes neu aufgebaut
