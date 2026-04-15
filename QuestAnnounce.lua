@@ -120,6 +120,7 @@ QuestAnnounceDB = QuestAnnounceDB or {} -- Gespeicherte Datenbank initialisieren
     if not QuestAnnounceDB.profile then
     QuestAnnounceDB.profile = {}
 	end
+    QuestAnnounceDB.profiles = QuestAnnounceDB.profiles or {}
 
 	-- Fehlende Standardwerte rekursiv ergänzen, vorhandene Werte behalten
 	DeepMergeDefaults(QuestAnnounceDB.profile, defaults.profile)
