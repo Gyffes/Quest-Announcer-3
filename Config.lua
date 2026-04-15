@@ -1430,7 +1430,7 @@ end
         240,
         24,
         16,
-        -80,
+        -108,
         L["Profile Name"],
         L["Enter a profile name. Default suggestion is Character-Realm."]
     )
@@ -1440,18 +1440,18 @@ end
     profileSelectLabel:SetText(L["Profile Selection"])
 
     local profileDropdown = CreateFrame("Frame", nil, profilePanel, "UIDropDownMenuTemplate")
-    profileDropdown:SetPoint("TOPLEFT", profilePanel, "TOPLEFT", 300, -98)
+    profileDropdown:SetPoint("TOPLEFT", profilePanel, "TOPLEFT", 300, -108)
     UIDropDownMenu_SetWidth(profileDropdown, 240)
     UIDropDownMenu_SetText(profileDropdown, L["No profile selected."])
     AttachTooltip(profileDropdown, L["Profile Selection"], L["Select a saved profile to load, copy, delete, overwrite, or inspect."])
 
     local profileOverviewHeader = profilePanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    profileOverviewHeader:SetPoint("TOPLEFT", profilePanel, "TOPLEFT", 16, -230)
+    profileOverviewHeader:SetPoint("TOPLEFT", profilePanel, "TOPLEFT", 16, -286)
     profileOverviewHeader:SetText(L["Profile Overview"])
 
     local overviewBackground = CreateFrame("Frame", nil, profilePanel, "BackdropTemplate")
     overviewBackground:SetPoint("TOPLEFT", profileOverviewHeader, "BOTTOMLEFT", -4, -8)
-    overviewBackground:SetSize(720, 250)
+    overviewBackground:SetSize(640, 240)
     overviewBackground:SetBackdrop({
         bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -1464,7 +1464,7 @@ end
 
     local profileOverviewText = overviewBackground:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     profileOverviewText:SetPoint("TOPLEFT", 10, -10)
-    profileOverviewText:SetWidth(700)
+    profileOverviewText:SetWidth(620)
     profileOverviewText:SetJustifyH("LEFT")
     profileOverviewText:SetJustifyV("TOP")
     profileOverviewText:SetText(L["Select a profile to see its saved values."])
@@ -1615,7 +1615,7 @@ end
         profileButtonWidth,
         profileButtonHeight,
         16,
-        -120,
+        -170,
         function()
             local name = Trim(profileNameBox:GetText())
             if SaveCurrentToProfile(name, false) then
@@ -1632,7 +1632,7 @@ end
         profileButtonWidth,
         profileButtonHeight,
         176,
-        -120,
+        -170,
         function()
             local name = selectedProfileName or Trim(profileNameBox:GetText())
             if LoadProfile(name) then
@@ -1649,7 +1649,7 @@ end
         profileButtonWidth,
         profileButtonHeight,
         336,
-        -120,
+        -170,
         function()
             local sourceName = selectedProfileName
             local targetName = Trim(profileNameBox:GetText())
@@ -1684,7 +1684,7 @@ end
         profileButtonWidth,
         profileButtonHeight,
         16,
-        -158,
+        -208,
         function()
             local targetName = selectedProfileName
             local typedName = Trim(profileNameBox:GetText())
@@ -1713,7 +1713,7 @@ end
         profileButtonWidth,
         profileButtonHeight,
         176,
-        -158,
+        -208,
         function()
             local targetName = selectedProfileName
             local typedName = Trim(profileNameBox:GetText())
