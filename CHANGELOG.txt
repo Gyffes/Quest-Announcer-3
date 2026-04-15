@@ -1,13 +1,37 @@
+﻿Changelog ist zweisprachig aufgebaut: Deutsch (Hauptsprache) + Englisch.
+Changelog is maintained bilingually: German (primary language) + English.
+
+v9.3.0.1 Multi - 15-04-2026
+         - [DE] Neues Profilverwaltungs-Untermenü ergänzt (Speichern/Laden/Kopieren/Überschreiben/Löschen)
+         - [EN] Added new profile management submenu (save/load/copy/overwrite/delete)
+         - [DE] Profilübersicht mit wichtigsten Einstellungswerten hinzugefügt
+         - [EN] Added profile overview with key stored settings
+         - [DE] Profilnamen-Standard auf Charakter-Server gesetzt
+         - [EN] Set default profile naming to Character-Realm
+         - [DE] UI-Layout der Profilverwaltung überarbeitet (Abstände, Ausrichtung, Containerbreite)
+         - [EN] Refined profile management UI layout (spacing, alignment, container width)
+         - [DE] Lokalisierungen für neue Profiltexte erweitert
+         - [EN] Extended localizations for new profile-related UI texts
+
 v9.3.0.0 Multi - 14-04-2026
-         - Standalone-Umstellung abgeschlossen (Ace/Fremd-Addon-Abhängigkeiten entfernt)
-         - Große Teile auf Basis des Altcodes neu aufgebaut
-         - Quest-Linking erweitert (klickbare Questtexte + Wowhead-Copy-Flow)
-         - Fokus-Flüstern stabilisiert/finalisiert
-         - Optionen robuster gemacht (Werte-Refresh + Numeric-EditBox-Anzeige korrigiert)
-         - Minimap-Button-Icon rund maskiert (kein eckiger Hintergrund mehr)
-         - Lokalisierung erweitert und vereinheitlicht (inkl. Fallback auf enUS)
-         - Questfortschritt/Abschluss-Erkennung beim Parsing verbessert
-         - Zusätzliche TOC-Dateien für weitere aktuelle WoW-Spielvarianten hinzugefügt
+         - [DE] Standalone-Umstellung abgeschlossen (Ace/Fremd-Addon-Abhängigkeiten entfernt)
+         - [EN] Completed standalone migration (Ace/third-party addon dependencies removed)
+         - [DE] Große Teile auf Basis des Altcodes neu aufgebaut
+         - [EN] Rebuilt major parts based on legacy code
+         - [DE] Quest-Linking erweitert (klickbare Questtexte + Wowhead-Copy-Flow)
+         - [EN] Extended quest linking (clickable quest text + Wowhead copy flow)
+         - [DE] Fokus-Flüstern stabilisiert/finalisiert
+         - [EN] Stabilized/finalized focus whisper functionality
+         - [DE] Optionen robuster gemacht (Werte-Refresh + Numeric-EditBox-Anzeige korrigiert)
+         - [EN] Made options more robust (value refresh + numeric editbox display fixes)
+         - [DE] Minimap-Button-Icon rund maskiert (kein eckiger Hintergrund mehr)
+         - [EN] Applied round icon masking to minimap button (no square background)
+         - [DE] Lokalisierung erweitert und vereinheitlicht (inkl. Fallback auf enUS)
+         - [EN] Expanded and unified localization (including enUS fallback)
+         - [DE] Questfortschritt/Abschluss-Erkennung beim Parsing verbessert
+         - [EN] Improved parsing for quest progress/completion detection
+         - [DE] Zusätzliche TOC-Dateien für weitere aktuelle WoW-Spielvarianten hinzugefügt
+         - [EN] Added additional TOC files for more current WoW variants
 
 v9.2.8.4 Multi - 29-03-2026
 		 - Update for Midnight 12.0.5

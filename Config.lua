@@ -1307,6 +1307,455 @@ end
     -- Speichert optional auch die Tooltip-Kategorie für spätere Nutzung
     self.tooltipOptionsCategory = tooltipCategory
 
+    -- =========================================================
+    -- UNTERPANEL: Profilverwaltung
+    -- =========================================================
+    local profilePanel = CreateFrame("Frame")
+
+    local function Trim(value)
+        if not value then
+            return ""
+        end
+        return tostring(value):gsub("^%s*(.-)%s*$", "%1")
+    end
+
+    local function DeepCopy(value)
+        if type(value) ~= "table" then
+            return value
+        end
+        local copied = {}
+        for k, v in pairs(value) do
+            copied[k] = DeepCopy(v)
+        end
+        return copied
+    end
+
+    local function EnsureProfileShape(profile)
+        profile = type(profile) == "table" and profile or {}
+        profile.settings = type(profile.settings) == "table" and profile.settings or {}
+        profile.announceTo = type(profile.announceTo) == "table" and profile.announceTo or {}
+        profile.announceIn = type(profile.announceIn) == "table" and profile.announceIn or {}
+        profile.tooltip = type(profile.tooltip) == "table" and profile.tooltip or {}
+        return profile
+    end
+
+    local function GetSuggestedProfileName()
+        local player = UnitName("player") or "Player"
+        local realm = GetRealmName() or "Realm"
+        realm = tostring(realm):gsub("%s+", "")
+        return tostring(player) .. "-" .. tostring(realm)
+    end
+
+    local function GetProfilesTable()
+        QuestAnnounceDB.profiles = QuestAnnounceDB.profiles or {}
+        return QuestAnnounceDB.profiles
+    end
+
+    local function GetSoundLabel(soundID, isComplete)
+        local id = tonumber(soundID)
+        if not id then
+            return L["Not set"]
+        end
+        if id == 8959 then
+            return string.format("%s (8959)", L["Default Progress Sound Name"])
+        end
+        if id == 6199 then
+            return string.format("%s (6199)", L["Default Completion Sound Name"])
+        end
+        if isComplete then
+            return string.format("%s %d", L["Completion Sound ID"], id)
+        end
+        return string.format("%s %d", L["Progress Sound ID"], id)
+    end
+
+    local function FormatBoolean(value)
+        return value and L["Enabled"] or L["Disabled"]
+    end
+
+    local function FormatColor(color)
+        if type(color) ~= "table" then
+            return L["Not set"]
+        end
+        local r = tonumber(color[1] or 0) or 0
+        local g = tonumber(color[2] or 0) or 0
+        local b = tonumber(color[3] or 0) or 0
+        return string.format("%.2f, %.2f, %.2f", r, g, b)
+    end
+
+    local function CollectChannelLabels(values, state)
+        local labels = {
+            { key = "say", label = L["Say"] },
+            { key = "party", label = L["Party"] },
+            { key = "instance", label = L["Instance"] },
+            { key = "guild", label = L["Guild"] },
+            { key = "officer", label = L["Officer"] },
+            { key = "focus", label = L["Focus"] },
+            { key = "whisper", label = L["Whisper"] },
+            { key = "channel", label = L["Channel"] },
+            { key = "chatFrame", label = L["Chat Frame"] },
+            { key = "raidWarningFrame", label = L["Raid Warning Frame"] },
+            { key = "uiErrorsFrame", label = L["UI Errors Frame"] },
+        }
+
+        local out = {}
+        for _, item in ipairs(labels) do
+            if (values[item.key] and true or false) == state then
+                table.insert(out, item.label)
+            end
+        end
+        if #out == 0 then
+            return L["Not set"]
+        end
+        return table.concat(out, ", ")
+    end
+
+    local selectedProfileName = nil
+
+    local profileTitle = profilePanel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    profileTitle:SetPoint("TOPLEFT", 16, -16)
+    profileTitle:SetText(L["Profile Management"])
+
+    local profileSubtitle = profilePanel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    profileSubtitle:SetPoint("TOPLEFT", profileTitle, "BOTTOMLEFT", 0, -8)
+    profileSubtitle:SetWidth(760)
+    profileSubtitle:SetJustifyH("LEFT")
+    profileSubtitle:SetText(L["Manage, save, and load named profiles."])
+
+    local profileNameLabel = profilePanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    profileNameLabel:SetPoint("TOPLEFT", profileSubtitle, "BOTTOMLEFT", 0, -18)
+    profileNameLabel:SetText(L["Profile Name"])
+
+    local profileNameBox = CreateEditBox(
+        profilePanel,
+        240,
+        24,
+        16,
+        -108, -- DE: Zusätzlicher Abstand unter Label / EN: Extra spacing below label
+        L["Profile Name"],
+        L["Enter a profile name. Default suggestion is Character-Realm."]
+    )
+
+    local profileSelectLabel = profilePanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    profileSelectLabel:SetPoint("TOPLEFT", profileNameLabel, "TOPLEFT", 300, 0)
+    profileSelectLabel:SetText(L["Profile Selection"])
+
+    local profileDropdown = CreateFrame("Frame", nil, profilePanel, "UIDropDownMenuTemplate")
+    profileDropdown:SetPoint("TOPLEFT", profilePanel, "TOPLEFT", 300, -108) -- DE: Gleiche Höhe wie Eingabefeld / EN: Same height as name input
+    UIDropDownMenu_SetWidth(profileDropdown, 240)
+    UIDropDownMenu_SetText(profileDropdown, L["No profile selected."])
+    AttachTooltip(profileDropdown, L["Profile Selection"], L["Select a saved profile to load, copy, delete, overwrite, or inspect."])
+
+    local profileOverviewHeader = profilePanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    profileOverviewHeader:SetPoint("TOPLEFT", profilePanel, "TOPLEFT", 16, -286) -- DE: Tiefer nach Buttons / EN: Moved lower below buttons
+    profileOverviewHeader:SetText(L["Profile Overview"])
+
+    local overviewBackground = CreateFrame("Frame", nil, profilePanel, "BackdropTemplate")
+    overviewBackground:SetPoint("TOPLEFT", profileOverviewHeader, "BOTTOMLEFT", -4, -8)
+    overviewBackground:SetSize(640, 240) -- DE: Schmaler Container passend zum Panel / EN: Narrower container fitting panel width
+    overviewBackground:SetBackdrop({
+        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+        tile = true,
+        tileSize = 16,
+        edgeSize = 12,
+        insets = { left = 3, right = 3, top = 3, bottom = 3 },
+    })
+    overviewBackground:SetBackdropColor(0, 0, 0, 0.5)
+
+    local profileOverviewText = overviewBackground:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    profileOverviewText:SetPoint("TOPLEFT", 10, -10)
+    profileOverviewText:SetWidth(620)
+    profileOverviewText:SetJustifyH("LEFT")
+    profileOverviewText:SetJustifyV("TOP")
+    profileOverviewText:SetText(L["Select a profile to see its saved values."])
+    AttachTooltip(overviewBackground, L["Profile Overview"], L["Quick overview of the selected profile values."])
+
+    local function BuildProfileOverview(profileName)
+        local profiles = GetProfilesTable()
+        local profile = profiles[profileName]
+        if type(profile) ~= "table" then
+            return L["Profile not found."]
+        end
+
+        profile = EnsureProfileShape(DeepCopy(profile))
+        local settings = profile.settings
+        local announceTo = profile.announceTo
+        local announceIn = profile.announceIn
+        local tooltip = profile.tooltip
+
+        local channelValues = {}
+        for k, v in pairs(announceTo) do channelValues[k] = v end
+        for k, v in pairs(announceIn) do channelValues[k] = v end
+
+        local lines = {
+            string.format("%s %s", L["Profile Name"], profileName),
+            string.format("%s %s", L["Addon Enabled"], FormatBoolean(settings.enable)),
+            string.format("%s %s", L["Sound Enabled"], FormatBoolean(settings.sound)),
+            string.format("%s %s", L["Progress Sound"], GetSoundLabel(settings.progressSound, false)),
+            string.format("%s %s", L["Completion Sound"], GetSoundLabel(settings.completeSound, true)),
+            string.format("%s %s", L["Announce Every Value"], tostring(settings.every or L["Not set"])),
+            string.format("%s %s", L["Debug Mode"], FormatBoolean(settings.debug)),
+            string.format("%s %s", L["Tooltip Font Value"], tostring(tooltip.font or L["Not set"])),
+            string.format("%s %s", L["Tooltip Font Size Value"], tostring(tooltip.fontSize or L["Not set"])),
+            string.format("%s %s", L["Tooltip Font Color Value"], FormatColor(tooltip.fontColor)),
+            string.format("%s %s", L["Whisper Target"], tostring(announceIn.whisperWho or L["Not set"])),
+            string.format("%s %s", L["Custom Channel Name"], tostring(announceIn.channelName or L["Not set"])),
+            string.format("%s %s", L["Active Channels"], CollectChannelLabels(channelValues, true)),
+            string.format("%s %s", L["Inactive Channels"], CollectChannelLabels(channelValues, false)),
+        }
+
+        return table.concat(lines, "\n")
+    end
+
+    local function RefreshProfileOverview()
+        if not selectedProfileName or selectedProfileName == "" then
+            profileOverviewText:SetText(L["Select a profile to see its saved values."])
+            return
+        end
+        profileOverviewText:SetText(BuildProfileOverview(selectedProfileName))
+    end
+
+    local function RefreshProfileDropdown()
+        local profiles = GetProfilesTable()
+        local names = {}
+        for name in pairs(profiles) do
+            table.insert(names, name)
+        end
+        table.sort(names, function(a, b)
+            return tostring(a):lower() < tostring(b):lower()
+        end)
+
+        UIDropDownMenu_Initialize(profileDropdown, function(_, _)
+            for _, name in ipairs(names) do
+                local info = UIDropDownMenu_CreateInfo()
+                info.text = name
+                info.func = function()
+                    selectedProfileName = name
+                    UIDropDownMenu_SetSelectedName(profileDropdown, name)
+                    UIDropDownMenu_SetText(profileDropdown, name)
+                    profileNameBox:SetText(name)
+                    RefreshProfileOverview()
+                end
+                UIDropDownMenu_AddButton(info)
+            end
+        end)
+
+        if selectedProfileName and profiles[selectedProfileName] then
+            UIDropDownMenu_SetSelectedName(profileDropdown, selectedProfileName)
+            UIDropDownMenu_SetText(profileDropdown, selectedProfileName)
+        else
+            selectedProfileName = nil
+            UIDropDownMenu_SetText(profileDropdown, L["No profile selected."])
+        end
+    end
+
+    local function SaveCurrentToProfile(profileName, allowOverwrite)
+        local name = Trim(profileName)
+        if name == "" then
+            QuestAnnounce:Print(L["Profile name is empty."])
+            return false
+        end
+
+        local profiles = GetProfilesTable()
+        if profiles[name] and not allowOverwrite then
+            QuestAnnounce:Print(L["Profile already exists."])
+            return false
+        end
+
+        profiles[name] = DeepCopy(QuestAnnounce.db.profile)
+        selectedProfileName = name
+        RefreshProfileDropdown()
+        RefreshProfileOverview()
+        return true
+    end
+
+    local function LoadProfile(profileName)
+        local name = Trim(profileName)
+        local profiles = GetProfilesTable()
+        if name == "" or not profiles[name] then
+            QuestAnnounce:Print(L["Profile not found."])
+            return false
+        end
+
+        QuestAnnounce.db.profile = EnsureProfileShape(DeepCopy(profiles[name]))
+        QuestAnnounceDB.profile = QuestAnnounce.db.profile
+        selectedProfileName = name
+        RefreshGeneralPanel()
+        RefreshTooltipPanel()
+        if QuestAnnounce.UpdateTooltipBackground then
+            QuestAnnounce:UpdateTooltipBackground()
+        end
+        RefreshProfileDropdown()
+        RefreshProfileOverview()
+        return true
+    end
+
+    local function DeleteProfile(profileName)
+        local name = Trim(profileName)
+        local profiles = GetProfilesTable()
+        if name == "" or not profiles[name] then
+            QuestAnnounce:Print(L["Profile not found."])
+            return false
+        end
+        profiles[name] = nil
+        if selectedProfileName == name then
+            selectedProfileName = nil
+        end
+        RefreshProfileDropdown()
+        RefreshProfileOverview()
+        return true
+    end
+
+    local profileButtonWidth = 150
+    local profileButtonHeight = 24
+
+    CreateButton(
+        profilePanel,
+        L["Save Profile"],
+        profileButtonWidth,
+        profileButtonHeight,
+        16,
+        -170, -- DE: Zwei Absätze unter Feldern / EN: Two-paragraph gap below inputs
+        function()
+            local name = Trim(profileNameBox:GetText())
+            if SaveCurrentToProfile(name, false) then
+                QuestAnnounce:Print(L["Profile saved: "] .. name)
+            end
+        end,
+        L["Save Profile"],
+        L["Save current addon settings into a new named profile."]
+    )
+
+    CreateButton(
+        profilePanel,
+        L["Load Profile"],
+        profileButtonWidth,
+        profileButtonHeight,
+        176,
+        -170, -- DE: Einheitliche erste Button-Reihe / EN: Aligned first button row
+        function()
+            local name = selectedProfileName or Trim(profileNameBox:GetText())
+            if LoadProfile(name) then
+                QuestAnnounce:Print(L["Profile loaded: "] .. name)
+            end
+        end,
+        L["Load Profile"],
+        L["Load all settings from the selected profile."]
+    )
+
+    CreateButton(
+        profilePanel,
+        L["Copy Profile"],
+        profileButtonWidth,
+        profileButtonHeight,
+        336,
+        -170, -- DE: Einheitliche erste Button-Reihe / EN: Aligned first button row
+        function()
+            local sourceName = selectedProfileName
+            local targetName = Trim(profileNameBox:GetText())
+            local profiles = GetProfilesTable()
+
+            if not sourceName or not profiles[sourceName] then
+                QuestAnnounce:Print(L["No profile selected."])
+                return
+            end
+            if targetName == "" then
+                QuestAnnounce:Print(L["Profile name is empty."])
+                return
+            end
+            if profiles[targetName] then
+                QuestAnnounce:Print(L["Profile already exists."])
+                return
+            end
+
+            profiles[targetName] = DeepCopy(profiles[sourceName])
+            selectedProfileName = targetName
+            RefreshProfileDropdown()
+            RefreshProfileOverview()
+            QuestAnnounce:Print(L["Profile copied to: "] .. targetName)
+        end,
+        L["Copy Profile"],
+        L["Create a new profile by copying the selected profile to a new name."]
+    )
+
+    CreateButton(
+        profilePanel,
+        L["Overwrite Profile"],
+        profileButtonWidth,
+        profileButtonHeight,
+        16,
+        -208,
+        function()
+            local targetName = selectedProfileName
+            local typedName = Trim(profileNameBox:GetText())
+            local profiles = GetProfilesTable()
+
+            if not targetName or not profiles[targetName] then
+                QuestAnnounce:Print(L["No profile selected."])
+                return
+            end
+            if typedName ~= targetName then
+                QuestAnnounce:Print(L["Type the selected profile name in the input field to confirm overwrite."])
+                return
+            end
+
+            if SaveCurrentToProfile(targetName, true) then
+                QuestAnnounce:Print(L["Profile overwritten: "] .. targetName)
+            end
+        end,
+        L["Overwrite Profile"],
+        L["Replace the selected profile with your currently active settings."]
+    )
+
+    CreateButton(
+        profilePanel,
+        L["Delete Profile"],
+        profileButtonWidth,
+        profileButtonHeight,
+        176,
+        -208,
+        function()
+            local targetName = selectedProfileName
+            local typedName = Trim(profileNameBox:GetText())
+            local profiles = GetProfilesTable()
+
+            if not targetName or not profiles[targetName] then
+                QuestAnnounce:Print(L["No profile selected."])
+                return
+            end
+            if typedName ~= targetName then
+                QuestAnnounce:Print(L["Type the selected profile name in the input field to confirm delete."])
+                return
+            end
+
+            if DeleteProfile(targetName) then
+                QuestAnnounce:Print(L["Profile deleted: "] .. targetName)
+            end
+        end,
+        L["Delete Profile"],
+        L["Delete the selected profile permanently."]
+    )
+
+    profileNameBox:SetScript("OnShow", function(self)
+        if Trim(self:GetText()) == "" then
+            self:SetText(GetSuggestedProfileName())
+        end
+    end)
+
+    local function RefreshProfilePanel()
+        local suggested = GetSuggestedProfileName()
+        if not selectedProfileName then
+            profileNameBox:SetText(suggested)
+        end
+        RefreshProfileDropdown()
+        RefreshProfileOverview()
+    end
+
+    profilePanel:HookScript("OnShow", RefreshProfilePanel)
+    local profileCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, profilePanel, L["Profile Management"])
+    Settings.RegisterAddOnCategory(profileCategory)
+    self.profileOptionsCategory = profileCategory
+
     -- Slash-Befehl /qa registrieren, um die Einstellungen zu öffnen
     SLASH_QUESTANNOUNCE1 = "/qa"
     SlashCmdList["QUESTANNOUNCE"] = openConfig
@@ -1320,6 +1769,8 @@ end
 	
 	RefreshGeneralPanel()
 	RefreshTooltipPanel()
+    RefreshProfileDropdown()
+    RefreshProfileOverview()
 end
 
 
