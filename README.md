@@ -5,8 +5,8 @@ Quest Announce 3 is a World of Warcraft addon that automatically announces quest
 
 ## Version / Version
 
-Aktueller Stand: **9.3.0.1**  
-Current version: **9.3.0.1**
+Aktueller Stand: **9.3.0.2**
+Current version: **9.3.0.2**
 
 ## Projektstatus (DE)
 
@@ -41,6 +41,7 @@ The addon has been significantly modernized in the current development phase:
 - Konfigurierbare Sound-IDs für Fortschritt und Abschluss.
 - Minimap-Button:
   - Linksklick: Addon an/aus
+  - Mittelklick: temporäre Pause an/aus (schnelles Stummschalten ohne Deaktivierung)
   - Rechtsklick: Optionen öffnen
   - Drag & Drop mit gespeicherter Position
 - Tooltip-Styling (Schriftart, Größe, Farben)
@@ -55,6 +56,7 @@ The addon has been significantly modernized in the current development phase:
 - Configurable sound IDs for progress and completion.
 - Minimap button:
   - Left click: toggle addon on/off
+  - Middle click: toggle temporary pause (quick mute without disabling)
   - Right click: open options
   - Drag & drop with saved position
 - Tooltip styling (font, size, colors)

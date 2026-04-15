@@ -111,8 +111,10 @@ function QuestAnnounce:InitializeMinimapButton()
         -- Hier werden die Einstellungen aus den General Options hinzugefügt
    
         local enableAddon = QuestAnnounce.db.profile.settings and QuestAnnounce.db.profile.settings.enable -- Überprüfe, ob das Addon aktiviert oder deaktiviert ist
+        local pauseAddon = QuestAnnounce.db.profile.settings and QuestAnnounce.db.profile.settings.paused
         local addonStatus = enableAddon and L["Enable"] or L["Disable"]
         tooltip:AddLine(L["Addon Status:"] .. addonStatus, fontColor[1], fontColor[2], fontColor[3])
+        tooltip:AddLine(L["Pause Status:"] .. (pauseAddon and L["Paused"] or L["Running"]), fontColor[1], fontColor[2], fontColor[3])
 
 
         -- Zeigt vereinfacht an, dass die Kanalwahl über die Einstellungen erfolgt
@@ -126,6 +128,10 @@ function QuestAnnounce:InitializeMinimapButton()
 
         local tooltipFontSize = QuestAnnounce.db.profile.tooltip.fontSize or 12
         tooltip:AddLine(L["Tooltip Font Size"] .. ": " .. tooltipFontSize, fontColor[1], fontColor[2], fontColor[3])
+        tooltip:AddLine(" ")
+        tooltip:AddLine(L["Tooltip Left-click: Toggle addon"])
+        tooltip:AddLine(L["Tooltip Middle-click: Toggle temporary pause"])
+        tooltip:AddLine(L["Tooltip Right-click: Open options"])
 
 
         -- Schriftart und -größe setzen
@@ -176,11 +182,23 @@ end
             -- Rechtsklick öffnet das Einstellungsfenster
             QuestAnnounce:SendDebugMsg(L["Right-click detected on QuestAnnounce MinimapButton Open Menu"])
             openConfig()
+        elseif button == "MiddleButton" then
+            QuestAnnounce:SendDebugMsg(L["Middle-click detected on QuestAnnounce MinimapButton Toggle Pause"])
+            QuestAnnounce.db.profile.settings.paused = not QuestAnnounce.db.profile.settings.paused
+
+            if QuestAnnounce.db.profile.settings.paused then
+                QuestAnnounce:Print(L["QuestAnnounce temporarily paused!"])
+                UIErrorsFrame:AddMessage(L["QuestAnnounce temporarily paused!"])
+            else
+                QuestAnnounce:Print(L["QuestAnnounce pause ended."])
+                UIErrorsFrame:AddMessage(L["QuestAnnounce pause ended."])
+            end
         else
             -- Linksklick schaltet das Addon nur im Profil an oder aus
             QuestAnnounce:SendDebugMsg(L["Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"])
 
             QuestAnnounce.db.profile.settings.enable = not QuestAnnounce.db.profile.settings.enable
+            QuestAnnounce.db.profile.settings.paused = false
 
             if QuestAnnounce.db.profile.settings.enable then
                 QuestAnnounce:Print(L["QuestAnnounce activated!"])
