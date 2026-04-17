@@ -1,4 +1,4 @@
-v9.3.0.5 Multi - 17-04-2026
+v9.3.0.4 Multi - 17-04-2026
          - [DE] Neues Optionen-Untermenü "Sound Settings" erstellt und alle Sound-Einstellungen aus dem Hauptbereich dorthin verschoben
          - [EN] Added a new "Sound Settings" options sub-menu and moved all sound settings from the main panel into it
          - [DE] Neue Sound-IDs ergänzt: Quest angenommen (Standard 6197) und Questabgabe (Standard-Questabgabe)

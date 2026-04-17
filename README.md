@@ -5,8 +5,8 @@ Quest Announce 3 is a World of Warcraft addon that automatically announces quest
 
 ## Version / Version
 
-Aktueller Stand: **9.3.0.5**
-Current version: **9.3.0.5**
+Aktueller Stand: **9.3.0.4**
+Current version: **9.3.0.4**
 
 ## Projektstatus (DE)
 
