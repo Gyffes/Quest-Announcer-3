@@ -1,3 +1,17 @@
+v9.3.0.5 Multi - 17-04-2026
+         - [DE] Neues Optionen-Untermenü "Sound Settings" erstellt und alle Sound-Einstellungen aus dem Hauptbereich dorthin verschoben
+         - [EN] Added a new "Sound Settings" options sub-menu and moved all sound settings from the main panel into it
+         - [DE] Neue Sound-IDs ergänzt: Quest angenommen (Standard 6197) und Questabgabe (Standard-Questabgabe)
+         - [EN] Added new sound IDs: quest accepted (default 6197) and quest turn-in (default quest turn-in sound)
+         - [DE] Für jede Sound-Art Testbutton, Zurücksetzen-Button und Aktivierungs-Checkbox ergänzt
+         - [EN] Added test button, reset button, and enable checkbox for each sound type
+         - [DE] Option für Sound-Ausgabekanal ergänzt (Master, Effekte/SFX, Umgebung, Dialoge, Musik)
+         - [EN] Added selectable sound output channel (Master, Effects/SFX, Ambience, Dialog, Music)
+         - [DE] Sound-Wiedergabe geordnet: aktive Sounds werden nicht chaotisch überlagert, neue Requests folgen einer einfachen Prioritäts-/Wartelogik
+         - [EN] Ordered sound playback: active sounds are not chaotically overlapped, new requests follow a simple priority/queue strategy
+         - [DE] README und Lokalisierungen für die neuen Sound-Funktionen erweitert
+         - [EN] Extended README and localizations for the new sound functionality
+
 v9.3.0.3 Multi - 17-04-2026
          - [DE] Neuer Optionen-Unterbereich "Questtyp-Filter" ergänzt (normal, Weltquest, trivial, Kampagne, Story)
          - [EN] Added new options subcategory "Quest Type Filters" (normal, world, trivial, campaign, story)

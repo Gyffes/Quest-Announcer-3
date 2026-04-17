@@ -16,6 +16,13 @@ local defaults = {
             sound = true,           -- Soundbenachrichtigungen aktiviert
 			progressSound = 8959,     -- Standard: UI Quest Progress
 			completeSound = 6199,    -- Standard: Quest Complete
+            acceptSound = 6197,      -- DE: Standard Quest angenommen / EN: Default quest accepted
+            turnInSound = 6199,      -- DE: Standard Quest abgegeben / EN: Default quest turn-in
+            soundChannel = "Master", -- DE: Standard-Audio-Kanal / EN: Default audio channel
+            enableProgressSound = true, -- DE: Fortschrittssound aktiv / EN: Progress sound enabled
+            enableCompleteSound = true, -- DE: Abschlusssound aktiv / EN: Completion sound enabled
+            enableAcceptSound = true,   -- DE: Quest-angenommen-Sound aktiv / EN: Quest-accepted sound enabled
+            enableTurnInSound = true,   -- DE: Quest-abgegeben-Sound aktiv / EN: Quest-turn-in sound enabled
             debug = false,          -- Debug-Modus deaktiviert
 			linkQuest = true,		-- Quest Link
             paused = false,         -- Temporäre Pause
@@ -151,6 +158,8 @@ end
 QuestAnnounce:RegisterEvent("ADDON_LOADED")											-- Register Event Addon Laden
 QuestAnnounce:RegisterEvent("UI_INFO_MESSAGE")										-- Register Event Ui Info Message
 QuestAnnounce:RegisterEvent("QUEST_LOG_UPDATE")										-- Register Event Quest Log Update
+QuestAnnounce:RegisterEvent("QUEST_ACCEPTED")                                         -- DE: Quest angenommen / EN: Quest accepted
+QuestAnnounce:RegisterEvent("QUEST_TURNED_IN")                                        -- DE: Quest abgegeben / EN: Quest turned in
 
 QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4, arg5)
 	-- Quest Log Update Event 
@@ -169,8 +178,99 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
         self:UI_INFO_MESSAGE(event, arg1, arg2, arg3, arg4, arg5)
         return
     end
+    if event == "QUEST_ACCEPTED" then
+        self:PlayConfiguredSound("accept")
+        return
+    end
+    if event == "QUEST_TURNED_IN" then
+        self:PlayConfiguredSound("turnin")
+        return
+    end
 
 end)
+
+-- DE: Definierte Sound-Events und Priorität / EN: Defined sound events and priority.
+QuestAnnounce.soundEventConfig = {
+    progress = { idKey = "progressSound", enableKey = "enableProgressSound", defaultID = 8959, priority = 1 },
+    complete = { idKey = "completeSound", enableKey = "enableCompleteSound", defaultID = 6199, priority = 2 },
+    accept = { idKey = "acceptSound", enableKey = "enableAcceptSound", defaultID = 6197, priority = 3 },
+    turnin = { idKey = "turnInSound", enableKey = "enableTurnInSound", defaultID = 6199, priority = 4 },
+}
+
+-- DE: Spielt Sounds geordnet ab (ein aktiver Sound, optional eine wartende Anforderung).
+-- EN: Plays sounds in an orderly way (one active sound, optional one queued request).
+function QuestAnnounce:PlayConfiguredSound(eventKey)
+    local settings = self.db and self.db.profile and self.db.profile.settings
+    if not settings or not settings.sound then
+        return
+    end
+
+    local config = self.soundEventConfig and self.soundEventConfig[eventKey]
+    if not config then
+        return
+    end
+
+    if settings[config.enableKey] == false then
+        self:SendDebugMsg("Sound disabled for event :: " .. tostring(eventKey))
+        return
+    end
+
+    local soundID = tonumber(settings[config.idKey]) or config.defaultID
+    local channel = tostring(settings.soundChannel or "Master")
+    local now = GetTime()
+    local lockSeconds = 0.35
+
+    self.soundState = self.soundState or { activeUntil = 0, activePriority = 0, activeHandle = nil, pending = nil }
+    local state = self.soundState
+
+    local function PlayNow()
+        local willPlay, handle = PlaySound(soundID, channel)
+        if not willPlay then
+            self:SendDebugMsg("Sound failed -> fallback RAID_WARNING")
+            PlaySound(SOUNDKIT.RAID_WARNING, "Master")
+            return
+        end
+
+        state.activeHandle = handle
+        state.activePriority = config.priority or 0
+        state.activeUntil = GetTime() + lockSeconds
+        self:SendDebugMsg("Play sound :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ " .. channel)
+    end
+
+    if now < (state.activeUntil or 0) then
+        if (config.priority or 0) >= (state.activePriority or 0) then
+            if state.activeHandle then
+                StopSound(state.activeHandle, 0)
+            end
+            PlayNow()
+        else
+            state.pending = {
+                eventKey = eventKey,
+                priority = config.priority or 0,
+                queuedAt = now,
+            }
+            if not state.pendingTimerActive then
+                state.pendingTimerActive = true
+                C_Timer.After(lockSeconds, function()
+                    if not QuestAnnounce or not QuestAnnounce.soundState then
+                        return
+                    end
+                    local pendingState = QuestAnnounce.soundState
+                    pendingState.pendingTimerActive = false
+                    local pending = pendingState.pending
+                    pendingState.pending = nil
+                    if pending and pending.eventKey then
+                        QuestAnnounce:PlayConfiguredSound(pending.eventKey)
+                    end
+                end)
+            end
+            self:SendDebugMsg("Sound queued :: " .. tostring(eventKey))
+        end
+        return
+    end
+
+    PlayNow()
+end
 
 -- ==============================
 -- Quest- und Objective-Cache Builder (ROBUST)
@@ -860,34 +960,11 @@ function QuestAnnounce:SendMsg(msg, isComplete)
         UIErrorsFrame:AddMessage(msg, 1.0, 1.0, 0.0, 7)
     end
 
--- ==============================
--- Sound Logik mit Anti-Spam
--- ==============================
-if self.db.profile.settings.sound then
-    self.lastSoundTime = self.lastSoundTime or 0
-    local now = GetTime()
-
-    if now - self.lastSoundTime >= 1 then
-        local soundID
-
-        if isComplete == true then
-            soundID = tonumber(self.db.profile.settings.completeSound) or 6199
-            self:SendDebugMsg("Play COMPLETE sound :: " .. tostring(soundID))
-        else
-            soundID = tonumber(self.db.profile.settings.progressSound) or 8959
-            self:SendDebugMsg("Play PROGRESS sound :: " .. tostring(soundID))
-        end
-
-        local success = PlaySound(soundID, "Master")
-        if not success then
-            self:SendDebugMsg("Sound failed -> fallback RAID_WARNING")
-            PlaySound(SOUNDKIT.RAID_WARNING, "Master")
-        end
-
-        self.lastSoundTime = now
+    -- DE: Geordnete Sound-Ausgabe ohne Sound-Flut / EN: Ordered sound output without sound spam.
+    if isComplete == true then
+        self:PlayConfiguredSound("complete")
     else
-        self:SendDebugMsg("Sound skipped (Anti-Spam)")
+        self:PlayConfiguredSound("progress")
     end
-end
     QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg - " .. msg)
 end

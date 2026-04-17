@@ -393,91 +393,13 @@ end
 
 
 
--- Trennlinie zwischen Haupt-Einstellung und Sound Settings 
+-- Trennlinie zwischen Haupt-Einstellung und den restlichen Kategorien
 	local separator = content:CreateTexture(nil, "ARTWORK")
 	separator:SetColorTexture(0.5, 0.5, 0.5, 0.6)
 	separator:SetHeight(1)
 	separator:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -160)
 	separator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -160)
 
--- ==============================
--- Sound Settings Bereich
--- ==============================
-
-local soundHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-soundHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -180)
-soundHeader:SetText(L["Sound Settings"])
-
-AttachTooltip(
-    soundHeader,
-    L["Sound Settings"],
-    L["Configure quest progress and completion sounds."]
-)
-
-local soundCheckbox = CreateCheckbox(
-    content,
-    "",
-    16,
-    -210,
-    function(self)
-        QuestAnnounce.db.profile.settings.sound = self:GetChecked() and true or false
-
-        if self.Text then
-            if QuestAnnounce.db.profile.settings.sound then
-                self.Text:SetText(L["Sound On"])
-            else
-                self.Text:SetText(L["Sound Off"])
-            end
-        end
-
-        QuestAnnounce:SendDebugMsg("setSettings: sound :: " .. tostring(QuestAnnounce.db.profile.settings.sound))
-    end,
-    L["Sound"],
-    L["Enable or disable all quest announcement sounds."]
-)
-
-if soundCheckbox.Text then
-    if QuestAnnounce.db.profile.settings.sound then
-        soundCheckbox.Text:SetText(L["Sound On"])
-    else
-        soundCheckbox.Text:SetText(L["Sound Off"])
-    end
-end
-
-AttachTooltip(
-    soundCheckbox,
-    L["Sound"],
-    L["Enable or disable all quest announcement sounds."]
-)
-
-if soundCheckbox.Text then
-    AttachTooltip(
-        soundCheckbox.Text,
-        L["Sound"],
-        L["Enable or disable all quest announcement sounds."]
-    )
-end
-
-local progressLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-progressLabel:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -246)
-progressLabel:SetText(L["Progress Sound ID"])
-AttachTooltip(
-    progressLabel,
-    L["Progress Sound ID"],
-    L["Sound ID played for quest progress updates."]
-)
-
-local progressBox = CreateEditBox(
-    content,
-    90,
-    20,
-    16,
-    -268,
-    L["Progress Sound ID"],
-    L["Sound ID played for quest progress updates."]
-)
-progressBox:SetNumeric(true)
-progressBox:SetMaxLetters(10)
 local function SetNumericEditBoxValue(box, value, fallback)
     local numeric = tonumber(value)
     if not numeric then
@@ -489,147 +411,9 @@ local function SetNumericEditBoxValue(box, value, fallback)
     box:HighlightText(0, 0)
 end
 
-SetNumericEditBoxValue(progressBox, QuestAnnounce.db.profile.settings.progressSound, 8959)
-progressBox:SetScript("OnEnterPressed", function(self)
-    local val = tonumber(self:GetText())
-    if val then
-        QuestAnnounce.db.profile.settings.progressSound = val
-        self:SetText(tostring(val))
-    else
-        self:SetText(tostring(QuestAnnounce.db.profile.settings.progressSound or 8959))
-    end
-    self:ClearFocus()
-end)
-progressBox:SetScript("OnEditFocusLost", function(self)
-    local val = tonumber(self:GetText())
-    if val then
-        QuestAnnounce.db.profile.settings.progressSound = val
-        self:SetText(tostring(val))
-    else
-        self:SetText(tostring(QuestAnnounce.db.profile.settings.progressSound or 8959))
-    end
-end)
-
-local resetProgress = CreateButton(
-    content,
-    L["Reset"],
-    70,
-    22,
-    120,
-    -268,
-    function()
-        QuestAnnounce.db.profile.settings.progressSound = 8959
-        SetNumericEditBoxValue(progressBox, 8959, 8959)
-    end,
-    L["Reset Progress Sound"],
-    L["Reset the progress sound ID to default."]
-)
-resetProgress:ClearAllPoints()
-resetProgress:SetPoint("LEFT", progressBox, "RIGHT", 12, 0)
-
-local testProgressSound = CreateButton(
-    content,
-    L["Test Progress Sound"],
-    180,
-    22,
-    210,
-    -268,
-    function()
-        local soundID = QuestAnnounce.db.profile.settings.progressSound or 8959
-        PlaySound(soundID, "Master")
-        QuestAnnounce:SendDebugMsg("Test Progress Sound :: " .. tostring(soundID))
-    end,
-    L["Test Progress Sound"],
-    L["Play the current progress sound."]
-)
-testProgressSound:ClearAllPoints()
-testProgressSound:SetPoint("LEFT", resetProgress, "RIGHT", 12, 0)
-
-local completeLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-completeLabel:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -304)
-completeLabel:SetText(L["Completion Sound ID"])
-AttachTooltip(
-    completeLabel,
-    L["Completion Sound ID"],
-    L["Sound ID played when a quest is completed."]
-)
-
-local completeBox = CreateEditBox(
-    content,
-    90,
-    20,
-    16,
-    -326,
-    L["Completion Sound ID"],
-    L["Sound ID played when a quest is completed."]
-)
-completeBox:SetNumeric(true)
-completeBox:SetMaxLetters(10)
-SetNumericEditBoxValue(completeBox, QuestAnnounce.db.profile.settings.completeSound, 6199)
-completeBox:SetScript("OnEnterPressed", function(self)
-    local val = tonumber(self:GetText())
-    if val then
-        QuestAnnounce.db.profile.settings.completeSound = val
-        self:SetText(tostring(val))
-    else
-        self:SetText(tostring(QuestAnnounce.db.profile.settings.completeSound or 6199))
-    end
-    self:ClearFocus()
-end)
-completeBox:SetScript("OnEditFocusLost", function(self)
-    local val = tonumber(self:GetText())
-    if val then
-        QuestAnnounce.db.profile.settings.completeSound = val
-        self:SetText(tostring(val))
-    else
-        self:SetText(tostring(QuestAnnounce.db.profile.settings.completeSound or 6199))
-    end
-end)
-
-local resetComplete = CreateButton(
-    content,
-    L["Reset"],
-    70,
-    22,
-    120,
-    -326,
-    function()
-        QuestAnnounce.db.profile.settings.completeSound = 6199
-        SetNumericEditBoxValue(completeBox, 6199, 6199)
-    end,
-    L["Reset Completion Sound"],
-    L["Reset the completion sound ID to default."]
-)
-resetComplete:ClearAllPoints()
-resetComplete:SetPoint("LEFT", completeBox, "RIGHT", 12, 0)
-
-local testCompleteSound = CreateButton(
-    content,
-    L["Test Complete Sound"],
-    180,
-    22,
-    210,
-    -326,
-    function()
-        local soundID = QuestAnnounce.db.profile.settings.completeSound or 6199
-        PlaySound(soundID, "Master")
-        QuestAnnounce:SendDebugMsg("Test Complete Sound :: " .. tostring(soundID))
-    end,
-    L["Test Complete Sound"],
-    L["Play the current completion sound."]
-)
-testCompleteSound:ClearAllPoints()
-testCompleteSound:SetPoint("LEFT", resetComplete, "RIGHT", 12, 0)
-
-local soundSeparator = content:CreateTexture(nil, "ARTWORK")
-soundSeparator:SetColorTexture(0.5, 0.5, 0.5, 0.6)
-soundSeparator:SetHeight(1)
-soundSeparator:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -365)
-soundSeparator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -365)
-
 	-- Slider für die Anzahl der Fortschrittsmeldungen
 	local everySlider = CreateFrame("Slider", nil, content, "OptionsSliderTemplate")
-	everySlider:SetPoint("TOPLEFT", content, "TOPLEFT", 60, -410)
+	everySlider:SetPoint("TOPLEFT", content, "TOPLEFT", 60, -210)
 	everySlider:SetMinMaxValues(0, 100)
 	everySlider:SetValueStep(1)
 	everySlider:SetObeyStepOnDrag(true)
@@ -741,13 +525,13 @@ soundSeparator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -365)
 	local separator2 = content:CreateTexture(nil, "ARTWORK")
 	separator2:SetColorTexture(0.5, 0.5, 0.5, 0.6)
 	separator2:SetHeight(1)
-	separator2:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -458)
-	separator2:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -458)
+	separator2:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -258)
+	separator2:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -258)
 
     -- Überschrift für die Ziele der Ausgabe
         -- Überschrift für die Ziele der Ausgabe
     local announceToHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    announceToHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -480)
+    announceToHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -280)
     announceToHeader:SetText(L["Where do you want to make the announcements?"])
     AttachTooltip(
         announceToHeader,
@@ -1033,20 +817,8 @@ local function RefreshGeneralPanel()
     end
 
     enableCheckbox:SetChecked(settings.enable and true or false)
-    soundCheckbox:SetChecked(settings.sound and true or false)
     debugCheckbox:SetChecked(settings.debug and true or false)
     linkQuestCheckbox:SetChecked(settings.linkQuest and true or false)
-
-    if soundCheckbox.Text then
-        if settings.sound then
-            soundCheckbox.Text:SetText(L["Sound On"])
-        else
-            soundCheckbox.Text:SetText(L["Sound Off"])
-        end
-    end
-
-	SetNumericEditBoxValue(progressBox, GetNumberOrDefault(settings.progressSound, 8959), 8959)
-	SetNumericEditBoxValue(completeBox, GetNumberOrDefault(settings.completeSound, 6199), 6199)
 
 	everySlider:SetValue(GetNumberOrDefault(settings.every, 1))
 	SetNumericEditBoxValue(everyInput, GetNumberOrDefault(settings.every, 1), 1)
@@ -1080,6 +852,160 @@ end
 
     -- Diese Kategorie wird beim /qa-Befehl geöffnet
     self.optionsCategory = generalCategory
+
+    -- =========================================================
+    -- UNTERPANEL: Sound-Einstellungen
+    -- =========================================================
+    local soundPanel = CreateFrame("Frame")
+
+    local soundTitle = soundPanel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    soundTitle:SetPoint("TOPLEFT", 16, -16)
+    soundTitle:SetText(L["Sound Settings"])
+
+    local soundSubtitle = soundPanel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    soundSubtitle:SetPoint("TOPLEFT", soundTitle, "BOTTOMLEFT", 0, -8)
+    soundSubtitle:SetWidth(700)
+    soundSubtitle:SetJustifyH("LEFT")
+    soundSubtitle:SetText(L["Configure quest progress and completion sounds."])
+
+    local soundCheckbox = CreateCheckbox(
+        soundPanel, "", 16, -70,
+        function(self)
+            QuestAnnounce.db.profile.settings.sound = self:GetChecked() and true or false
+            if self.Text then
+                self.Text:SetText(QuestAnnounce.db.profile.settings.sound and L["Sound On"] or L["Sound Off"])
+            end
+        end,
+        L["Sound"], L["Enable or disable all quest announcement sounds."]
+    )
+    if soundCheckbox.Text then
+        soundCheckbox.Text:SetText(QuestAnnounce.db.profile.settings.sound and L["Sound On"] or L["Sound Off"])
+    end
+
+    local channelLabel = soundPanel:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+    channelLabel:SetPoint("TOPLEFT", soundPanel, "TOPLEFT", 16, -102)
+    channelLabel:SetText(L["Sound Output Channel"])
+    local channelItems = {
+        L["Master"], L["Effects"], L["Ambience"], L["Dialog"], L["Music"],
+    }
+    local soundChannelDropdown = CreateDropdown(
+        soundPanel, 180, 16, -122, channelItems,
+        function(item)
+            local mapping = {
+                [L["Master"]] = "Master",
+                [L["Effects"]] = "SFX",
+                [L["Ambience"]] = "Ambience",
+                [L["Dialog"]] = "Dialog",
+                [L["Music"]] = "Music",
+            }
+            QuestAnnounce.db.profile.settings.soundChannel = mapping[item] or "Master"
+        end,
+        L["Sound Output Channel"],
+        L["Choose the WoW sound channel used for QuestAnnounce sounds."]
+    )
+
+    -- DE: Erstellt eine Zeile für Sound-ID, Reset, Test und Aktiv-Checkbox.
+    -- EN: Creates one row for sound ID, reset, test and enable checkbox.
+    local function CreateSoundRow(anchorY, labelKey, idKey, defaultValue, resetTooltipKey, testTooltipKey, enableKey, enableLabelKey, eventKey)
+        local label = soundPanel:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+        label:SetPoint("TOPLEFT", soundPanel, "TOPLEFT", 16, anchorY)
+        label:SetText(L[labelKey])
+
+        local box = CreateEditBox(soundPanel, 90, 20, 16, anchorY - 22, L[labelKey], L["Sound ID played for quest progress updates."])
+        box:SetNumeric(true)
+        box:SetMaxLetters(10)
+        SetNumericEditBoxValue(box, QuestAnnounce.db.profile.settings[idKey], defaultValue)
+        box:SetScript("OnEnterPressed", function(self)
+            local val = tonumber(self:GetText()) or defaultValue
+            QuestAnnounce.db.profile.settings[idKey] = val
+            SetNumericEditBoxValue(self, val, defaultValue)
+            self:ClearFocus()
+        end)
+        box:SetScript("OnEditFocusLost", function(self)
+            local val = tonumber(self:GetText()) or defaultValue
+            QuestAnnounce.db.profile.settings[idKey] = val
+            SetNumericEditBoxValue(self, val, defaultValue)
+        end)
+
+        local resetBtn = CreateButton(
+            soundPanel, L["Reset"], 70, 22, 120, anchorY - 22,
+            function()
+                QuestAnnounce.db.profile.settings[idKey] = defaultValue
+                SetNumericEditBoxValue(box, defaultValue, defaultValue)
+            end,
+            L[resetTooltipKey], L["Reset the progress sound ID to default."]
+        )
+        resetBtn:ClearAllPoints()
+        resetBtn:SetPoint("LEFT", box, "RIGHT", 12, 0)
+
+        local testBtn = CreateButton(
+            soundPanel, L[testTooltipKey], 180, 22, 210, anchorY - 22,
+            function()
+                QuestAnnounce:PlayConfiguredSound(eventKey)
+            end,
+            L[testTooltipKey], L["Play the current progress sound."]
+        )
+        testBtn:ClearAllPoints()
+        testBtn:SetPoint("LEFT", resetBtn, "RIGHT", 12, 0)
+
+        local enableCb = CreateCheckbox(
+            soundPanel,
+            L[enableLabelKey],
+            520,
+            anchorY - 22,
+            function(self)
+                QuestAnnounce.db.profile.settings[enableKey] = self:GetChecked() and true or false
+            end,
+            L[enableLabelKey],
+            L["Enable or disable this specific sound event."]
+        )
+
+        return {
+            box = box,
+            enableCb = enableCb,
+        }
+    end
+
+    local progressRow = CreateSoundRow(-164, "Progress Sound ID", "progressSound", 8959, "Reset Progress Sound", "Test Progress Sound", "enableProgressSound", "Enable Progress Sound", "progress")
+    local completeRow = CreateSoundRow(-224, "Completion Sound ID", "completeSound", 6199, "Reset Completion Sound", "Test Complete Sound", "enableCompleteSound", "Enable Completion Sound", "complete")
+    local acceptRow = CreateSoundRow(-284, "Accepted Sound ID", "acceptSound", 6197, "Reset Accepted Sound", "Test Accepted Sound", "enableAcceptSound", "Enable Accepted Sound", "accept")
+    local turnInRow = CreateSoundRow(-344, "Turn-In Sound ID", "turnInSound", 6199, "Reset Turn-In Sound", "Test Turn-In Sound", "enableTurnInSound", "Enable Turn-In Sound", "turnin")
+
+    local function RefreshSoundPanel()
+        if not QuestAnnounce.db or not QuestAnnounce.db.profile or not QuestAnnounce.db.profile.settings then
+            return
+        end
+        local settings = QuestAnnounce.db.profile.settings
+        soundCheckbox:SetChecked(settings.sound and true or false)
+        if soundCheckbox.Text then
+            soundCheckbox.Text:SetText(settings.sound and L["Sound On"] or L["Sound Off"])
+        end
+
+        local reverseChannelMap = {
+            Master = L["Master"],
+            SFX = L["Effects"],
+            Ambience = L["Ambience"],
+            Dialog = L["Dialog"],
+            Music = L["Music"],
+        }
+        UIDropDownMenu_SetSelectedName(soundChannelDropdown, reverseChannelMap[settings.soundChannel or "Master"] or L["Master"])
+
+        SetNumericEditBoxValue(progressRow.box, settings.progressSound, 8959)
+        SetNumericEditBoxValue(completeRow.box, settings.completeSound, 6199)
+        SetNumericEditBoxValue(acceptRow.box, settings.acceptSound, 6197)
+        SetNumericEditBoxValue(turnInRow.box, settings.turnInSound, 6199)
+
+        progressRow.enableCb:SetChecked(settings.enableProgressSound ~= false)
+        completeRow.enableCb:SetChecked(settings.enableCompleteSound ~= false)
+        acceptRow.enableCb:SetChecked(settings.enableAcceptSound ~= false)
+        turnInRow.enableCb:SetChecked(settings.enableTurnInSound ~= false)
+    end
+
+    soundPanel:HookScript("OnShow", RefreshSoundPanel)
+    RefreshSoundPanel()
+
+    local soundCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, soundPanel, L["Sound Settings"])
+    Settings.RegisterAddOnCategory(soundCategory)
 
     -- =========================================================
     -- UNTERPANEL: Tooltip-Einstellungen
@@ -1352,7 +1278,7 @@ end
         return QuestAnnounceDB.profiles
     end
 
-    local function GetSoundLabel(soundID, isComplete)
+    local function GetSoundLabel(soundID, labelKey)
         local id = tonumber(soundID)
         if not id then
             return L["Not set"]
@@ -1360,13 +1286,13 @@ end
         if id == 8959 then
             return string.format("%s (8959)", L["Default Progress Sound Name"])
         end
+        if id == 6197 then
+            return string.format("%s (6197)", L["Accepted Sound ID"])
+        end
         if id == 6199 then
             return string.format("%s (6199)", L["Default Completion Sound Name"])
         end
-        if isComplete then
-            return string.format("%s %d", L["Completion Sound ID"], id)
-        end
-        return string.format("%s %d", L["Progress Sound ID"], id)
+        return string.format("%s %d", L[labelKey] or L["Progress Sound ID"], id)
     end
 
     local function FormatBoolean(value)
@@ -1492,8 +1418,11 @@ end
             string.format("%s %s", L["Profile Name"], profileName),
             string.format("%s %s", L["Addon Enabled"], FormatBoolean(settings.enable)),
             string.format("%s %s", L["Sound Enabled"], FormatBoolean(settings.sound)),
-            string.format("%s %s", L["Progress Sound"], GetSoundLabel(settings.progressSound, false)),
-            string.format("%s %s", L["Completion Sound"], GetSoundLabel(settings.completeSound, true)),
+            string.format("%s %s", L["Progress Sound"], GetSoundLabel(settings.progressSound, "Progress Sound ID")),
+            string.format("%s %s", L["Completion Sound"], GetSoundLabel(settings.completeSound, "Completion Sound ID")),
+            string.format("%s %s", L["Accepted Sound ID"], GetSoundLabel(settings.acceptSound, "Accepted Sound ID")),
+            string.format("%s %s", L["Turn-In Sound ID"], GetSoundLabel(settings.turnInSound, "Turn-In Sound ID")),
+            string.format("%s %s", L["Sound Output Channel"], tostring(settings.soundChannel or "Master")),
             string.format("%s %s", L["Announce Every Value"], tostring(settings.every or L["Not set"])),
             string.format("%s %s", L["Debug Mode"], FormatBoolean(settings.debug)),
 	            string.format("%s %s", L["Quest Type Filters"], table.concat({
@@ -1589,6 +1518,7 @@ end
         QuestAnnounceDB.profile = QuestAnnounce.db.profile
         selectedProfileName = name
         RefreshGeneralPanel()
+        RefreshSoundPanel()
         RefreshTooltipPanel()
         if QuestAnnounce.UpdateTooltipBackground then
             QuestAnnounce:UpdateTooltipBackground()

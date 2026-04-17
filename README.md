@@ -5,8 +5,8 @@ Quest Announce 3 is a World of Warcraft addon that automatically announces quest
 
 ## Version / Version
 
-Aktueller Stand: **9.3.0.3**
-Current version: **9.3.0.3**
+Aktueller Stand: **9.3.0.5**
+Current version: **9.3.0.5**
 
 ## Projektstatus (DE)
 
@@ -20,6 +20,8 @@ Das Addon wurde in der aktuellen Entwicklungsphase grundlegend modernisiert:
 - Minimap-Button optisch/technisch verbessert (rundes Icon-Masking).
 - Neues Profilverwaltungs-Untermenü mit Speichern/Laden/Kopieren/Überschreiben/Löschen und Profilübersicht.
 - Neuer Questtyp-Filterbereich (normal, Weltquest, trivial, Kampagne, Story) mit defensiver API-Auswertung.
+- Neues Sound-Untermenü mit Sound-IDs, Test-/Reset-Buttons, Aktivierungs-Checkboxen und Soundkanal-Auswahl (Master/Effekt/Umgebung/Dialog/Musik).
+- Neue Sound-Events für Quest angenommen (ID 6197) und Questabgabe (Standard-Questabgabe), inkl. geordneter Wiedergabelogik ohne Sound-Überlagerung.
 
 ## Project Status (EN)
 
@@ -33,6 +35,8 @@ The addon has been significantly modernized in the current development phase:
 - Improved minimap button visuals/technical behavior (round icon masking).
 - New profile management submenu with save/load/copy/overwrite/delete actions and a profile overview.
 - New quest-type filter section (normal, world, trivial, campaign, story) with defensive API-based detection.
+- New sound submenu with sound IDs, test/reset buttons, per-sound enable checkboxes, and sound output channel selection (Master/Effects/Ambience/Dialog/Music).
+- New sound events for quest accepted (ID 6197) and quest turn-in (default turn-in sound), including ordered playback logic to avoid overlapping sound spam.
 
 ## Hauptfunktionen (DE)
 
@@ -40,7 +44,9 @@ The addon has been significantly modernized in the current development phase:
 - Ausgabe in verschiedene Ziele:
   - Chatkanäle (Sagen, Gruppe, Instanz, Gilde, Offizier, Flüstern, benutzerdefinierter Kanal, Fokus-Flüstern)
   - UI-Rahmen (Chat Frame, Raid Warning Frame, UI Errors Frame)
-- Konfigurierbare Sound-IDs für Fortschritt und Abschluss.
+- Konfigurierbare Sound-IDs für Fortschritt, Abschluss, Quest angenommen und Questabgabe.
+- Pro Sound ein Test-Button, Zurücksetzen-Button und Aktivierungs-Checkbox.
+- Auswahl des WoW-Soundkanals (Master, Effekt, Umgebung, Dialoge, Musik).
 - Minimap-Button:
   - Linksklick: Addon an/aus
   - Mittelklick: temporäre Pause an/aus (schnelles Stummschalten ohne Deaktivierung)
@@ -55,7 +61,9 @@ The addon has been significantly modernized in the current development phase:
 - Output to different targets:
   - Chat channels (/say, party, instance, guild, officer, whisper, custom channel, focus whisper)
   - UI frames (Chat Frame, Raid Warning Frame, UI Errors Frame)
-- Configurable sound IDs for progress and completion.
+- Configurable sound IDs for progress, completion, quest accepted, and quest turn-in.
+- Per-sound test button, reset button, and enable checkbox.
+- Selectable WoW sound channel (Master, Effects, Ambience, Dialog, Music).
 - Optional quest-type filters (normal/world/trivial/campaign/story, only where API data is reliable).
 - Minimap button:
   - Left click: toggle addon on/off
