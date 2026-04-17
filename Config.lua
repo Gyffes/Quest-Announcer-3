@@ -1336,6 +1336,7 @@ end
         profile.announceTo = type(profile.announceTo) == "table" and profile.announceTo or {}
         profile.announceIn = type(profile.announceIn) == "table" and profile.announceIn or {}
         profile.tooltip = type(profile.tooltip) == "table" and profile.tooltip or {}
+        profile.questTypeFilters = type(profile.questTypeFilters) == "table" and profile.questTypeFilters or {}
         return profile
     end
 
@@ -1495,6 +1496,13 @@ end
             string.format("%s %s", L["Completion Sound"], GetSoundLabel(settings.completeSound, true)),
             string.format("%s %s", L["Announce Every Value"], tostring(settings.every or L["Not set"])),
             string.format("%s %s", L["Debug Mode"], FormatBoolean(settings.debug)),
+            string.format("%s %s", L["Quest Type Filters"], table.concat({
+                string.format("%s=%s", L["Normal Quests"], FormatBoolean((profile.questTypeFilters.normal ~= false))),
+                string.format("%s=%s", L["World Quests"], FormatBoolean((profile.questTypeFilters.world ~= false))),
+                string.format("%s=%s", L["Trivial Quests"], FormatBoolean((profile.questTypeFilters.trivial ~= false))),
+                string.format("%s=%s", L["Campaign Quests"], FormatBoolean((profile.questTypeFilters.campaign ~= false))),
+                string.format("%s=%s", L["Story Quests"], FormatBoolean((profile.questTypeFilters.story ~= false)))
+            }, ", "))),
             string.format("%s %s", L["Tooltip Font Value"], tostring(tooltip.font or L["Not set"])),
             string.format("%s %s", L["Tooltip Font Size Value"], tostring(tooltip.fontSize or L["Not set"])),
             string.format("%s %s", L["Tooltip Font Color Value"], FormatColor(tooltip.fontColor)),
@@ -1756,6 +1764,80 @@ end
     Settings.RegisterAddOnCategory(profileCategory)
     self.profileOptionsCategory = profileCategory
 
+    -- =========================================================
+    -- UNTERPANEL: Questtyp-Filter
+    -- =========================================================
+    local questTypePanel = CreateFrame("Frame")
+
+    -- DE: Questtyp-Unterbereich für gezielte Ein-/Ausschlüsse.
+    -- EN: Quest type subsection for explicit include/exclude behavior.
+    local questTypeTitle = questTypePanel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    questTypeTitle:SetPoint("TOPLEFT", 16, -16)
+    questTypeTitle:SetText(L["Quest Type Filters"] or "Quest Type Filters")
+
+    local questTypeSubtitle = questTypePanel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    questTypeSubtitle:SetPoint("TOPLEFT", questTypeTitle, "BOTTOMLEFT", 0, -8)
+    questTypeSubtitle:SetWidth(760)
+    questTypeSubtitle:SetJustifyH("LEFT")
+    questTypeSubtitle:SetText(L["Choose which quest types are eligible for announcements."] or "Choose which quest types are eligible for announcements.")
+
+    local function EnsureQuestTypeFilters()
+        QuestAnnounce.db.profile.questTypeFilters = QuestAnnounce.db.profile.questTypeFilters or {}
+        local filters = QuestAnnounce.db.profile.questTypeFilters
+
+        if filters.normal == nil then filters.normal = true end
+        if filters.world == nil then filters.world = true end
+        if filters.trivial == nil then filters.trivial = true end
+        if filters.campaign == nil then filters.campaign = true end
+        if filters.story == nil then filters.story = true end
+
+        return filters
+    end
+
+    local questTypeCheckboxes = {}
+
+    local function CreateQuestTypeCheckbox(labelKey, settingKey, x, y, tooltipKey)
+        local checkbox = CreateCheckbox(
+            questTypePanel,
+            L[labelKey] or labelKey,
+            x,
+            y,
+            function(self)
+                local filters = EnsureQuestTypeFilters()
+                filters[settingKey] = self:GetChecked() and true or false
+                QuestAnnounce:SendDebugMsg("setQuestTypeFilter: " .. tostring(settingKey) .. " :: " .. tostring(filters[settingKey]))
+            end,
+            L[labelKey] or labelKey,
+            L[tooltipKey] or tooltipKey
+        )
+
+        questTypeCheckboxes[settingKey] = checkbox
+    end
+
+    CreateQuestTypeCheckbox("Normal Quests", "normal", 16, -92, "Include regular quests that are not flagged as world, trivial, campaign, or story.")
+    CreateQuestTypeCheckbox("World Quests", "world", 16, -124, "Include quests flagged by the API as world/task quests.")
+    CreateQuestTypeCheckbox("Trivial Quests", "trivial", 16, -156, "Include quests flagged as trivial by the API.")
+    CreateQuestTypeCheckbox("Campaign Quests", "campaign", 320, -92, "Include quests flagged by the API as campaign quests.")
+    CreateQuestTypeCheckbox("Story Quests", "story", 320, -124, "Include quests flagged by the API as story quests.")
+
+    local questTypeHint = questTypePanel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    questTypeHint:SetPoint("TOPLEFT", 16, -200)
+    questTypeHint:SetWidth(760)
+    questTypeHint:SetJustifyH("LEFT")
+    questTypeHint:SetText(L["Only API-reliably distinguishable quest types are filtered. Unknown types stay unaffected."] or "Only API-reliably distinguishable quest types are filtered. Unknown types stay unaffected.")
+
+    local function RefreshQuestTypePanel()
+        local filters = EnsureQuestTypeFilters()
+        for key, checkbox in pairs(questTypeCheckboxes) do
+            checkbox:SetChecked(filters[key] and true or false)
+        end
+    end
+
+    questTypePanel:HookScript("OnShow", RefreshQuestTypePanel)
+    local questTypeCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, questTypePanel, L["Quest Type Filters"] or "Quest Type Filters")
+    Settings.RegisterAddOnCategory(questTypeCategory)
+    self.questTypeOptionsCategory = questTypeCategory
+
     -- Slash-Befehl /qa registrieren, um die Einstellungen zu öffnen
     SLASH_QUESTANNOUNCE1 = "/qa"
     SlashCmdList["QUESTANNOUNCE"] = openConfig
@@ -1771,6 +1853,9 @@ end
 	RefreshTooltipPanel()
     RefreshProfileDropdown()
     RefreshProfileOverview()
+    if RefreshQuestTypePanel then
+        RefreshQuestTypePanel()
+    end
 end
 
 

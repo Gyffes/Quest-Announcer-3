@@ -172,6 +172,16 @@ local function openConfig()
         return
     end
 
+    -- DE: Blizzard-Settings dürfen im Kampf nicht sicher geöffnet werden.
+    -- EN: Blizzard settings cannot be safely opened while in combat lockdown.
+    if InCombatLockdown and InCombatLockdown() then
+        QuestAnnounce:Print(L["Cannot open settings in combat."])
+        if UIErrorsFrame and UIErrorsFrame.AddMessage then
+            UIErrorsFrame:AddMessage(L["Cannot open settings in combat."])
+        end
+        return
+    end
+
     Settings.OpenToCategory(category:GetID())
     Settings.OpenToCategory(category:GetID())
 end

@@ -44,6 +44,13 @@ local defaults = {
             bgColor = {0, 0, 0, 0.8}, -- Hintergrundfarbe mit Alpha
             borderColor = {0, 0, 0, 0.8}, -- Rahmenfarbe
         },
+        questTypeFilters = {
+            normal = true,      -- DE: Normale Quests aktiv / EN: Normal quests enabled
+            world = true,       -- DE: Weltquests aktiv / EN: World quests enabled
+            trivial = true,     -- DE: Triviale Quests aktiv / EN: Trivial quests enabled
+            campaign = true,    -- DE: Kampagnen-Quests aktiv / EN: Campaign quests enabled
+            story = true,       -- DE: Story-Quests aktiv / EN: Story quests enabled
+        },
     }
 }
 -- Chanel betreten
@@ -213,9 +220,133 @@ function QuestAnnounce:BuildQuestCache()
     self:SendDebugMsg("QuestCache rebuilt. Quests: " .. tostring(questCount) .. " / Objectives: " .. tostring(objectiveCount))
 end
 
+-- Questtyp-Filter Defaults (defensiv, versionsfreundlich)
+-- Quest type filter defaults (defensive, version-friendly)
+local QUEST_TYPE_FILTER_DEFAULTS = {
+    normal = true,
+    world = true,
+    trivial = true,
+    campaign = true,
+    story = true,
+}
+
+-- Liefert die Questtyp-Filter aus der DB und ergänzt fehlende Schlüssel mit Defaults.
+-- Returns quest type filters from DB and backfills missing keys with defaults.
+function QuestAnnounce:GetQuestTypeFilterSettings()
+    if not self.db or not self.db.profile then
+        return QUEST_TYPE_FILTER_DEFAULTS
+    end
+
+    local filters = self.db.profile.questTypeFilters
+    if type(filters) ~= "table" then
+        filters = {}
+        self.db.profile.questTypeFilters = filters
+    end
+
+    for key, value in pairs(QUEST_TYPE_FILTER_DEFAULTS) do
+        if filters[key] == nil then
+            filters[key] = value
+        end
+    end
+
+    return filters
+end
+
+-- Ermittelt zuverlässig unterscheidbare Questtypen auf Basis verfügbarer Blizzard-API-Felder.
+-- Detects reliably distinguishable quest types based on available Blizzard API fields.
+function QuestAnnounce:GetQuestTypeFlags(questID, logIndex)
+    local flags = {
+        world = false,
+        trivial = false,
+        campaign = false,
+        story = false,
+        normal = true,
+    }
+
+    local info
+    if logIndex and C_QuestLog and C_QuestLog.GetInfo then
+        info = C_QuestLog.GetInfo(logIndex)
+    end
+
+    if info then
+        flags.world = info.isTask == true
+        flags.campaign = info.isCampaign == true
+        flags.story = info.isStory == true
+
+        if type(info.isTrivial) == "boolean" then
+            flags.trivial = info.isTrivial
+        end
+    end
+
+    if not flags.trivial and questID and C_QuestLog and C_QuestLog.IsQuestTrivial then
+        local isTrivial = C_QuestLog.IsQuestTrivial(questID)
+        if type(isTrivial) == "boolean" then
+            flags.trivial = isTrivial
+        end
+    end
+
+    flags.normal = not (flags.world or flags.trivial or flags.campaign or flags.story)
+
+    return flags
+end
+
+-- Prüft, ob ein Questtyp laut Nutzer-Filter angekündigt werden darf.
+-- Checks whether a quest type is allowed by user filters.
+function QuestAnnounce:IsQuestTypeAllowed(questID, logIndex)
+    if not questID then
+        return true
+    end
+
+    local filters = self:GetQuestTypeFilterSettings()
+    local flags = self:GetQuestTypeFlags(questID, logIndex)
+
+    if flags.world and not filters.world then return false, "world" end
+    if flags.trivial and not filters.trivial then return false, "trivial" end
+    if flags.campaign and not filters.campaign then return false, "campaign" end
+    if flags.story and not filters.story then return false, "story" end
+    if flags.normal and not filters.normal then return false, "normal" end
+
+    return true
+end
+
 function QuestAnnounce:Print(msg)
     DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99QuestAnnounce|r: " .. msg)
 end	
+
+-- Prüft, ob ein Fortschrittsupdate anhand des "every"-Wertes gesendet werden soll.
+-- Checks whether a progress update should be sent based on the "every" setting.
+function QuestAnnounce:ShouldAnnounceProgressByEvery(currentAmount, requiredAmount)
+    local settings = self.db and self.db.profile and self.db.profile.settings or nil
+    local every = settings and tonumber(settings.every) or 1
+
+    if not every then
+        every = 1
+    end
+
+    every = math.max(0, math.floor(every))
+
+    -- DE: 0 bedeutet nur Abschlussmeldungen.
+    -- EN: 0 means completion-only announcements.
+    if every == 0 then
+        return false
+    end
+
+    -- DE: Ohne numerischen Fortschritt wird wie bisher angekündigt.
+    -- EN: Without numeric progress, keep legacy behavior and announce.
+    if currentAmount == nil then
+        return true
+    end
+
+    if every <= 1 then
+        return true
+    end
+
+    if requiredAmount and requiredAmount > 0 and currentAmount >= requiredAmount then
+        return true
+    end
+
+    return currentAmount > 0 and (currentAmount % every == 0)
+end
 
 -- ==============================
 -- Quest Link Helper Funktionen
@@ -480,6 +611,12 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
         end
     end
 
+    local allowedByType, blockedType = self:IsQuestTypeAllowed(questID, logIndex)
+    if not allowedByType then
+        self:SendDebugMsg("Quest skipped by type filter :: " .. tostring(blockedType) .. " :: " .. tostring(questTitle))
+        return
+    end
+
     local currentAmount = tonumber(currentAmountText)
     local requiredAmount = tonumber(requiredAmountText)
     local objectiveLooksComplete = currentAmount
@@ -490,6 +627,12 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
     -- Send Logic
     if not logIndex then
         local announceAsComplete = objectiveLooksComplete and true or false
+
+        if not announceAsComplete and not self:ShouldAnnounceProgressByEvery(currentAmount, requiredAmount) then
+            self:SendDebugMsg("Progress skipped by every setting (no logIndex) :: " .. tostring(currentAmount) .. "/" .. tostring(requiredAmount))
+            return
+        end
+
         if questID then
             if announceAsComplete then
                 self:Print(L["Completed: "] .. localMsg)
@@ -516,6 +659,11 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
         end
         self:SendMsg(L["Completed: "] .. newMsg, true)
     else
+        if not self:ShouldAnnounceProgressByEvery(currentAmount, requiredAmount) then
+            self:SendDebugMsg("Progress skipped by every setting :: " .. tostring(currentAmount) .. "/" .. tostring(requiredAmount))
+            return
+        end
+
         if questID then
             self:Print(L["Progress: "] .. localMsg)
         end

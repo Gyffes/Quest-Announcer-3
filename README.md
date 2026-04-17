@@ -5,8 +5,8 @@ Quest Announce 3 is a World of Warcraft addon that automatically announces quest
 
 ## Version / Version
 
-Aktueller Stand: **9.3.0.2**
-Current version: **9.3.0.2**
+Aktueller Stand: **9.3.0.3**
+Current version: **9.3.0.3**
 
 ## Projektstatus (DE)
 
@@ -19,6 +19,7 @@ Das Addon wurde in der aktuellen Entwicklungsphase grundlegend modernisiert:
 - Umfangreiche Lokalisierungs-Überarbeitung (inkl. Fallback auf `enUS`).
 - Minimap-Button optisch/technisch verbessert (rundes Icon-Masking).
 - Neues Profilverwaltungs-Untermenü mit Speichern/Laden/Kopieren/Überschreiben/Löschen und Profilübersicht.
+- Neuer Questtyp-Filterbereich (normal, Weltquest, trivial, Kampagne, Story) mit defensiver API-Auswertung.
 
 ## Project Status (EN)
 
@@ -31,6 +32,7 @@ The addon has been significantly modernized in the current development phase:
 - Major localization overhaul (including `enUS` fallback behavior).
 - Improved minimap button visuals/technical behavior (round icon masking).
 - New profile management submenu with save/load/copy/overwrite/delete actions and a profile overview.
+- New quest-type filter section (normal, world, trivial, campaign, story) with defensive API-based detection.
 
 ## Hauptfunktionen (DE)
 
@@ -54,6 +56,7 @@ The addon has been significantly modernized in the current development phase:
   - Chat channels (/say, party, instance, guild, officer, whisper, custom channel, focus whisper)
   - UI frames (Chat Frame, Raid Warning Frame, UI Errors Frame)
 - Configurable sound IDs for progress and completion.
+- Optional quest-type filters (normal/world/trivial/campaign/story, only where API data is reliable).
 - Minimap button:
   - Left click: toggle addon on/off
   - Middle click: toggle temporary pause (quick mute without disabling)

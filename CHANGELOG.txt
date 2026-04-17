@@ -1,3 +1,21 @@
+v9.3.0.3 Multi - 17-04-2026
+         - [DE] Neuer Optionen-Unterbereich "Questtyp-Filter" ergänzt (normal, Weltquest, trivial, Kampagne, Story)
+         - [EN] Added new options subcategory "Quest Type Filters" (normal, world, trivial, campaign, story)
+         - [DE] Ankündigungen filtern jetzt optional nach zuverlässig unterscheidbaren Blizzard-API-Questtypen
+         - [EN] Announcements can now be optionally filtered by reliably distinguishable Blizzard API quest types
+         - [DE] Erkennung defensiv umgesetzt (versionsfreundlich, keine spekulativen Typzuordnungen)
+         - [EN] Detection implemented defensively (version-friendly, no speculative type guessing)
+         - [DE] Lokalisierungen und Dokumentation für Questtyp-Filter erweitert
+         - [EN] Extended localizations and documentation for quest-type filters
+         - [DE] Questtyp-Filter-Texte in allen unterstützten Locales ergänzt
+         - [EN] Added quest-type filter texts across all supported locales
+         - [DE] Questtyp-Filter-Texte für alle unterstützten Sprachen übersetzt
+         - [EN] Translated quest type filter texts for all supported locales
+         - [DE] Fehler behoben: Rechtsklick auf den Minimap-Button öffnet Optionen im Kampf nicht mehr (kein ADDON_ACTION_BLOCKED)
+         - [EN] Fixed: right-click minimap options opening is now blocked safely in combat (no ADDON_ACTION_BLOCKED)
+         - [DE] Fehler behoben: "Alle X Schritte" wird wieder korrekt angewendet
+         - [EN] Fixed: "Announce Every" now correctly throttles progress announcements
+
 ﻿Changelog ist zweisprachig aufgebaut: Deutsch (Hauptsprache) + Englisch.
 Changelog is maintained bilingually: German (primary language) + English.
 
