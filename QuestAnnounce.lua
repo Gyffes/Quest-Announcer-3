@@ -15,8 +15,8 @@ local defaults = {
             every = 1,              -- Benachrichtigungsfrequenz
             sound = true,           -- Soundbenachrichtigungen aktiviert
 			progressSound = 8959,     -- Standard: UI Quest Progress
-			completeSound = 6199,    -- Standard: Quest Complete
-            acceptSound = 6197,      -- DE: Standard Quest angenommen / EN: Default quest accepted
+			completeSound = 6197,    -- Standard: Quest Complete
+            acceptSound = 6192,      -- DE: Standard Quest angenommen / EN: Default quest accepted
             turnInSound = 6199,      -- DE: Standard Quest abgegeben / EN: Default quest turn-in
             soundChannel = "Master", -- DE: Standard-Audio-Kanal / EN: Default audio channel
             enableProgressSound = true, -- DE: Fortschrittssound aktiv / EN: Progress sound enabled
@@ -192,8 +192,8 @@ end)
 -- DE: Definierte Sound-Events und Priorität / EN: Defined sound events and priority.
 QuestAnnounce.soundEventConfig = {
     progress = { idKey = "progressSound", enableKey = "enableProgressSound", defaultID = 8959, priority = 1 },
-    complete = { idKey = "completeSound", enableKey = "enableCompleteSound", defaultID = 6199, priority = 2 },
-    accept = { idKey = "acceptSound", enableKey = "enableAcceptSound", defaultID = 6197, priority = 3 },
+    complete = { idKey = "completeSound", enableKey = "enableCompleteSound", defaultID = 6197, priority = 2 },
+    accept = { idKey = "acceptSound", enableKey = "enableAcceptSound", defaultID = 6192, priority = 3 },
     turnin = { idKey = "turnInSound", enableKey = "enableTurnInSound", defaultID = 6199, priority = 4 },
 }
 
@@ -216,7 +216,21 @@ function QuestAnnounce:PlayConfiguredSound(eventKey)
     end
 
     local soundID = tonumber(settings[config.idKey]) or config.defaultID
-    local channel = tostring(settings.soundChannel or "Master")
+    local rawChannel = tostring(settings.soundChannel or "Master")
+    local channelMap = {
+        ["Master"] = "Master",
+        ["SFX"] = "SFX",
+        ["Effects"] = "SFX",
+        ["Effekte"] = "SFX",
+        ["Ambience"] = "Ambience",
+        ["Umgebung"] = "Ambience",
+        ["Dialog"] = "Dialog",
+        ["Dialoge"] = "Dialog",
+        ["Music"] = "Music",
+        ["Musik"] = "Music",
+    }
+    local channel = channelMap[rawChannel] or "Master"
+    settings.soundChannel = channel
     local now = GetTime()
     local lockSeconds = 0.35
 

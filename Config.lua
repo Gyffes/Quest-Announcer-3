@@ -223,10 +223,14 @@ end
         UIDropDownMenu_Initialize(dropdown, function(self, level)
             for _, item in ipairs(items) do
                 local info = UIDropDownMenu_CreateInfo()
-                info.text = item
+                local text = type(item) == "table" and item.text or item
+                local value = type(item) == "table" and item.value or item
+                info.text = text
+                info.value = value
                 info.func = function()
-                    UIDropDownMenu_SetSelectedName(dropdown, item)
-                    onSelect(item)
+                    UIDropDownMenu_SetSelectedValue(dropdown, value)
+                    UIDropDownMenu_SetText(dropdown, text)
+                    onSelect(value, text)
                 end
                 UIDropDownMenu_AddButton(info)
             end
@@ -544,7 +548,7 @@ end
         content,
         L["Chat Frame"],
         16,
-        -514,
+        -316,
         function(self)
             QuestAnnounce.db.profile.announceTo.chatFrame = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceTo: chatFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.chatFrame))
@@ -558,7 +562,7 @@ end
         content,
         L["Raid Warning Frame"],
         220,
-        -514,
+        -316,
         function(self)
             QuestAnnounce.db.profile.announceTo.raidWarningFrame = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceTo: raidWarningFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.raidWarningFrame))
@@ -572,7 +576,7 @@ end
         content,
         L["UI Errors Frame"],
         440,
-        -514,
+        -316,
         function(self)
             QuestAnnounce.db.profile.announceTo.uiErrorsFrame = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceTo: uiErrorsFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.uiErrorsFrame))
@@ -586,12 +590,12 @@ end
 	local separator3 = content:CreateTexture(nil, "ARTWORK")
 	separator3:SetColorTexture(0.5, 0.5, 0.5, 0.6)
 	separator3:SetHeight(1)
-	separator3:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -562)
-	separator3:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -562)
+	separator3:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -364)
+	separator3:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -364)
 	
         -- Überschrift für die Chatkanäle linksbündig und näher an den Checkboxen
     local announceInHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    announceInHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -588)
+    announceInHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -390)
     announceInHeader:SetText(L["What channels do you want to make the announcements?"])
     AttachTooltip(
         announceInHeader,
@@ -604,7 +608,7 @@ end
         content,
         L["Say"],
         16,
-        -618,
+        -420,
         function(self)
             QuestAnnounce.db.profile.announceIn.say = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: say :: " .. tostring(QuestAnnounce.db.profile.announceIn.say))
@@ -617,7 +621,7 @@ end
         content,
         L["Party"],
         16,
-        -648,
+        -450,
         function(self)
             QuestAnnounce.db.profile.announceIn.party = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: party :: " .. tostring(QuestAnnounce.db.profile.announceIn.party))
@@ -630,7 +634,7 @@ end
         content,
         L["Instance"],
         16,
-        -678,
+        -480,
         function(self)
             QuestAnnounce.db.profile.announceIn.instance = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: instance :: " .. tostring(QuestAnnounce.db.profile.announceIn.instance))
@@ -644,7 +648,7 @@ end
         content,
         L["Officer"],
         220,
-        -618,
+        -420,
         function(self)
             QuestAnnounce.db.profile.announceIn.officer = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: officer :: " .. tostring(QuestAnnounce.db.profile.announceIn.officer))
@@ -657,7 +661,7 @@ end
         content,
         L["Focus"],
         220,
-        -648,
+        -450,
         function(self)
             QuestAnnounce.db.profile.announceIn.focus = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: focus :: " .. tostring(QuestAnnounce.db.profile.announceIn.focus))
@@ -670,7 +674,7 @@ end
         content,
         L["Guild"],
         220,
-        -678,
+        -480,
         function(self)
             QuestAnnounce.db.profile.announceIn.guild = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: guild :: " .. tostring(QuestAnnounce.db.profile.announceIn.guild))
@@ -684,7 +688,7 @@ end
         content,
         L["Whisper"],
         16,
-        -728,
+        -530,
         function(self)
             QuestAnnounce.db.profile.announceIn.whisper = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: whisper :: " .. tostring(QuestAnnounce.db.profile.announceIn.whisper))
@@ -729,7 +733,7 @@ end
         content,
         L["Channel"],
         16,
-        -758,
+        -560,
         function(self)
             local value = self:GetChecked() and true or false
             QuestAnnounce.db.profile.announceIn.channel = value
@@ -886,19 +890,16 @@ end
     channelLabel:SetPoint("TOPLEFT", soundPanel, "TOPLEFT", 16, -102)
     channelLabel:SetText(L["Sound Output Channel"])
     local channelItems = {
-        L["Master"], L["Effects"], L["Ambience"], L["Dialog"], L["Music"],
+        { text = L["Master"], value = "Master" },
+        { text = L["Effects"], value = "SFX" },
+        { text = L["Ambience"], value = "Ambience" },
+        { text = L["Dialog"], value = "Dialog" },
+        { text = L["Music"], value = "Music" },
     }
     local soundChannelDropdown = CreateDropdown(
         soundPanel, 180, 16, -122, channelItems,
-        function(item)
-            local mapping = {
-                [L["Master"]] = "Master",
-                [L["Effects"]] = "SFX",
-                [L["Ambience"]] = "Ambience",
-                [L["Dialog"]] = "Dialog",
-                [L["Music"]] = "Music",
-            }
-            QuestAnnounce.db.profile.settings.soundChannel = mapping[item] or "Master"
+        function(value)
+            QuestAnnounce.db.profile.settings.soundChannel = value or "Master"
         end,
         L["Sound Output Channel"],
         L["Choose the WoW sound channel used for QuestAnnounce sounds."]
@@ -951,14 +952,16 @@ end
         local enableCb = CreateCheckbox(
             soundPanel,
             L[enableLabelKey],
-            520,
-            anchorY - 22,
+            0,
+            0,
             function(self)
                 QuestAnnounce.db.profile.settings[enableKey] = self:GetChecked() and true or false
             end,
             L[enableLabelKey],
             L["Enable or disable this specific sound event."]
         )
+        enableCb:ClearAllPoints()
+        enableCb:SetPoint("LEFT", testBtn, "RIGHT", 22, 0)
 
         return {
             box = box,
@@ -967,8 +970,8 @@ end
     end
 
     local progressRow = CreateSoundRow(-164, "Progress Sound ID", "progressSound", 8959, "Reset Progress Sound", "Test Progress Sound", "enableProgressSound", "Enable Progress Sound", "progress")
-    local completeRow = CreateSoundRow(-224, "Completion Sound ID", "completeSound", 6199, "Reset Completion Sound", "Test Complete Sound", "enableCompleteSound", "Enable Completion Sound", "complete")
-    local acceptRow = CreateSoundRow(-284, "Accepted Sound ID", "acceptSound", 6197, "Reset Accepted Sound", "Test Accepted Sound", "enableAcceptSound", "Enable Accepted Sound", "accept")
+    local completeRow = CreateSoundRow(-224, "Completion Sound ID", "completeSound", 6197, "Reset Completion Sound", "Test Complete Sound", "enableCompleteSound", "Enable Completion Sound", "complete")
+    local acceptRow = CreateSoundRow(-284, "Accepted Sound ID", "acceptSound", 6192, "Reset Accepted Sound", "Test Accepted Sound", "enableAcceptSound", "Enable Accepted Sound", "accept")
     local turnInRow = CreateSoundRow(-344, "Turn-In Sound ID", "turnInSound", 6199, "Reset Turn-In Sound", "Test Turn-In Sound", "enableTurnInSound", "Enable Turn-In Sound", "turnin")
 
     local function RefreshSoundPanel()
@@ -988,11 +991,25 @@ end
             Dialog = L["Dialog"],
             Music = L["Music"],
         }
-        UIDropDownMenu_SetSelectedName(soundChannelDropdown, reverseChannelMap[settings.soundChannel or "Master"] or L["Master"])
+        local normalizedChannel = settings.soundChannel or "Master"
+        if normalizedChannel == "Effects" then
+            normalizedChannel = "SFX"
+        elseif normalizedChannel == "Effekte" then
+            normalizedChannel = "SFX"
+        elseif normalizedChannel == "Dialoge" then
+            normalizedChannel = "Dialog"
+        elseif normalizedChannel == "Umgebung" then
+            normalizedChannel = "Ambience"
+        elseif normalizedChannel == "Musik" then
+            normalizedChannel = "Music"
+        end
+        settings.soundChannel = normalizedChannel
+        UIDropDownMenu_SetSelectedValue(soundChannelDropdown, normalizedChannel)
+        UIDropDownMenu_SetText(soundChannelDropdown, reverseChannelMap[normalizedChannel] or L["Master"])
 
         SetNumericEditBoxValue(progressRow.box, settings.progressSound, 8959)
-        SetNumericEditBoxValue(completeRow.box, settings.completeSound, 6199)
-        SetNumericEditBoxValue(acceptRow.box, settings.acceptSound, 6197)
+        SetNumericEditBoxValue(completeRow.box, settings.completeSound, 6197)
+        SetNumericEditBoxValue(acceptRow.box, settings.acceptSound, 6192)
         SetNumericEditBoxValue(turnInRow.box, settings.turnInSound, 6199)
 
         progressRow.enableCb:SetChecked(settings.enableProgressSound ~= false)
@@ -1030,7 +1047,7 @@ end
 
     -- Beschriftung für Tooltip-Schriftart
     local tooltipFontLabel = tooltipPanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    tooltipFontLabel:SetPoint("TOPLEFT", tooltipSubtitle, "BOTTOMLEFT", 4, -20)
+    tooltipFontLabel:SetPoint("TOPLEFT", tooltipSubtitle, "BOTTOMLEFT", 4, -16)
     tooltipFontLabel:SetText(L["Tooltip Font"])
 	
 	AttachTooltip(
@@ -1052,7 +1069,7 @@ end
         tooltipPanel,
         180,
         16,
-        -90,
+        -102,
         tooltipFonts,
         function(value)
             QuestAnnounce.db.profile.tooltip.font = value
@@ -1149,7 +1166,8 @@ end
         local tooltipDB = QuestAnnounce.db.profile.tooltip
 
         -- Gespeicherte Schriftart im Dropdown anzeigen
-        UIDropDownMenu_SetSelectedName(tooltipFontDropdown, tooltipDB.font or "Friz Quadrata TT")
+        UIDropDownMenu_SetSelectedValue(tooltipFontDropdown, tooltipDB.font or "Friz Quadrata TT")
+        UIDropDownMenu_SetText(tooltipFontDropdown, tooltipDB.font or "Friz Quadrata TT")
 
         -- Gespeicherte Schriftgröße im Slider anzeigen
         tooltipFontSizeSlider:SetValue(tooltipDB.fontSize or 12)
@@ -1263,6 +1281,17 @@ end
         profile.announceIn = type(profile.announceIn) == "table" and profile.announceIn or {}
         profile.tooltip = type(profile.tooltip) == "table" and profile.tooltip or {}
         profile.questTypeFilters = type(profile.questTypeFilters) == "table" and profile.questTypeFilters or {}
+
+        -- DE: Fehlende Sound-Standardwerte pro Profil ergänzen / EN: Fill missing per-profile sound defaults.
+        if profile.settings.progressSound == nil then profile.settings.progressSound = 8959 end
+        if profile.settings.completeSound == nil then profile.settings.completeSound = 6197 end
+        if profile.settings.acceptSound == nil then profile.settings.acceptSound = 6192 end
+        if profile.settings.turnInSound == nil then profile.settings.turnInSound = 6199 end
+        if profile.settings.soundChannel == nil then profile.settings.soundChannel = "Master" end
+        if profile.settings.enableProgressSound == nil then profile.settings.enableProgressSound = true end
+        if profile.settings.enableCompleteSound == nil then profile.settings.enableCompleteSound = true end
+        if profile.settings.enableAcceptSound == nil then profile.settings.enableAcceptSound = true end
+        if profile.settings.enableTurnInSound == nil then profile.settings.enableTurnInSound = true end
         return profile
     end
 
@@ -1286,11 +1315,14 @@ end
         if id == 8959 then
             return string.format("%s (8959)", L["Default Progress Sound Name"])
         end
+        if id == 6192 then
+            return string.format("%s (6192)", L["Accepted Sound ID"])
+        end
         if id == 6197 then
-            return string.format("%s (6197)", L["Accepted Sound ID"])
+            return string.format("%s (6197)", L["Default Completion Sound Name"])
         end
         if id == 6199 then
-            return string.format("%s (6199)", L["Default Completion Sound Name"])
+            return string.format("%s (6199)", L["Turn-In Sound ID"])
         end
         return string.format("%s %d", L[labelKey] or L["Progress Sound ID"], id)
     end
@@ -1419,9 +1451,13 @@ end
             string.format("%s %s", L["Addon Enabled"], FormatBoolean(settings.enable)),
             string.format("%s %s", L["Sound Enabled"], FormatBoolean(settings.sound)),
             string.format("%s %s", L["Progress Sound"], GetSoundLabel(settings.progressSound, "Progress Sound ID")),
+            string.format("%s %s", L["Enable Progress Sound"], FormatBoolean(settings.enableProgressSound ~= false)),
             string.format("%s %s", L["Completion Sound"], GetSoundLabel(settings.completeSound, "Completion Sound ID")),
+            string.format("%s %s", L["Enable Completion Sound"], FormatBoolean(settings.enableCompleteSound ~= false)),
             string.format("%s %s", L["Accepted Sound ID"], GetSoundLabel(settings.acceptSound, "Accepted Sound ID")),
+            string.format("%s %s", L["Enable Accepted Sound"], FormatBoolean(settings.enableAcceptSound ~= false)),
             string.format("%s %s", L["Turn-In Sound ID"], GetSoundLabel(settings.turnInSound, "Turn-In Sound ID")),
+            string.format("%s %s", L["Enable Turn-In Sound"], FormatBoolean(settings.enableTurnInSound ~= false)),
             string.format("%s %s", L["Sound Output Channel"], tostring(settings.soundChannel or "Master")),
             string.format("%s %s", L["Announce Every Value"], tostring(settings.every or L["Not set"])),
             string.format("%s %s", L["Debug Mode"], FormatBoolean(settings.debug)),
