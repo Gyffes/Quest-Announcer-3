@@ -17,7 +17,8 @@ local defaults = {
 			progressSound = 8959,     -- Standard: UI Quest Progress
 			completeSound = 6199,    -- Standard: Quest Complete
             debug = false,          -- Debug-Modus deaktiviert
-			linkQuest = true		-- Quest Link
+			linkQuest = true,		-- Quest Link
+            paused = false,         -- Temporäre Pause
         },
         announceTo = {
             chatFrame = true,      -- Benachrichtigungen im Chat-Fenster
@@ -437,6 +438,10 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
         return
     end
 
+    if self.db.profile.settings.paused then
+        return
+    end
+
     -- Quest Parsing
     local questTitle, currentAmountText, requiredAmountText = msg:match(QUEST_INFO_REGEX)
 
@@ -604,6 +609,11 @@ function QuestAnnounce:SendMsg(msg, isComplete)
 
     -- Nur senden, wenn das Addon aktiviert ist
     if not self.db.profile.settings.enable then
+        return
+    end
+
+    -- Temporäre Pause stummschaltet die Ausgabe, ohne das Addon zu deaktivieren
+    if self.db.profile.settings.paused then
         return
     end
 
