@@ -1496,13 +1496,13 @@ end
             string.format("%s %s", L["Completion Sound"], GetSoundLabel(settings.completeSound, true)),
             string.format("%s %s", L["Announce Every Value"], tostring(settings.every or L["Not set"])),
             string.format("%s %s", L["Debug Mode"], FormatBoolean(settings.debug)),
-            string.format("%s %s", L["Quest Type Filters"], table.concat({
-                string.format("%s=%s", L["Normal Quests"], FormatBoolean((profile.questTypeFilters.normal ~= false))),
-                string.format("%s=%s", L["World Quests"], FormatBoolean((profile.questTypeFilters.world ~= false))),
-                string.format("%s=%s", L["Trivial Quests"], FormatBoolean((profile.questTypeFilters.trivial ~= false))),
-                string.format("%s=%s", L["Campaign Quests"], FormatBoolean((profile.questTypeFilters.campaign ~= false))),
-                string.format("%s=%s", L["Story Quests"], FormatBoolean((profile.questTypeFilters.story ~= false)))
-            }, ", "))),
+	            string.format("%s %s", L["Quest Type Filters"], table.concat({
+	                string.format("%s=%s", L["Normal Quests"], FormatBoolean((profile.questTypeFilters.normal ~= false))),
+	                string.format("%s=%s", L["World Quests"], FormatBoolean((profile.questTypeFilters.world ~= false))),
+	                string.format("%s=%s", L["Trivial Quests"], FormatBoolean((profile.questTypeFilters.trivial ~= false))),
+	                string.format("%s=%s", L["Campaign Quests"], FormatBoolean((profile.questTypeFilters.campaign ~= false))),
+	                string.format("%s=%s", L["Story Quests"], FormatBoolean((profile.questTypeFilters.story ~= false)))
+	            }, ", ")),
             string.format("%s %s", L["Tooltip Font Value"], tostring(tooltip.font or L["Not set"])),
             string.format("%s %s", L["Tooltip Font Size Value"], tostring(tooltip.fontSize or L["Not set"])),
             string.format("%s %s", L["Tooltip Font Color Value"], FormatColor(tooltip.fontColor)),
