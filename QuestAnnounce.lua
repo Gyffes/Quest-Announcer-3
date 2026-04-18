@@ -223,8 +223,24 @@ function QuestAnnounce:ShouldSuppressSoundByChannel(soundID, channel)
         return false
     end
 
+    -- DE: 8959 wird in manchen Clients wie Master behandelt.
+    -- EN: 8959 is treated like Master on some clients.
+    -- DE/EN: Nur unterdrücken, wenn der gewünschte Zielkanal effektiv stumm ist.
     if id == 8959 and channel ~= "Master" then
-        return true
+        local cvarByChannel = {
+            Master = "Sound_MasterVolume",
+            SFX = "Sound_SFXVolume",
+            Ambience = "Sound_AmbienceVolume",
+            Dialog = "Sound_DialogVolume",
+            Music = "Sound_MusicVolume",
+        }
+        local cvar = cvarByChannel[channel]
+        if cvar then
+            local volume = tonumber(GetCVar(cvar) or "1") or 1
+            if volume <= 0 then
+                return true
+            end
+        end
     end
 
     return false
