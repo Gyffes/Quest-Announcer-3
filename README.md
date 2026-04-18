@@ -22,6 +22,8 @@ Das Addon wurde in der aktuellen Entwicklungsphase grundlegend modernisiert:
 - Neuer Questtyp-Filterbereich (normal, Weltquest, trivial, Kampagne, Story) mit defensiver API-Auswertung.
 - Neues Sound-Untermenü mit Sound-IDs, Test-/Reset-Buttons, Aktivierungs-Checkboxen und Soundkanal-Auswahl (Master/Effekt/Umgebung/Dialog/Musik).
 - Neue Sound-Events für Quest angenommen (ID 6197) und Questabgabe (Standard-Questabgabe), inkl. geordneter Wiedergabelogik ohne Sound-Überlagerung.
+- Nachfolgende UI-Feinarbeiten: dynamische Reflow-Layouts für Sound- und Questtyp-Optionen bei UI-Skalierung/Panelbreite.
+- Spezialbehandlung für Sound-ID 8959: stummer Zielkanal bleibt stumm, hörbarer Zielkanal wird konsistent berücksichtigt.
 
 ## Project Status (EN)
 
@@ -37,6 +39,8 @@ The addon has been significantly modernized in the current development phase:
 - New quest-type filter section (normal, world, trivial, campaign, story) with defensive API-based detection.
 - New sound submenu with sound IDs, test/reset buttons, per-sound enable checkboxes, and sound output channel selection (Master/Effects/Ambience/Dialog/Music).
 - New sound events for quest accepted (ID 6197) and quest turn-in (default turn-in sound), including ordered playback logic to avoid overlapping sound spam.
+- Follow-up UI refinements: dynamic reflow layouts for sound and quest-type options under varying UI scale/panel widths.
+- Special handling for sound ID 8959: muted target channels stay silent, audible target channels are handled consistently.
 
 ## Hauptfunktionen (DE)
 
@@ -47,6 +51,8 @@ The addon has been significantly modernized in the current development phase:
 - Konfigurierbare Sound-IDs für Fortschritt, Abschluss, Quest angenommen und Questabgabe.
 - Pro Sound ein Test-Button, Zurücksetzen-Button und Aktivierungs-Checkbox.
 - Auswahl des WoW-Soundkanals (Master, Effekt, Umgebung, Dialoge, Musik).
+- Dynamische Layout-Anpassung für Sound- und Questtyp-Bereiche bei abweichender UI-Skalierung.
+- Sound-ID 8959 berücksichtigt Kanal-Stummschaltung (kein unerwarteter Ton bei stummem Zielkanal).
 - Minimap-Button:
   - Linksklick: Addon an/aus
   - Mittelklick: temporäre Pause an/aus (schnelles Stummschalten ohne Deaktivierung)
@@ -64,6 +70,8 @@ The addon has been significantly modernized in the current development phase:
 - Configurable sound IDs for progress, completion, quest accepted, and quest turn-in.
 - Per-sound test button, reset button, and enable checkbox.
 - Selectable WoW sound channel (Master, Effects, Ambience, Dialog, Music).
+- Dynamic layout adaptation for sound and quest-type sections under different UI scales.
+- Sound ID 8959 respects target-channel muting (no unexpected playback when target channel is muted).
 - Optional quest-type filters (normal/world/trivial/campaign/story, only where API data is reliable).
 - Minimap button:
   - Left click: toggle addon on/off

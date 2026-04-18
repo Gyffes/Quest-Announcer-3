@@ -11,6 +11,12 @@ v9.3.0.4 Multi - 17-04-2026
          - [EN] Ordered sound playback: active sounds are not chaotically overlapped, new requests follow a simple priority/queue strategy
          - [DE] README und Lokalisierungen für die neuen Sound-Funktionen erweitert
          - [EN] Extended README and localizations for the new sound functionality
+         - [DE] UI-Layout weiter dynamisiert: Sound-Zeilen und Questtyp-Filter reagieren auf Panelgröße/UI-Skalierung, um Überlagerungen zu vermeiden
+         - [EN] Further dynamic UI layout updates: sound rows and quest type filters now react to panel size/UI scaling to avoid overlap
+         - [DE] Sound-Testpfad überarbeitet: Testbuttons nutzen direkten kanalbewussten Test-Flow mit aktueller ID-Eingabe
+         - [EN] Reworked sound test path: test buttons now use direct channel-aware preview flow with current typed ID
+         - [DE] Spezialfall Sound-ID 8959 verbessert: bei stummem Zielkanal bleibt sie stumm, bei hörbarem Nicht-Master-Kanal wird sie kontrolliert abgespielt
+         - [EN] Improved special-case handling for sound ID 8959: stays silent when target channel is muted, plays in a controlled way when non-master channel is audible
 
 v9.3.0.3 Multi - 17-04-2026
          - [DE] Neuer Optionen-Unterbereich "Questtyp-Filter" ergänzt (normal, Weltquest, trivial, Kampagne, Story)
