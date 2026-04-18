@@ -328,6 +328,16 @@ end
 	content:SetSize(620, 1) -- feste Breite für saubere Ausrichtung
 	scrollFrame:SetScrollChild(content)
 
+    -- DE: Layout passt sich an Panelbreite/UI-Skalierung an.
+    -- EN: Layout adapts to panel width/UI scaling.
+    local function UpdateMainContentWidth()
+        local panelWidth = generalPanel:GetWidth() or 760
+        local dynamicWidth = math.max(620, panelWidth - 64)
+        content:SetWidth(dynamicWidth)
+    end
+    generalPanel:HookScript("OnSizeChanged", UpdateMainContentWidth)
+    UpdateMainContentWidth()
+
 
 	-- Haupttitel des Optionsfensters
 	local title = content:CreateFontString(nil, "ARTWORK", "GameFontNormalHuge")
@@ -1421,13 +1431,35 @@ end
     })
     overviewBackground:SetBackdropColor(0, 0, 0, 0.5)
 
-    local profileOverviewText = overviewBackground:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-    profileOverviewText:SetPoint("TOPLEFT", 10, -10)
-    profileOverviewText:SetWidth(620)
+    local overviewScroll = CreateFrame("ScrollFrame", "QuestAnnounceProfileOverviewScrollFrame", overviewBackground, "UIPanelScrollFrameTemplate")
+    overviewScroll:SetPoint("TOPLEFT", 8, -8)
+    overviewScroll:SetPoint("BOTTOMRIGHT", -28, 8)
+
+    local overviewContent = CreateFrame("Frame", nil, overviewScroll)
+    overviewContent:SetSize(600, 1)
+    overviewScroll:SetScrollChild(overviewContent)
+
+    local profileOverviewText = overviewContent:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    profileOverviewText:SetPoint("TOPLEFT", 2, -2)
+    profileOverviewText:SetWidth(588)
     profileOverviewText:SetJustifyH("LEFT")
     profileOverviewText:SetJustifyV("TOP")
     profileOverviewText:SetText(L["Select a profile to see its saved values."])
     AttachTooltip(overviewBackground, L["Profile Overview"], L["Quick overview of the selected profile values."])
+
+    local function UpdateOverviewScrollbarVisibility()
+        local textHeight = profileOverviewText:GetStringHeight() + 8
+        overviewContent:SetHeight(math.max(1, textHeight))
+        local scrollBar = _G["QuestAnnounceProfileOverviewScrollFrameScrollBar"]
+        if scrollBar then
+            if textHeight > overviewScroll:GetHeight() then
+                scrollBar:Show()
+            else
+                overviewScroll:SetVerticalScroll(0)
+                scrollBar:Hide()
+            end
+        end
+    end
 
     local function BuildProfileOverview(profileName)
         local profiles = GetProfilesTable()
@@ -1483,9 +1515,11 @@ end
     local function RefreshProfileOverview()
         if not selectedProfileName or selectedProfileName == "" then
             profileOverviewText:SetText(L["Select a profile to see its saved values."])
+            UpdateOverviewScrollbarVisibility()
             return
         end
         profileOverviewText:SetText(BuildProfileOverview(selectedProfileName))
+        UpdateOverviewScrollbarVisibility()
     end
 
     local function RefreshProfileDropdown()

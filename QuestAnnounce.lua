@@ -240,8 +240,8 @@ function QuestAnnounce:PlayConfiguredSound(eventKey)
     local function PlayNow()
         local willPlay, handle = PlaySound(soundID, channel)
         if not willPlay then
-            self:SendDebugMsg("Sound failed -> fallback RAID_WARNING")
-            PlaySound(SOUNDKIT.RAID_WARNING, "Master")
+            self:SendDebugMsg("Sound failed -> fallback RAID_WARNING on channel :: " .. tostring(channel))
+            PlaySound(SOUNDKIT.RAID_WARNING, channel)
             return
         end
 
