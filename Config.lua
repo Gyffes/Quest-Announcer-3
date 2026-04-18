@@ -1009,21 +1009,11 @@ end
             row.testBtn:ClearAllPoints()
             row.testBtn:SetPoint("LEFT", row.resetBtn, "RIGHT", 12, 0)
 
-            local cbTextWidth = 140
-            if row.enableCb.Text then
-                cbTextWidth = row.enableCb.Text:GetStringWidth() + 34
-            end
-            local projectedRight = 16 + row.box:GetWidth() + 12 + row.resetBtn:GetWidth() + 12 + row.testBtn:GetWidth() + 22 + cbTextWidth
-            local wrapCheckbox = projectedRight > (panelWidth - 24)
-
             row.enableCb:ClearAllPoints()
-            if wrapCheckbox then
-                row.enableCb:SetPoint("TOPLEFT", row.box, "BOTTOMLEFT", 0, -8)
-                y = y - 88
-            else
-                row.enableCb:SetPoint("LEFT", row.testBtn, "RIGHT", 22, 0)
-                y = y - 60
-            end
+            -- DE: Checkbox bewusst immer in die nächste Zeile für einheitliches Layout.
+            -- EN: Checkbox intentionally always placed on next line for consistent layout.
+            row.enableCb:SetPoint("TOPLEFT", row.box, "BOTTOMLEFT", 0, -8)
+            y = y - 88
         end
     end
 
@@ -1846,7 +1836,6 @@ end
     end
 
     local questTypeCheckboxes = {}
-    local questTypeOrder = {"normal", "world", "trivial", "campaign", "story"}
 
     local function CreateQuestTypeCheckbox(labelKey, settingKey, x, y, tooltipKey)
         local checkbox = CreateCheckbox(
@@ -1891,29 +1880,31 @@ end
         local leftX = 16
         local rightX = math.floor(contentWidth * 0.50)
         local rowSpacing = 32
-        local startY = -math.floor((questTypeSubtitle:GetStringHeight() or 18) + 30)
+        local subtitleBottomOffset = -16
 
-        local function PositionCheck(key, x, y)
+        local function PositionCheck(key, anchor, relativePoint, x, y)
             local checkbox = questTypeCheckboxes[key]
             if not checkbox then return end
             checkbox:ClearAllPoints()
-            checkbox:SetPoint("TOPLEFT", questTypePanel, "TOPLEFT", x, y)
+            checkbox:SetPoint("TOPLEFT", anchor, relativePoint, x, y)
         end
 
         if twoColumns then
-            PositionCheck("normal", leftX, startY)
-            PositionCheck("world", leftX, startY - rowSpacing)
-            PositionCheck("trivial", leftX, startY - rowSpacing * 2)
-            PositionCheck("campaign", rightX, startY)
-            PositionCheck("story", rightX, startY - rowSpacing)
+            PositionCheck("normal", questTypeSubtitle, "BOTTOMLEFT", leftX, subtitleBottomOffset)
+            PositionCheck("world", questTypeCheckboxes.normal, "BOTTOMLEFT", 0, -6)
+            PositionCheck("trivial", questTypeCheckboxes.world, "BOTTOMLEFT", 0, -6)
+            PositionCheck("campaign", questTypeSubtitle, "BOTTOMLEFT", rightX, subtitleBottomOffset)
+            PositionCheck("story", questTypeCheckboxes.campaign, "BOTTOMLEFT", 0, -6)
             questTypeHint:ClearAllPoints()
-            questTypeHint:SetPoint("TOPLEFT", questTypePanel, "TOPLEFT", 16, startY - rowSpacing * 3 - 6)
+            questTypeHint:SetPoint("TOPLEFT", questTypeCheckboxes.trivial, "BOTTOMLEFT", 0, -22)
         else
-            for index, key in ipairs(questTypeOrder) do
-                PositionCheck(key, leftX, startY - rowSpacing * (index - 1))
-            end
+            PositionCheck("normal", questTypeSubtitle, "BOTTOMLEFT", leftX, subtitleBottomOffset)
+            PositionCheck("world", questTypeCheckboxes.normal, "BOTTOMLEFT", 0, -6)
+            PositionCheck("trivial", questTypeCheckboxes.world, "BOTTOMLEFT", 0, -6)
+            PositionCheck("campaign", questTypeCheckboxes.trivial, "BOTTOMLEFT", 0, -6)
+            PositionCheck("story", questTypeCheckboxes.campaign, "BOTTOMLEFT", 0, -6)
             questTypeHint:ClearAllPoints()
-            questTypeHint:SetPoint("TOPLEFT", questTypePanel, "TOPLEFT", 16, startY - rowSpacing * #questTypeOrder - 6)
+            questTypeHint:SetPoint("TOPLEFT", questTypeCheckboxes.story, "BOTTOMLEFT", 0, -22)
         end
     end
 

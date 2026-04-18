@@ -215,6 +215,21 @@ function QuestAnnounce:GetNormalizedSoundChannel(rawChannel)
     return channelMap[tostring(rawChannel or "Master")] or "Master"
 end
 
+-- DE: Bestimmte IDs (z. B. 8959/Raidwarnung) ignorieren Kanalwahl und sollen außerhalb von Master unterdrückt werden.
+-- EN: Certain IDs (e.g. 8959/raid warning) ignore channel routing and should be suppressed outside Master.
+function QuestAnnounce:ShouldSuppressSoundByChannel(soundID, channel)
+    local id = tonumber(soundID)
+    if not id then
+        return false
+    end
+
+    if id == 8959 and channel ~= "Master" then
+        return true
+    end
+
+    return false
+end
+
 -- DE: Direkter Sound-Test ohne Queue/Priorität, damit der Testbutton den gewählten Kanal sofort nutzt.
 -- EN: Direct sound preview without queue/priority so the test button immediately uses the selected channel.
 function QuestAnnounce:PlayTestSound(eventKey, explicitSoundID)
@@ -227,6 +242,11 @@ function QuestAnnounce:PlayTestSound(eventKey, explicitSoundID)
     local soundID = tonumber(explicitSoundID) or tonumber(settings[config.idKey]) or config.defaultID
     local channel = self:GetNormalizedSoundChannel(settings.soundChannel)
     settings.soundChannel = channel
+
+    if self:ShouldSuppressSoundByChannel(soundID, channel) then
+        self:SendDebugMsg("Test sound suppressed by channel rule :: " .. tostring(soundID) .. " @ " .. tostring(channel))
+        return
+    end
 
     local willPlay = PlaySound(soundID, channel)
     if not willPlay then
@@ -257,6 +277,11 @@ function QuestAnnounce:PlayConfiguredSound(eventKey)
     local soundID = tonumber(settings[config.idKey]) or config.defaultID
     local channel = self:GetNormalizedSoundChannel(settings.soundChannel)
     settings.soundChannel = channel
+
+    if self:ShouldSuppressSoundByChannel(soundID, channel) then
+        self:SendDebugMsg("Sound suppressed by channel rule :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ " .. tostring(channel))
+        return
+    end
     local now = GetTime()
     local lockSeconds = 0.35
 
@@ -266,8 +291,7 @@ function QuestAnnounce:PlayConfiguredSound(eventKey)
     local function PlayNow()
         local willPlay, handle = PlaySound(soundID, channel)
         if not willPlay then
-            self:SendDebugMsg("Sound failed -> fallback RAID_WARNING on channel :: " .. tostring(channel))
-            PlaySound(SOUNDKIT.RAID_WARNING, channel)
+            self:SendDebugMsg("Sound failed (no fallback) :: " .. tostring(soundID) .. " @ " .. tostring(channel))
             return
         end
 
