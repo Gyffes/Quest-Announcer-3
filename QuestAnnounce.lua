@@ -246,6 +246,16 @@ function QuestAnnounce:ShouldSuppressSoundByChannel(soundID, channel)
     return false
 end
 
+-- DE: Manche IDs (z. B. 8959) sind intern an Master gebunden.
+-- EN: Some IDs (e.g. 8959) are internally tied to Master.
+function QuestAnnounce:GetPlaybackChannelForSound(soundID, channel)
+    local id = tonumber(soundID)
+    if id == 8959 and channel ~= "Master" then
+        return "Master"
+    end
+    return channel
+end
+
 -- DE: Direkter Sound-Test ohne Queue/Priorität, damit der Testbutton den gewählten Kanal sofort nutzt.
 -- EN: Direct sound preview without queue/priority so the test button immediately uses the selected channel.
 function QuestAnnounce:PlayTestSound(eventKey, explicitSoundID)
@@ -264,11 +274,12 @@ function QuestAnnounce:PlayTestSound(eventKey, explicitSoundID)
         return
     end
 
-    local willPlay = PlaySound(soundID, channel)
+    local playbackChannel = self:GetPlaybackChannelForSound(soundID, channel)
+    local willPlay = PlaySound(soundID, playbackChannel)
     if not willPlay then
-        self:SendDebugMsg("Test sound failed :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ " .. tostring(channel))
+        self:SendDebugMsg("Test sound failed :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ " .. tostring(playbackChannel))
     else
-        self:SendDebugMsg("Test sound played :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ " .. tostring(channel))
+        self:SendDebugMsg("Test sound played :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ req:" .. tostring(channel) .. " play:" .. tostring(playbackChannel))
     end
 end
 
@@ -305,16 +316,17 @@ function QuestAnnounce:PlayConfiguredSound(eventKey)
     local state = self.soundState
 
     local function PlayNow()
-        local willPlay, handle = PlaySound(soundID, channel)
+        local playbackChannel = self:GetPlaybackChannelForSound(soundID, channel)
+        local willPlay, handle = PlaySound(soundID, playbackChannel)
         if not willPlay then
-            self:SendDebugMsg("Sound failed (no fallback) :: " .. tostring(soundID) .. " @ " .. tostring(channel))
+            self:SendDebugMsg("Sound failed (no fallback) :: " .. tostring(soundID) .. " @ " .. tostring(playbackChannel))
             return
         end
 
         state.activeHandle = handle
         state.activePriority = config.priority or 0
         state.activeUntil = GetTime() + lockSeconds
-        self:SendDebugMsg("Play sound :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ " .. channel)
+        self:SendDebugMsg("Play sound :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ req:" .. tostring(channel) .. " play:" .. tostring(playbackChannel))
     end
 
     if now < (state.activeUntil or 0) then
