@@ -897,7 +897,7 @@ end
     end
 
     local channelLabel = soundPanel:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    channelLabel:SetPoint("TOPLEFT", soundPanel, "TOPLEFT", 16, -102)
+    channelLabel:SetPoint("TOPLEFT", soundCheckbox, "BOTTOMLEFT", 0, -16)
     channelLabel:SetText(L["Sound Output Channel"])
     local channelItems = {
         { text = L["Master"], value = "Master" },
@@ -914,15 +914,17 @@ end
         L["Sound Output Channel"],
         L["Choose the WoW sound channel used for QuestAnnounce sounds."]
     )
+    soundChannelDropdown:ClearAllPoints()
+    soundChannelDropdown:SetPoint("TOPLEFT", channelLabel, "BOTTOMLEFT", -16, -6)
 
     -- DE: Erstellt eine Zeile für Sound-ID, Reset, Test und Aktiv-Checkbox.
     -- EN: Creates one row for sound ID, reset, test and enable checkbox.
+    local soundRows = {}
     local function CreateSoundRow(anchorY, labelKey, idKey, defaultValue, resetTooltipKey, testTooltipKey, enableKey, enableLabelKey, eventKey)
         local label = soundPanel:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-        label:SetPoint("TOPLEFT", soundPanel, "TOPLEFT", 16, anchorY)
         label:SetText(L[labelKey])
 
-        local box = CreateEditBox(soundPanel, 90, 20, 16, anchorY - 22, L[labelKey], L["Sound ID played for quest progress updates."])
+        local box = CreateEditBox(soundPanel, 90, 20, 0, 0, L[labelKey], L["Sound ID played for quest progress updates."])
         box:SetNumeric(true)
         box:SetMaxLetters(10)
         SetNumericEditBoxValue(box, QuestAnnounce.db.profile.settings[idKey], defaultValue)
@@ -939,7 +941,7 @@ end
         end)
 
         local resetBtn = CreateButton(
-            soundPanel, L["Reset"], 70, 22, 120, anchorY - 22,
+            soundPanel, L["Reset"], 70, 22, 0, 0,
             function()
                 QuestAnnounce.db.profile.settings[idKey] = defaultValue
                 SetNumericEditBoxValue(box, defaultValue, defaultValue)
@@ -950,7 +952,7 @@ end
         resetBtn:SetPoint("LEFT", box, "RIGHT", 12, 0)
 
         local testBtn = CreateButton(
-            soundPanel, L[testTooltipKey], 180, 22, 210, anchorY - 22,
+            soundPanel, L[testTooltipKey], 180, 22, 0, 0,
             function()
                 QuestAnnounce:PlayConfiguredSound(eventKey)
             end,
@@ -974,8 +976,12 @@ end
         enableCb:SetPoint("LEFT", testBtn, "RIGHT", 22, 0)
 
         return {
+            label = label,
             box = box,
+            resetBtn = resetBtn,
+            testBtn = testBtn,
             enableCb = enableCb,
+            baseY = anchorY,
         }
     end
 
@@ -983,6 +989,42 @@ end
     local completeRow = CreateSoundRow(-224, "Completion Sound ID", "completeSound", 6197, "Reset Completion Sound", "Test Complete Sound", "enableCompleteSound", "Enable Completion Sound", "complete")
     local acceptRow = CreateSoundRow(-284, "Accepted Sound ID", "acceptSound", 6192, "Reset Accepted Sound", "Test Accepted Sound", "enableAcceptSound", "Enable Accepted Sound", "accept")
     local turnInRow = CreateSoundRow(-344, "Turn-In Sound ID", "turnInSound", 6199, "Reset Turn-In Sound", "Test Turn-In Sound", "enableTurnInSound", "Enable Turn-In Sound", "turnin")
+    soundRows = { progressRow, completeRow, acceptRow, turnInRow }
+
+    local function LayoutSoundRows()
+        local panelWidth = soundPanel:GetWidth() or 760
+        local y = -164
+
+        for _, row in ipairs(soundRows) do
+            row.label:ClearAllPoints()
+            row.label:SetPoint("TOPLEFT", soundPanel, "TOPLEFT", 16, y)
+
+            row.box:ClearAllPoints()
+            row.box:SetPoint("TOPLEFT", row.label, "BOTTOMLEFT", 0, -6)
+
+            row.resetBtn:ClearAllPoints()
+            row.resetBtn:SetPoint("LEFT", row.box, "RIGHT", 12, 0)
+
+            row.testBtn:ClearAllPoints()
+            row.testBtn:SetPoint("LEFT", row.resetBtn, "RIGHT", 12, 0)
+
+            local cbTextWidth = 140
+            if row.enableCb.Text then
+                cbTextWidth = row.enableCb.Text:GetStringWidth() + 34
+            end
+            local projectedRight = 16 + row.box:GetWidth() + 12 + row.resetBtn:GetWidth() + 12 + row.testBtn:GetWidth() + 22 + cbTextWidth
+            local wrapCheckbox = projectedRight > (panelWidth - 24)
+
+            row.enableCb:ClearAllPoints()
+            if wrapCheckbox then
+                row.enableCb:SetPoint("TOPLEFT", row.box, "BOTTOMLEFT", 0, -8)
+                y = y - 88
+            else
+                row.enableCb:SetPoint("LEFT", row.testBtn, "RIGHT", 22, 0)
+                y = y - 60
+            end
+        end
+    end
 
     local function RefreshSoundPanel()
         if not QuestAnnounce.db or not QuestAnnounce.db.profile or not QuestAnnounce.db.profile.settings then
@@ -1026,9 +1068,16 @@ end
         completeRow.enableCb:SetChecked(settings.enableCompleteSound ~= false)
         acceptRow.enableCb:SetChecked(settings.enableAcceptSound ~= false)
         turnInRow.enableCb:SetChecked(settings.enableTurnInSound ~= false)
+        LayoutSoundRows()
     end
 
-    soundPanel:HookScript("OnShow", RefreshSoundPanel)
+    soundPanel:HookScript("OnShow", function()
+        RefreshSoundPanel()
+        C_Timer.After(0, LayoutSoundRows)
+    end)
+    soundPanel:HookScript("OnSizeChanged", function()
+        C_Timer.After(0, LayoutSoundRows)
+    end)
     RefreshSoundPanel()
 
     local soundCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, soundPanel, L["Sound Settings"])
@@ -1779,6 +1828,7 @@ end
     questTypeSubtitle:SetPoint("TOPLEFT", questTypeTitle, "BOTTOMLEFT", 0, -8)
     questTypeSubtitle:SetWidth(760)
     questTypeSubtitle:SetJustifyH("LEFT")
+    questTypeSubtitle:SetJustifyV("TOP")
     questTypeSubtitle:SetText(L["Choose which quest types are eligible for announcements."] or "Choose which quest types are eligible for announcements.")
 
     local function EnsureQuestTypeFilters()
@@ -1795,6 +1845,7 @@ end
     end
 
     local questTypeCheckboxes = {}
+    local questTypeOrder = {"normal", "world", "trivial", "campaign", "story"}
 
     local function CreateQuestTypeCheckbox(labelKey, settingKey, x, y, tooltipKey)
         local checkbox = CreateCheckbox(
@@ -1824,7 +1875,46 @@ end
     questTypeHint:SetPoint("TOPLEFT", 16, -200)
     questTypeHint:SetWidth(760)
     questTypeHint:SetJustifyH("LEFT")
+    questTypeHint:SetJustifyV("TOP")
     questTypeHint:SetText(L["Only API-reliably distinguishable quest types are filtered. Unknown types stay unaffected."] or "Only API-reliably distinguishable quest types are filtered. Unknown types stay unaffected.")
+
+    -- DE: Dynamisches Layout für Questtyp-Panel (Skalierung/Schriftgröße).
+    -- EN: Dynamic quest type panel layout (scaling/font size).
+    local function LayoutQuestTypePanel()
+        local panelWidth = questTypePanel:GetWidth() or 760
+        local contentWidth = math.max(420, panelWidth - 32)
+        questTypeSubtitle:SetWidth(contentWidth)
+        questTypeHint:SetWidth(contentWidth)
+
+        local twoColumns = contentWidth >= 640
+        local leftX = 16
+        local rightX = math.floor(contentWidth * 0.50)
+        local rowSpacing = 32
+        local startY = -math.floor((questTypeSubtitle:GetStringHeight() or 18) + 30)
+
+        local function PositionCheck(key, x, y)
+            local checkbox = questTypeCheckboxes[key]
+            if not checkbox then return end
+            checkbox:ClearAllPoints()
+            checkbox:SetPoint("TOPLEFT", questTypePanel, "TOPLEFT", x, y)
+        end
+
+        if twoColumns then
+            PositionCheck("normal", leftX, startY)
+            PositionCheck("world", leftX, startY - rowSpacing)
+            PositionCheck("trivial", leftX, startY - rowSpacing * 2)
+            PositionCheck("campaign", rightX, startY)
+            PositionCheck("story", rightX, startY - rowSpacing)
+            questTypeHint:ClearAllPoints()
+            questTypeHint:SetPoint("TOPLEFT", questTypePanel, "TOPLEFT", 16, startY - rowSpacing * 3 - 6)
+        else
+            for index, key in ipairs(questTypeOrder) do
+                PositionCheck(key, leftX, startY - rowSpacing * (index - 1))
+            end
+            questTypeHint:ClearAllPoints()
+            questTypeHint:SetPoint("TOPLEFT", questTypePanel, "TOPLEFT", 16, startY - rowSpacing * #questTypeOrder - 6)
+        end
+    end
 
     local function RefreshQuestTypePanel()
         local filters = EnsureQuestTypeFilters()
@@ -1833,7 +1923,13 @@ end
         end
     end
 
-    questTypePanel:HookScript("OnShow", RefreshQuestTypePanel)
+    questTypePanel:HookScript("OnShow", function()
+        RefreshQuestTypePanel()
+        C_Timer.After(0, LayoutQuestTypePanel)
+    end)
+    questTypePanel:HookScript("OnSizeChanged", function()
+        C_Timer.After(0, LayoutQuestTypePanel)
+    end)
     local questTypeCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, questTypePanel, L["Quest Type Filters"] or "Quest Type Filters")
     Settings.RegisterAddOnCategory(questTypeCategory)
     self.questTypeOptionsCategory = questTypeCategory
