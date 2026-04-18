@@ -954,7 +954,8 @@ end
         local testBtn = CreateButton(
             soundPanel, L[testTooltipKey], 180, 22, 0, 0,
             function()
-                QuestAnnounce:PlayConfiguredSound(eventKey)
+                local typedSoundID = tonumber(box:GetText()) or defaultValue
+                QuestAnnounce:PlayTestSound(eventKey, typedSoundID)
             end,
             L[testTooltipKey], L["Play the current progress sound."]
         )

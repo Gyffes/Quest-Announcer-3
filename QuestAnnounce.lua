@@ -197,6 +197,45 @@ QuestAnnounce.soundEventConfig = {
     turnin = { idKey = "turnInSound", enableKey = "enableTurnInSound", defaultID = 6199, priority = 4 },
 }
 
+-- DE: Vereinheitlicht Soundkanäle aus Einstellungen/Localizations auf WoW-API-Werte.
+-- EN: Normalizes setting/localized sound channels to WoW API channel values.
+function QuestAnnounce:GetNormalizedSoundChannel(rawChannel)
+    local channelMap = {
+        ["Master"] = "Master",
+        ["SFX"] = "SFX",
+        ["Effects"] = "SFX",
+        ["Effekte"] = "SFX",
+        ["Ambience"] = "Ambience",
+        ["Umgebung"] = "Ambience",
+        ["Dialog"] = "Dialog",
+        ["Dialoge"] = "Dialog",
+        ["Music"] = "Music",
+        ["Musik"] = "Music",
+    }
+    return channelMap[tostring(rawChannel or "Master")] or "Master"
+end
+
+-- DE: Direkter Sound-Test ohne Queue/Priorität, damit der Testbutton den gewählten Kanal sofort nutzt.
+-- EN: Direct sound preview without queue/priority so the test button immediately uses the selected channel.
+function QuestAnnounce:PlayTestSound(eventKey, explicitSoundID)
+    local settings = self.db and self.db.profile and self.db.profile.settings
+    local config = self.soundEventConfig and self.soundEventConfig[eventKey]
+    if not settings or not config then
+        return
+    end
+
+    local soundID = tonumber(explicitSoundID) or tonumber(settings[config.idKey]) or config.defaultID
+    local channel = self:GetNormalizedSoundChannel(settings.soundChannel)
+    settings.soundChannel = channel
+
+    local willPlay = PlaySound(soundID, channel)
+    if not willPlay then
+        self:SendDebugMsg("Test sound failed :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ " .. tostring(channel))
+    else
+        self:SendDebugMsg("Test sound played :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ " .. tostring(channel))
+    end
+end
+
 -- DE: Spielt Sounds geordnet ab (ein aktiver Sound, optional eine wartende Anforderung).
 -- EN: Plays sounds in an orderly way (one active sound, optional one queued request).
 function QuestAnnounce:PlayConfiguredSound(eventKey)
@@ -216,20 +255,7 @@ function QuestAnnounce:PlayConfiguredSound(eventKey)
     end
 
     local soundID = tonumber(settings[config.idKey]) or config.defaultID
-    local rawChannel = tostring(settings.soundChannel or "Master")
-    local channelMap = {
-        ["Master"] = "Master",
-        ["SFX"] = "SFX",
-        ["Effects"] = "SFX",
-        ["Effekte"] = "SFX",
-        ["Ambience"] = "Ambience",
-        ["Umgebung"] = "Ambience",
-        ["Dialog"] = "Dialog",
-        ["Dialoge"] = "Dialog",
-        ["Music"] = "Music",
-        ["Musik"] = "Music",
-    }
-    local channel = channelMap[rawChannel] or "Master"
+    local channel = self:GetNormalizedSoundChannel(settings.soundChannel)
     settings.soundChannel = channel
     local now = GetTime()
     local lockSeconds = 0.35
