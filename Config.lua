@@ -376,13 +376,45 @@ end
         L["Enable or disable the addon."]
     )
 
+    -- Minimap-Button sichtbar / unsichtbar
+    local minimapButtonCheckbox = CreateCheckbox(
+        content,
+        L["Show Minimap Button"],
+        16,
+        -120,
+        function(self)
+            local value = self:GetChecked() and true or false
+            QuestAnnounce.db.profile.settings.showMinimapButton = value
+            QuestAnnounce:SendDebugMsg("setSettings: showMinimapButton :: " .. tostring(value))
+            if QuestAnnounce.UpdateMinimapButtonVisibility then
+                QuestAnnounce:UpdateMinimapButtonVisibility()
+            end
+        end,
+        L["Show Minimap Button"],
+        L["Show or hide the QuestAnnounce minimap button."]
+    )
+
+    -- Eigene Meldungen an/aus
+    local selfMessagesCheckbox = CreateCheckbox(
+        content,
+        L["Self Messages"],
+        220,
+        -120,
+        function(self)
+            QuestAnnounce.db.profile.settings.selfMessages = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setSettings: selfMessages :: " .. tostring(QuestAnnounce.db.profile.settings.selfMessages))
+        end,
+        L["Self Messages"],
+        L["When disabled, you will not receive addon status or warning messages."]
+    )
+
 	
     -- Quest-Links aktivieren / deaktivieren
     local linkQuestCheckbox = CreateCheckbox(
         content,
         L["Enable Quest Links"],
         420,
-        -90,
+        -120,
         function(self)
             QuestAnnounce.db.profile.settings.linkQuest = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setSettings: linkQuest :: " .. tostring(QuestAnnounce.db.profile.settings.linkQuest))
@@ -831,6 +863,8 @@ local function RefreshGeneralPanel()
     end
 
     enableCheckbox:SetChecked(settings.enable and true or false)
+    minimapButtonCheckbox:SetChecked(settings.showMinimapButton ~= false)
+    selfMessagesCheckbox:SetChecked(settings.selfMessages ~= false)
     debugCheckbox:SetChecked(settings.debug and true or false)
     linkQuestCheckbox:SetChecked(settings.linkQuest and true or false)
 
@@ -1521,6 +1555,8 @@ end
         local lines = {
             string.format("%s %s", L["Profile Name"], profileName),
             string.format("%s %s", L["Addon Enabled"], FormatBoolean(settings.enable)),
+            string.format("%s %s", L["Show Minimap Button"], FormatBoolean(settings.showMinimapButton ~= false)),
+            string.format("%s %s", L["Self Messages"], FormatBoolean(settings.selfMessages ~= false)),
             string.format("%s %s", L["Sound Enabled"], FormatBoolean(settings.sound)),
             string.format("%s %s", L["Progress Sound"], GetSoundLabel(settings.progressSound, "Progress Sound ID")),
             string.format("%s %s", L["Enable Progress Sound"], FormatBoolean(settings.enableProgressSound ~= false)),

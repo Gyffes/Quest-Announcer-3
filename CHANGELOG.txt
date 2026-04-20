@@ -1,3 +1,23 @@
+v9.3.0.5 Multi - 20-04-2026
+         - [DE] Neue Option im Bereich „Aktivieren/Deaktivieren“: Minimap-Button anzeigen/verstecken
+         - [EN] Added a new option in the enable/disable area: show/hide minimap button
+         - [DE] Neue Checkbox „Eigene Meldungen“ ergänzt (Status-/Warnmeldungen für den eigenen Client an/aus)
+         - [EN] Added new “Self Messages” checkbox (toggle status/warning messages for the local player client)
+         - [DE] Addon-interne Hinweise (z. B. Aktiviert/Deaktiviert, Pause, Fokus/Kanal-Hinweise, Combat-Settings-Hinweis) respektieren jetzt „Eigene Meldungen“
+         - [EN] Addon self-notifications (e.g. activated/deactivated, pause, focus/channel hints, combat settings hint) now respect “Self Messages”
+         - [DE] Profilübersicht um die neuen Werte „Minimap-Button“ und „Eigene Meldungen“ erweitert
+         - [EN] Extended profile overview with the new values “Show Minimap Button” and “Self Messages”
+         - [DE] README und Lokalisierungen für die neuen Optionen ergänzt
+         - [EN] Updated README and localizations for the new options
+         - [DE] Lokalisierung ergänzt: neue Optionen „Minimap-Button anzeigen“ und „Eigene Meldungen“ jetzt in allen unterstützten Sprachen übersetzt
+         - [EN] Localization extended: new options “Show Minimap Button” and “Self Messages” are now translated for all supported locales
+         - [DE] Tooltip-/Beschreibungstexte zu den neuen Optionen ebenfalls in allen unterstützten Sprachen ergänzt
+         - [EN] Tooltip/description texts for the new options were also added across all supported locales
+         - [DE] Fehler behoben (TBC 2.5.5): fehlendes C_QuestLog/GetNumQuestLogEntries führte zu Lua-Fehler in BuildQuestCache
+         - [EN] Fixed (TBC 2.5.5): missing C_QuestLog/GetNumQuestLogEntries caused Lua error in BuildQuestCache
+         - [DE] Kompatibilitäts-Layer ergänzt: Legacy-Questlog-APIs werden auf C_QuestLog-Funktionen abgebildet (GetInfo, GetNumQuestLogEntries, GetQuestObjectives usw.)
+         - [EN] Added compatibility layer: maps legacy quest log APIs to C_QuestLog-style helpers (GetInfo, GetNumQuestLogEntries, GetQuestObjectives, etc.)
+
 v9.3.0.4 Multi - 17-04-2026
          - [DE] Neues Optionen-Untermenü "Sound Settings" erstellt und alle Sound-Einstellungen aus dem Hauptbereich dorthin verschoben
          - [EN] Added a new "Sound Settings" options sub-menu and moved all sound settings from the main panel into it
