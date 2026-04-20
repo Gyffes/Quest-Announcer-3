@@ -408,6 +408,20 @@ end
         L["When disabled, you will not receive addon status or warning messages."]
     )
 
+    -- Eigene Meldungen nur solo stummschalten
+    local soloMuteSelfMessagesOnlyCheckbox = CreateCheckbox(
+        content,
+        L["Mute Self Messages Only When Solo"],
+        420,
+        -120,
+        function(self)
+            QuestAnnounce.db.profile.settings.soloMuteSelfMessagesOnly = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setSettings: soloMuteSelfMessagesOnly :: " .. tostring(QuestAnnounce.db.profile.settings.soloMuteSelfMessagesOnly))
+        end,
+        L["Mute Self Messages Only When Solo"],
+        L["If enabled, self-message muting is applied only while you are not in a group or raid."]
+    )
+
     -- Lokale QA3-Fortschrittsmeldungen an/aus
     local localProgressMessagesCheckbox = CreateCheckbox(
         content,
@@ -879,6 +893,7 @@ local function RefreshGeneralPanel()
     enableCheckbox:SetChecked(settings.enable and true or false)
     minimapButtonCheckbox:SetChecked(settings.showMinimapButton ~= false)
     selfMessagesCheckbox:SetChecked(settings.selfMessages ~= false)
+    soloMuteSelfMessagesOnlyCheckbox:SetChecked(settings.soloMuteSelfMessagesOnly and true or false)
     localProgressMessagesCheckbox:SetChecked(settings.showLocalProgressMessages ~= false)
     debugCheckbox:SetChecked(settings.debug and true or false)
     linkQuestCheckbox:SetChecked(settings.linkQuest and true or false)
@@ -1572,6 +1587,7 @@ end
             string.format("%s %s", L["Addon Enabled"], FormatBoolean(settings.enable)),
             string.format("%s %s", L["Show Minimap Button"], FormatBoolean(settings.showMinimapButton ~= false)),
             string.format("%s %s", L["Self Messages"], FormatBoolean(settings.selfMessages ~= false)),
+            string.format("%s %s", L["Mute Self Messages Only When Solo"], FormatBoolean(settings.soloMuteSelfMessagesOnly and true or false)),
             string.format("%s %s", L["Show Local Progress Messages"], FormatBoolean(settings.showLocalProgressMessages ~= false)),
             string.format("%s %s", L["Sound Enabled"], FormatBoolean(settings.sound)),
             string.format("%s %s", L["Progress Sound"], GetSoundLabel(settings.progressSound, "Progress Sound ID")),

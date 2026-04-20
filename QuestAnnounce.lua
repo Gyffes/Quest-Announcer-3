@@ -151,6 +151,7 @@ local defaults = {
             enable = true,          -- Addon aktiviert
             showMinimapButton = true, -- DE: Minimap-Button sichtbar / EN: Minimap button visible
             selfMessages = true,    -- DE: Eigene Addon-Meldungen anzeigen / EN: Show addon self messages
+            soloMuteSelfMessagesOnly = false, -- DE: Eigene Meldungen nur solo stummschalten / EN: Mute self messages only while solo
             showLocalProgressMessages = true, -- DE: Lokale Fortschrittstexte anzeigen / EN: Show local progress texts
             every = 1,              -- Benachrichtigungsfrequenz
             sound = true,           -- Soundbenachrichtigungen aktiviert
@@ -1076,6 +1077,16 @@ end
 function QuestAnnounce:ShouldShowSelfMessages()
     local settings = self.db and self.db.profile and self.db.profile.settings
     if settings and settings.selfMessages == false then
+        -- DE: Optional: Stummschaltung nur anwenden, wenn der Spieler solo ist.
+        -- EN: Optional: Apply muting only while the player is solo.
+        if settings.soloMuteSelfMessagesOnly then
+            local inHomeGroup = IsInGroup and IsInGroup(LE_PARTY_CATEGORY_HOME)
+            local inInstanceGroup = IsInGroup and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)
+            local inRaidGroup = IsInRaid and IsInRaid()
+            if inHomeGroup or inInstanceGroup or inRaidGroup then
+                return true
+            end
+        end
         return false
     end
     return true

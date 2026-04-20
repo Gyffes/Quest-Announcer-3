@@ -23,6 +23,10 @@ v9.3.0.5 Multi - 20-04-2026
          - [EN] Behavior adjusted: when “Self Messages” is disabled, local messages/sounds/UI frames are suppressed while chat posts to active group channels remain possible
          - [DE] Neue separate Option ergänzt: „Lokale Fortschrittsmeldungen anzeigen“ steuert nur die QA3-Eigenmeldungen im eigenen Chatfenster
          - [EN] Added new separate option: “Show Local Progress Messages” controls only QA3 local progress/completion lines in the player's own chat frame
+         - [DE] Neue optionale Logik ergänzt: „Eigene Meldungen nur solo stummschalten“ (Self-Messages im Gruppen-/Raidspiel weiter sichtbar)
+         - [EN] Added optional logic: “Mute Self Messages Only When Solo” (self messages remain visible while grouped/raiding)
+         - [DE] Lokalisierungen für die neue Solo-Stummschaltung in allen unterstützten Sprachen ergänzt
+         - [EN] Added localization texts for the new solo-mute option across all supported locales
 
 v9.3.0.4 Multi - 17-04-2026
          - [DE] Neues Optionen-Untermenü "Sound Settings" erstellt und alle Sound-Einstellungen aus dem Hauptbereich dorthin verschoben
