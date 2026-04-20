@@ -27,6 +27,10 @@ v9.3.0.5 Multi - 20-04-2026
          - [EN] Added optional logic: “Mute Self Messages Only When Solo” (self messages remain visible while grouped/raiding)
          - [DE] Lokalisierungen für die neue Solo-Stummschaltung in allen unterstützten Sprachen ergänzt
          - [EN] Added localization texts for the new solo-mute option across all supported locales
+         - [DE] Layout-Anpassung im General-Bereich: Debug + Testnachricht eine Zeile tiefer, nachfolgende Bereiche entsprechend nach unten verschoben
+         - [EN] General layout adjustment: moved Debug + Test Message one row lower and shifted following sections downward accordingly
+         - [DE] Tooltip-Texte der drei Self-Checkboxen präzisiert (klarer Unterschied zwischen Text-only und Text+Sound)
+         - [EN] Clarified tooltip texts for the three self-message checkboxes (clear distinction between text-only and text+sound)
 
 v9.3.0.4 Multi - 17-04-2026
          - [DE] Neues Optionen-Untermenü "Sound Settings" erstellt und alle Sound-Einstellungen aus dem Hauptbereich dorthin verschoben

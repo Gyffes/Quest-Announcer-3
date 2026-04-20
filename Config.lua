@@ -398,42 +398,42 @@ end
     local selfMessagesCheckbox = CreateCheckbox(
         content,
         L["Self Messages"],
-        220,
-        -120,
+        16,
+        -150,
         function(self)
             QuestAnnounce.db.profile.settings.selfMessages = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setSettings: selfMessages :: " .. tostring(QuestAnnounce.db.profile.settings.selfMessages))
         end,
         L["Self Messages"],
-        L["When disabled, you will not receive addon status or warning messages."]
+        L["Toggle all local QA3 self outputs (text, UI messages, and sounds)."]
     )
 
     -- Eigene Meldungen nur solo stummschalten
     local soloMuteSelfMessagesOnlyCheckbox = CreateCheckbox(
         content,
         L["Mute Self Messages Only When Solo"],
-        420,
-        -120,
+        220,
+        -150,
         function(self)
             QuestAnnounce.db.profile.settings.soloMuteSelfMessagesOnly = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setSettings: soloMuteSelfMessagesOnly :: " .. tostring(QuestAnnounce.db.profile.settings.soloMuteSelfMessagesOnly))
         end,
         L["Mute Self Messages Only When Solo"],
-        L["If enabled, self-message muting is applied only while you are not in a group or raid."]
+        L["If enabled, muting of local QA3 self outputs is applied only while you are not in a group or raid."]
     )
 
     -- Lokale QA3-Fortschrittsmeldungen an/aus
     local localProgressMessagesCheckbox = CreateCheckbox(
         content,
         L["Show Local Progress Messages"],
-        420,
-        -150,
+        220,
+        -120,
         function(self)
             QuestAnnounce.db.profile.settings.showLocalProgressMessages = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setSettings: showLocalProgressMessages :: " .. tostring(QuestAnnounce.db.profile.settings.showLocalProgressMessages))
         end,
         L["Show Local Progress Messages"],
-        L["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."]
+        L["Toggle only local QA3 progress/completion text lines in your own chat frame (no sound control)."]
     )
 
 	
@@ -456,7 +456,7 @@ end
         content,
         L["Debug"],
         16,
-        -150,
+        -180,
         function(self)
             QuestAnnounce.db.profile.settings.debug = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setSettings: debug :: " .. tostring(QuestAnnounce.db.profile.settings.debug))
@@ -471,8 +471,8 @@ end
 	local separator = content:CreateTexture(nil, "ARTWORK")
 	separator:SetColorTexture(0.5, 0.5, 0.5, 0.6)
 	separator:SetHeight(1)
-	separator:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -190)
-	separator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -190)
+	separator:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -220)
+	separator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -220)
 
 local function SetNumericEditBoxValue(box, value, fallback)
     local numeric = tonumber(value)
@@ -487,7 +487,7 @@ end
 
 	-- Slider für die Anzahl der Fortschrittsmeldungen
 	local everySlider = CreateFrame("Slider", nil, content, "OptionsSliderTemplate")
-	everySlider:SetPoint("TOPLEFT", content, "TOPLEFT", 60, -210)
+	everySlider:SetPoint("TOPLEFT", content, "TOPLEFT", 60, -240)
 	everySlider:SetMinMaxValues(0, 100)
 	everySlider:SetValueStep(1)
 	everySlider:SetObeyStepOnDrag(true)
@@ -599,13 +599,13 @@ end
 	local separator2 = content:CreateTexture(nil, "ARTWORK")
 	separator2:SetColorTexture(0.5, 0.5, 0.5, 0.6)
 	separator2:SetHeight(1)
-	separator2:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -258)
-	separator2:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -258)
+	separator2:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -288)
+	separator2:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -288)
 
     -- Überschrift für die Ziele der Ausgabe
         -- Überschrift für die Ziele der Ausgabe
     local announceToHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    announceToHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -280)
+    announceToHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -310)
     announceToHeader:SetText(L["Where do you want to make the announcements?"])
     AttachTooltip(
         announceToHeader,
@@ -618,7 +618,7 @@ end
         content,
         L["Chat Frame"],
         16,
-        -316,
+        -346,
         function(self)
             QuestAnnounce.db.profile.announceTo.chatFrame = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceTo: chatFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.chatFrame))
@@ -632,7 +632,7 @@ end
         content,
         L["Raid Warning Frame"],
         220,
-        -316,
+        -346,
         function(self)
             QuestAnnounce.db.profile.announceTo.raidWarningFrame = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceTo: raidWarningFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.raidWarningFrame))
@@ -646,7 +646,7 @@ end
         content,
         L["UI Errors Frame"],
         440,
-        -316,
+        -346,
         function(self)
             QuestAnnounce.db.profile.announceTo.uiErrorsFrame = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceTo: uiErrorsFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.uiErrorsFrame))
@@ -660,12 +660,12 @@ end
 	local separator3 = content:CreateTexture(nil, "ARTWORK")
 	separator3:SetColorTexture(0.5, 0.5, 0.5, 0.6)
 	separator3:SetHeight(1)
-	separator3:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -364)
-	separator3:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -364)
+	separator3:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -394)
+	separator3:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -394)
 	
         -- Überschrift für die Chatkanäle linksbündig und näher an den Checkboxen
     local announceInHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    announceInHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -390)
+    announceInHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -420)
     announceInHeader:SetText(L["What channels do you want to make the announcements?"])
     AttachTooltip(
         announceInHeader,
@@ -678,7 +678,7 @@ end
         content,
         L["Say"],
         16,
-        -420,
+        -450,
         function(self)
             QuestAnnounce.db.profile.announceIn.say = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: say :: " .. tostring(QuestAnnounce.db.profile.announceIn.say))
@@ -691,7 +691,7 @@ end
         content,
         L["Party"],
         16,
-        -450,
+        -480,
         function(self)
             QuestAnnounce.db.profile.announceIn.party = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: party :: " .. tostring(QuestAnnounce.db.profile.announceIn.party))
@@ -704,7 +704,7 @@ end
         content,
         L["Instance"],
         16,
-        -480,
+        -510,
         function(self)
             QuestAnnounce.db.profile.announceIn.instance = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: instance :: " .. tostring(QuestAnnounce.db.profile.announceIn.instance))
@@ -718,7 +718,7 @@ end
         content,
         L["Officer"],
         220,
-        -420,
+        -450,
         function(self)
             QuestAnnounce.db.profile.announceIn.officer = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: officer :: " .. tostring(QuestAnnounce.db.profile.announceIn.officer))
@@ -731,7 +731,7 @@ end
         content,
         L["Focus"],
         220,
-        -450,
+        -480,
         function(self)
             QuestAnnounce.db.profile.announceIn.focus = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: focus :: " .. tostring(QuestAnnounce.db.profile.announceIn.focus))
@@ -744,7 +744,7 @@ end
         content,
         L["Guild"],
         220,
-        -480,
+        -510,
         function(self)
             QuestAnnounce.db.profile.announceIn.guild = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: guild :: " .. tostring(QuestAnnounce.db.profile.announceIn.guild))
@@ -758,7 +758,7 @@ end
         content,
         L["Whisper"],
         16,
-        -530,
+        -560,
         function(self)
             QuestAnnounce.db.profile.announceIn.whisper = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: whisper :: " .. tostring(QuestAnnounce.db.profile.announceIn.whisper))
@@ -803,7 +803,7 @@ end
         content,
         L["Channel"],
         16,
-        -560,
+        -590,
         function(self)
             local value = self:GetChecked() and true or false
             QuestAnnounce.db.profile.announceIn.channel = value
@@ -863,7 +863,7 @@ end
         180,
         24,
         220,
-        -150,
+        -180,
         function()
             QuestAnnounce:SendMsg(L["QuestAnnounce Test Message"])
         end,
