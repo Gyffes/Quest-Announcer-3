@@ -380,8 +380,8 @@ end
     local minimapButtonCheckbox = CreateCheckbox(
         content,
         L["Show Minimap Button"],
-        16,
-        -120,
+        220,
+        -90,
         function(self)
             local value = self:GetChecked() and true or false
             QuestAnnounce.db.profile.settings.showMinimapButton = value
@@ -413,7 +413,7 @@ end
     local linkQuestCheckbox = CreateCheckbox(
         content,
         L["Enable Quest Links"],
-        420,
+        16,
         -120,
         function(self)
             QuestAnnounce.db.profile.settings.linkQuest = self:GetChecked() and true or false
@@ -427,8 +427,8 @@ end
     local debugCheckbox = CreateCheckbox(
         content,
         L["Debug"],
-        220,
-        -90,
+        16,
+        -150,
         function(self)
             QuestAnnounce.db.profile.settings.debug = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setSettings: debug :: " .. tostring(QuestAnnounce.db.profile.settings.debug))
@@ -443,8 +443,8 @@ end
 	local separator = content:CreateTexture(nil, "ARTWORK")
 	separator:SetColorTexture(0.5, 0.5, 0.5, 0.6)
 	separator:SetHeight(1)
-	separator:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -160)
-	separator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -160)
+	separator:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -190)
+	separator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -190)
 
 local function SetNumericEditBoxValue(box, value, fallback)
     local numeric = tonumber(value)
@@ -835,7 +835,7 @@ end
         180,
         24,
         220,
-        -120,
+        -150,
         function()
             QuestAnnounce:SendMsg(L["QuestAnnounce Test Message"])
         end,
