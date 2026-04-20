@@ -7,11 +7,152 @@ QuestAnnounce.lastMessage = nil
 
 local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L["enUS"]
 
+-- ---------------------------------------------------------
+-- QuestLog-API-Kompatibilität (Retail + Classic/TBC/Wrath)
+-- ---------------------------------------------------------
+-- DE: Manche Clients (z. B. TBC 2.5.5) haben kein C_QuestLog.
+-- EN: Some clients (e.g. TBC 2.5.5) do not provide C_QuestLog.
+C_QuestLog = C_QuestLog or {}
+
+local function GetQuestIDFromLink(link)
+    if type(link) ~= "string" then
+        return nil
+    end
+    return tonumber(link:match("quest:(%d+)"))
+end
+
+local function LegacyGetQuestLogIndexByQuestID(questID)
+    if not questID or not GetNumQuestLogEntries or not GetQuestLogTitle then
+        return nil
+    end
+
+    local numEntries = GetNumQuestLogEntries() or 0
+    for i = 1, numEntries do
+        local title, _, _, isHeader = GetQuestLogTitle(i)
+        if not isHeader and title then
+            local link = GetQuestLink and GetQuestLink(i) or nil
+            if GetQuestIDFromLink(link) == questID then
+                return i
+            end
+        end
+    end
+end
+
+if not C_QuestLog.GetNumQuestLogEntries and GetNumQuestLogEntries then
+    C_QuestLog.GetNumQuestLogEntries = function()
+        return GetNumQuestLogEntries() or 0
+    end
+end
+
+if not C_QuestLog.GetInfo and GetQuestLogTitle then
+    C_QuestLog.GetInfo = function(index)
+        if not index then
+            return nil
+        end
+
+        local title, level, suggestedGroup, isHeader, isCollapsed, isComplete, frequency, questID = GetQuestLogTitle(index)
+        local link = GetQuestLink and GetQuestLink(index) or nil
+        questID = questID or GetQuestIDFromLink(link)
+
+        return {
+            title = title,
+            level = level,
+            suggestedGroup = suggestedGroup,
+            isHeader = isHeader and true or false,
+            isCollapsed = isCollapsed and true or false,
+            isComplete = isComplete and true or false,
+            frequency = frequency,
+            questID = questID,
+            questLogIndex = index,
+        }
+    end
+end
+
+if not C_QuestLog.GetQuestObjectives and GetNumQuestLeaderBoards and GetQuestLogLeaderBoard then
+    C_QuestLog.GetQuestObjectives = function(questID)
+        local index = LegacyGetQuestLogIndexByQuestID(questID)
+        if not index then
+            return {}
+        end
+
+        local objectives = {}
+        local numObjectives = GetNumQuestLeaderBoards(index) or 0
+        for j = 1, numObjectives do
+            local text, objectiveType, finished = GetQuestLogLeaderBoard(j, index)
+            local fulfilled, required = text and text:match("(%d+)%s*/%s*(%d+)")
+            table.insert(objectives, {
+                text = text,
+                type = objectiveType,
+                finished = finished and true or false,
+                numFulfilled = tonumber(fulfilled),
+                numRequired = tonumber(required),
+            })
+        end
+        return objectives
+    end
+end
+
+if not C_QuestLog.GetQuestLink and GetQuestLink then
+    C_QuestLog.GetQuestLink = function(questID)
+        local index = LegacyGetQuestLogIndexByQuestID(questID)
+        if index then
+            return GetQuestLink(index)
+        end
+    end
+end
+
+if not C_QuestLog.SetSelectedQuest and SelectQuestLogEntry then
+    C_QuestLog.SetSelectedQuest = function(questID)
+        local index = LegacyGetQuestLogIndexByQuestID(questID)
+        if index then
+            SelectQuestLogEntry(index)
+        end
+    end
+end
+
+if not C_QuestLog.IsComplete then
+    C_QuestLog.IsComplete = function(questIDOrIndex)
+        local numeric = tonumber(questIDOrIndex)
+        if not numeric then
+            return false
+        end
+
+        local questID = numeric
+        local index = nil
+        if GetQuestLogTitle then
+            local title = GetQuestLogTitle(numeric)
+            if title then
+                index = numeric
+                local link = GetQuestLink and GetQuestLink(index) or nil
+                questID = GetQuestIDFromLink(link) or questID
+            else
+                index = LegacyGetQuestLogIndexByQuestID(questID)
+            end
+        end
+
+        if IsQuestFlaggedCompleted then
+            return IsQuestFlaggedCompleted(questID) and true or false
+        end
+
+        index = index or LegacyGetQuestLogIndexByQuestID(questID) or numeric
+        if GetQuestLogTitle and index then
+            local _, _, _, _, _, isComplete = GetQuestLogTitle(index)
+            return isComplete and true or false
+        end
+
+        return false
+    end
+end
+
 -- Standardkonfigurationen für einen neuen Benutzer
 local defaults = {
     profile = {
         settings = {
             enable = true,          -- Addon aktiviert
+            showMinimapButton = true, -- DE: Minimap-Button sichtbar / EN: Minimap button visible
+            selfMessages = true,    -- DE: Eigene Addon-Meldungen anzeigen / EN: Show addon self messages
+            soloMuteSelfMessagesOnly = false, -- DE: Eigene Meldungen nur solo stummschalten / EN: Mute self messages only while solo
+            showLocalProgressMessages = true, -- DE: Lokale Fortschrittstexte anzeigen / EN: Show local progress texts
             every = 1,              -- Benachrichtigungsfrequenz
             sound = true,           -- Soundbenachrichtigungen aktiviert
 			progressSound = 8959,     -- Standard: UI Quest Progress
@@ -151,8 +292,7 @@ QuestAnnounceDB = QuestAnnounceDB or {} -- Gespeicherte Datenbank initialisieren
 	end
 	
 	self:SendDebugMsg("Addon Enabled :: " .. tostring(self.db.profile.settings.enable))
-    QuestAnnounce:Print(L["QuestAnnounce activated!"])
-    UIErrorsFrame:AddMessage(L["QuestAnnounce activated!"])
+    self:NotifySelf(L["QuestAnnounce activated!"], true)
 end
 
 QuestAnnounce:RegisterEvent("ADDON_LOADED")											-- Register Event Addon Laden
@@ -825,11 +965,11 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
             return
         end
 
-        if questID then
+        if questID and self:ShouldShowLocalProgressMessages() then
             if announceAsComplete then
-                self:Print(L["Completed: "] .. localMsg)
+                self:NotifySelf(L["Completed: "] .. localMsg, false)
             else
-                self:Print(L["Progress: "] .. localMsg)
+                self:NotifySelf(L["Progress: "] .. localMsg, false)
             end
         end
         if announceAsComplete then
@@ -846,8 +986,8 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
     end
 
     if isComplete then
-        if questID then
-            self:Print(L["Completed: "] .. localMsg)
+        if questID and self:ShouldShowLocalProgressMessages() then
+            self:NotifySelf(L["Completed: "] .. localMsg, false)
         end
         self:SendMsg(L["Completed: "] .. newMsg, true)
     else
@@ -856,8 +996,8 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
             return
         end
 
-        if questID then
-            self:Print(L["Progress: "] .. localMsg)
+        if questID and self:ShouldShowLocalProgressMessages() then
+            self:NotifySelf(L["Progress: "] .. localMsg, false)
         end
         self:SendMsg(L["Progress: "] .. newMsg, false)
     end
@@ -933,6 +1073,51 @@ function QuestAnnounce:SendDebugMsg(msg)
     end
 end
 
+-- Prüft, ob addon-interne Meldungen für den Spieler erlaubt sind.
+function QuestAnnounce:ShouldShowSelfMessages()
+    local settings = self.db and self.db.profile and self.db.profile.settings
+    if settings and settings.selfMessages == false then
+        -- DE: Optional: Stummschaltung nur anwenden, wenn der Spieler solo ist.
+        -- EN: Optional: Apply muting only while the player is solo.
+        if settings.soloMuteSelfMessagesOnly then
+            local inHomeGroup = IsInGroup and IsInGroup(LE_PARTY_CATEGORY_HOME)
+            local inInstanceGroup = IsInGroup and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)
+            local inRaidGroup = IsInRaid and IsInRaid()
+            if inHomeGroup or inInstanceGroup or inRaidGroup then
+                return true
+            end
+        end
+        return false
+    end
+    return true
+end
+
+-- Zeigt eine addon-interne Meldung im Chat und optional zusätzlich in UIErrorsFrame.
+function QuestAnnounce:NotifySelf(msg, showUIError)
+    if not msg or msg == "" then
+        return
+    end
+
+    if not self:ShouldShowSelfMessages() then
+        return
+    end
+
+    self:Print(msg)
+
+    if showUIError and UIErrorsFrame and UIErrorsFrame.AddMessage then
+        UIErrorsFrame:AddMessage(msg)
+    end
+end
+
+-- Prüft, ob lokale Fortschritts-/Abschlussmeldungen im eigenen Chat gezeigt werden sollen.
+function QuestAnnounce:ShouldShowLocalProgressMessages()
+    local settings = self.db and self.db.profile and self.db.profile.settings
+    if settings and settings.showLocalProgressMessages == false then
+        return false
+    end
+    return true
+end
+
 --[[ Sends a chat message to the selected chat channels and frames where applicable,
     if we have a message to send; will also send a debugging message if debug is enabled ]]--
 -- Sendet die Nachricht an die aktivierten Ausgabekanäle und Ausgabefenster
@@ -959,6 +1144,7 @@ function QuestAnnounce:SendMsg(msg, isComplete)
 
     local announceIn = self.db.profile.announceIn
     local announceTo = self.db.profile.announceTo
+    local allowSelfOutput = self:ShouldShowSelfMessages()
 
     -- Nachricht an Chatkanäle senden
     if announceTo.chatFrame then
@@ -1009,7 +1195,7 @@ function QuestAnnounce:SendMsg(msg, isComplete)
                     QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(FOCUS->WHISPER) :: " .. msg)
                 end
             else
-                QuestAnnounce:Print(L["No focus set, message not sent."])
+                self:NotifySelf(L["No focus set, message not sent."], false)
             end
         end
 
@@ -1037,26 +1223,28 @@ function QuestAnnounce:SendMsg(msg, isComplete)
                     QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(CHANNEL) :: " .. msg)
                 end
             else
-                QuestAnnounce:Print(L["No channel set."])
+                self:NotifySelf(L["No channel set."], false)
             end
         end
     end
 
     -- Nachricht zusätzlich im RaidWarningFrame anzeigen
-    if announceTo.raidWarningFrame then
+    if allowSelfOutput and announceTo.raidWarningFrame then
         RaidNotice_AddMessage(RaidWarningFrame, msg, ChatTypeInfo["RAID_WARNING"])
     end
 
     -- Nachricht zusätzlich im UIErrorsFrame anzeigen
-    if announceTo.uiErrorsFrame then
+    if allowSelfOutput and announceTo.uiErrorsFrame then
         UIErrorsFrame:AddMessage(msg, 1.0, 1.0, 0.0, 7)
     end
 
     -- DE: Geordnete Sound-Ausgabe ohne Sound-Flut / EN: Ordered sound output without sound spam.
-    if isComplete == true then
-        self:PlayConfiguredSound("complete")
-    else
-        self:PlayConfiguredSound("progress")
+    if allowSelfOutput then
+        if isComplete == true then
+            self:PlayConfiguredSound("complete")
+        else
+            self:PlayConfiguredSound("progress")
+        end
     end
     QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg - " .. msg)
 end

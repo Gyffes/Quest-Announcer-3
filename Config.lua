@@ -376,13 +376,73 @@ end
         L["Enable or disable the addon."]
     )
 
+    -- Minimap-Button sichtbar / unsichtbar
+    local minimapButtonCheckbox = CreateCheckbox(
+        content,
+        L["Show Minimap Button"],
+        220,
+        -90,
+        function(self)
+            local value = self:GetChecked() and true or false
+            QuestAnnounce.db.profile.settings.showMinimapButton = value
+            QuestAnnounce:SendDebugMsg("setSettings: showMinimapButton :: " .. tostring(value))
+            if QuestAnnounce.UpdateMinimapButtonVisibility then
+                QuestAnnounce:UpdateMinimapButtonVisibility()
+            end
+        end,
+        L["Show Minimap Button"],
+        L["Show or hide the QuestAnnounce minimap button."]
+    )
+
+    -- Eigene Meldungen an/aus
+    local selfMessagesCheckbox = CreateCheckbox(
+        content,
+        L["Self Messages"],
+        16,
+        -150,
+        function(self)
+            QuestAnnounce.db.profile.settings.selfMessages = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setSettings: selfMessages :: " .. tostring(QuestAnnounce.db.profile.settings.selfMessages))
+        end,
+        L["Self Messages"],
+        L["Toggle all local QA3 self outputs (text, UI messages, and sounds)."]
+    )
+
+    -- Eigene Meldungen nur solo stummschalten
+    local soloMuteSelfMessagesOnlyCheckbox = CreateCheckbox(
+        content,
+        L["Mute Self Messages Only When Solo"],
+        220,
+        -150,
+        function(self)
+            QuestAnnounce.db.profile.settings.soloMuteSelfMessagesOnly = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setSettings: soloMuteSelfMessagesOnly :: " .. tostring(QuestAnnounce.db.profile.settings.soloMuteSelfMessagesOnly))
+        end,
+        L["Mute Self Messages Only When Solo"],
+        L["If enabled, muting of local QA3 self outputs is applied only while you are not in a group or raid."]
+    )
+
+    -- Lokale QA3-Fortschrittsmeldungen an/aus
+    local localProgressMessagesCheckbox = CreateCheckbox(
+        content,
+        L["Show Local Progress Messages"],
+        220,
+        -120,
+        function(self)
+            QuestAnnounce.db.profile.settings.showLocalProgressMessages = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setSettings: showLocalProgressMessages :: " .. tostring(QuestAnnounce.db.profile.settings.showLocalProgressMessages))
+        end,
+        L["Show Local Progress Messages"],
+        L["Toggle only local QA3 progress/completion text lines in your own chat frame (no sound control)."]
+    )
+
 	
     -- Quest-Links aktivieren / deaktivieren
     local linkQuestCheckbox = CreateCheckbox(
         content,
         L["Enable Quest Links"],
-        420,
-        -90,
+        16,
+        -120,
         function(self)
             QuestAnnounce.db.profile.settings.linkQuest = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setSettings: linkQuest :: " .. tostring(QuestAnnounce.db.profile.settings.linkQuest))
@@ -395,8 +455,8 @@ end
     local debugCheckbox = CreateCheckbox(
         content,
         L["Debug"],
-        220,
-        -90,
+        16,
+        -180,
         function(self)
             QuestAnnounce.db.profile.settings.debug = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setSettings: debug :: " .. tostring(QuestAnnounce.db.profile.settings.debug))
@@ -411,8 +471,8 @@ end
 	local separator = content:CreateTexture(nil, "ARTWORK")
 	separator:SetColorTexture(0.5, 0.5, 0.5, 0.6)
 	separator:SetHeight(1)
-	separator:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -160)
-	separator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -160)
+	separator:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -220)
+	separator:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -220)
 
 local function SetNumericEditBoxValue(box, value, fallback)
     local numeric = tonumber(value)
@@ -427,7 +487,7 @@ end
 
 	-- Slider für die Anzahl der Fortschrittsmeldungen
 	local everySlider = CreateFrame("Slider", nil, content, "OptionsSliderTemplate")
-	everySlider:SetPoint("TOPLEFT", content, "TOPLEFT", 60, -210)
+	everySlider:SetPoint("TOPLEFT", content, "TOPLEFT", 60, -260)
 	everySlider:SetMinMaxValues(0, 100)
 	everySlider:SetValueStep(1)
 	everySlider:SetObeyStepOnDrag(true)
@@ -539,13 +599,13 @@ end
 	local separator2 = content:CreateTexture(nil, "ARTWORK")
 	separator2:SetColorTexture(0.5, 0.5, 0.5, 0.6)
 	separator2:SetHeight(1)
-	separator2:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -258)
-	separator2:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -258)
+	separator2:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -288)
+	separator2:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -288)
 
     -- Überschrift für die Ziele der Ausgabe
         -- Überschrift für die Ziele der Ausgabe
     local announceToHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    announceToHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -280)
+    announceToHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -310)
     announceToHeader:SetText(L["Where do you want to make the announcements?"])
     AttachTooltip(
         announceToHeader,
@@ -558,7 +618,7 @@ end
         content,
         L["Chat Frame"],
         16,
-        -316,
+        -346,
         function(self)
             QuestAnnounce.db.profile.announceTo.chatFrame = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceTo: chatFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.chatFrame))
@@ -572,7 +632,7 @@ end
         content,
         L["Raid Warning Frame"],
         220,
-        -316,
+        -346,
         function(self)
             QuestAnnounce.db.profile.announceTo.raidWarningFrame = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceTo: raidWarningFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.raidWarningFrame))
@@ -586,7 +646,7 @@ end
         content,
         L["UI Errors Frame"],
         440,
-        -316,
+        -346,
         function(self)
             QuestAnnounce.db.profile.announceTo.uiErrorsFrame = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceTo: uiErrorsFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.uiErrorsFrame))
@@ -600,12 +660,12 @@ end
 	local separator3 = content:CreateTexture(nil, "ARTWORK")
 	separator3:SetColorTexture(0.5, 0.5, 0.5, 0.6)
 	separator3:SetHeight(1)
-	separator3:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -364)
-	separator3:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -364)
+	separator3:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -394)
+	separator3:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -394)
 	
         -- Überschrift für die Chatkanäle linksbündig und näher an den Checkboxen
     local announceInHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    announceInHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -390)
+    announceInHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -420)
     announceInHeader:SetText(L["What channels do you want to make the announcements?"])
     AttachTooltip(
         announceInHeader,
@@ -618,7 +678,7 @@ end
         content,
         L["Say"],
         16,
-        -420,
+        -450,
         function(self)
             QuestAnnounce.db.profile.announceIn.say = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: say :: " .. tostring(QuestAnnounce.db.profile.announceIn.say))
@@ -631,7 +691,7 @@ end
         content,
         L["Party"],
         16,
-        -450,
+        -480,
         function(self)
             QuestAnnounce.db.profile.announceIn.party = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: party :: " .. tostring(QuestAnnounce.db.profile.announceIn.party))
@@ -644,7 +704,7 @@ end
         content,
         L["Instance"],
         16,
-        -480,
+        -510,
         function(self)
             QuestAnnounce.db.profile.announceIn.instance = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: instance :: " .. tostring(QuestAnnounce.db.profile.announceIn.instance))
@@ -658,7 +718,7 @@ end
         content,
         L["Officer"],
         220,
-        -420,
+        -450,
         function(self)
             QuestAnnounce.db.profile.announceIn.officer = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: officer :: " .. tostring(QuestAnnounce.db.profile.announceIn.officer))
@@ -671,7 +731,7 @@ end
         content,
         L["Focus"],
         220,
-        -450,
+        -480,
         function(self)
             QuestAnnounce.db.profile.announceIn.focus = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: focus :: " .. tostring(QuestAnnounce.db.profile.announceIn.focus))
@@ -684,7 +744,7 @@ end
         content,
         L["Guild"],
         220,
-        -480,
+        -510,
         function(self)
             QuestAnnounce.db.profile.announceIn.guild = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: guild :: " .. tostring(QuestAnnounce.db.profile.announceIn.guild))
@@ -698,7 +758,7 @@ end
         content,
         L["Whisper"],
         16,
-        -530,
+        -560,
         function(self)
             QuestAnnounce.db.profile.announceIn.whisper = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: whisper :: " .. tostring(QuestAnnounce.db.profile.announceIn.whisper))
@@ -743,7 +803,7 @@ end
         content,
         L["Channel"],
         16,
-        -560,
+        -590,
         function(self)
             local value = self:GetChecked() and true or false
             QuestAnnounce.db.profile.announceIn.channel = value
@@ -803,7 +863,7 @@ end
         180,
         24,
         220,
-        -120,
+        -180,
         function()
             QuestAnnounce:SendMsg(L["QuestAnnounce Test Message"])
         end,
@@ -831,6 +891,10 @@ local function RefreshGeneralPanel()
     end
 
     enableCheckbox:SetChecked(settings.enable and true or false)
+    minimapButtonCheckbox:SetChecked(settings.showMinimapButton ~= false)
+    selfMessagesCheckbox:SetChecked(settings.selfMessages ~= false)
+    soloMuteSelfMessagesOnlyCheckbox:SetChecked(settings.soloMuteSelfMessagesOnly and true or false)
+    localProgressMessagesCheckbox:SetChecked(settings.showLocalProgressMessages ~= false)
     debugCheckbox:SetChecked(settings.debug and true or false)
     linkQuestCheckbox:SetChecked(settings.linkQuest and true or false)
 
@@ -1071,8 +1135,10 @@ end
     end)
     RefreshSoundPanel()
 
-    local soundCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, soundPanel, L["Sound Settings"])
-    Settings.RegisterAddOnCategory(soundCategory)
+    local soundCategory
+    local tooltipCategory
+    local profileCategory
+    local questTypeCategory
 
     -- =========================================================
     -- UNTERPANEL: Tooltip-Einstellungen
@@ -1294,12 +1360,7 @@ end
     -- Tooltip-Panel beim Anzeigen aktualisieren
     tooltipPanel:HookScript("OnShow", RefreshTooltipPanel)
 
-    -- Tooltip-Unterfenster als echte Unterkategorie registrieren
-    local tooltipCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, tooltipPanel, L["Tooltip Settings"])
-    Settings.RegisterAddOnCategory(tooltipCategory)
-
-    -- Speichert optional auch die Tooltip-Kategorie für spätere Nutzung
-    self.tooltipOptionsCategory = tooltipCategory
+    -- Tooltip-Unterfenster wird weiter unten registriert, um die Reihenfolge gezielt zu steuern.
 
     -- =========================================================
     -- UNTERPANEL: Profilverwaltung
@@ -1521,6 +1582,10 @@ end
         local lines = {
             string.format("%s %s", L["Profile Name"], profileName),
             string.format("%s %s", L["Addon Enabled"], FormatBoolean(settings.enable)),
+            string.format("%s %s", L["Show Minimap Button"], FormatBoolean(settings.showMinimapButton ~= false)),
+            string.format("%s %s", L["Self Messages"], FormatBoolean(settings.selfMessages ~= false)),
+            string.format("%s %s", L["Mute Self Messages Only When Solo"], FormatBoolean(settings.soloMuteSelfMessagesOnly and true or false)),
+            string.format("%s %s", L["Show Local Progress Messages"], FormatBoolean(settings.showLocalProgressMessages ~= false)),
             string.format("%s %s", L["Sound Enabled"], FormatBoolean(settings.sound)),
             string.format("%s %s", L["Progress Sound"], GetSoundLabel(settings.progressSound, "Progress Sound ID")),
             string.format("%s %s", L["Enable Progress Sound"], FormatBoolean(settings.enableProgressSound ~= false)),
@@ -1800,9 +1865,6 @@ end
     end
 
     profilePanel:HookScript("OnShow", RefreshProfilePanel)
-    local profileCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, profilePanel, L["Profile Management"])
-    Settings.RegisterAddOnCategory(profileCategory)
-    self.profileOptionsCategory = profileCategory
 
     -- =========================================================
     -- UNTERPANEL: Questtyp-Filter
@@ -1922,8 +1984,23 @@ end
     questTypePanel:HookScript("OnSizeChanged", function()
         C_Timer.After(0, LayoutQuestTypePanel)
     end)
-    local questTypeCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, questTypePanel, L["Quest Type Filters"] or "Quest Type Filters")
+    soundCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, soundPanel, L["Sound Settings"])
+    questTypeCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, questTypePanel, L["Quest Type Filters"] or "Quest Type Filters")
+    tooltipCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, tooltipPanel, L["Tooltip Settings"])
+    profileCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, profilePanel, L["Profile Management"])
+
+    -- Reihenfolge der Untermenüs:
+    -- 1) Sound-Einstellungen
+    -- 2) Questtyp-Filter
+    -- 3) Tooltip-Einstellungen
+    -- 4) Profilverwaltung
+    Settings.RegisterAddOnCategory(soundCategory)
     Settings.RegisterAddOnCategory(questTypeCategory)
+    Settings.RegisterAddOnCategory(tooltipCategory)
+    Settings.RegisterAddOnCategory(profileCategory)
+
+    self.tooltipOptionsCategory = tooltipCategory
+    self.profileOptionsCategory = profileCategory
     self.questTypeOptionsCategory = questTypeCategory
 
     -- Slash-Befehl /qa registrieren, um die Einstellungen zu öffnen

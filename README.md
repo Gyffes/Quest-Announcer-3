@@ -5,8 +5,8 @@ Quest Announce 3 is a World of Warcraft addon that automatically announces quest
 
 ## Version / Version
 
-Aktueller Stand: **9.3.0.4**
-Current version: **9.3.0.4**
+Aktueller Stand: **9.3.0.5**
+Current version: **9.3.0.5**
 
 ## Projektstatus (DE)
 
@@ -24,6 +24,9 @@ Das Addon wurde in der aktuellen Entwicklungsphase grundlegend modernisiert:
 - Neue Sound-Events für Quest angenommen (ID 6197) und Questabgabe (Standard-Questabgabe), inkl. geordneter Wiedergabelogik ohne Sound-Überlagerung.
 - Nachfolgende UI-Feinarbeiten: dynamische Reflow-Layouts für Sound- und Questtyp-Optionen bei UI-Skalierung/Panelbreite.
 - Spezialbehandlung für Sound-ID 8959: stummer Zielkanal bleibt stumm, hörbarer Zielkanal wird konsistent berücksichtigt.
+- Neue Allgemein-Optionen: Minimap-Button sichtbar/unsichtbar sowie „Eigene Meldungen“ (Addon-Status-/Warnmeldungen für den eigenen Client an/aus).
+- Lokalisierungen für die neuen Optionen in allen unterstützten Sprachen ergänzt.
+- TBC-2.5.5-Kompatibilitätsfix: Legacy-Questlog-APIs werden abgefangen, damit kein `GetNumQuestLogEntries`-Lua-Fehler mehr auftritt.
 
 ## Project Status (EN)
 
@@ -41,6 +44,9 @@ The addon has been significantly modernized in the current development phase:
 - New sound events for quest accepted (ID 6197) and quest turn-in (default turn-in sound), including ordered playback logic to avoid overlapping sound spam.
 - Follow-up UI refinements: dynamic reflow layouts for sound and quest-type options under varying UI scale/panel widths.
 - Special handling for sound ID 8959: muted target channels stay silent, audible target channels are handled consistently.
+- New general options: show/hide minimap button and “Self Messages” (toggle addon status/warning messages for your own client).
+- Added translations for the new options across all supported locales.
+- TBC 2.5.5 compatibility fix: legacy quest log APIs are now bridged to avoid `GetNumQuestLogEntries` Lua errors.
 
 ## Hauptfunktionen (DE)
 
