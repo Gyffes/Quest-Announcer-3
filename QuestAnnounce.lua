@@ -965,9 +965,9 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
 
         if questID then
             if announceAsComplete then
-                self:Print(L["Completed: "] .. localMsg)
+                self:NotifySelf(L["Completed: "] .. localMsg, false)
             else
-                self:Print(L["Progress: "] .. localMsg)
+                self:NotifySelf(L["Progress: "] .. localMsg, false)
             end
         end
         if announceAsComplete then
@@ -985,7 +985,7 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
 
     if isComplete then
         if questID then
-            self:Print(L["Completed: "] .. localMsg)
+            self:NotifySelf(L["Completed: "] .. localMsg, false)
         end
         self:SendMsg(L["Completed: "] .. newMsg, true)
     else
@@ -995,7 +995,7 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
         end
 
         if questID then
-            self:Print(L["Progress: "] .. localMsg)
+            self:NotifySelf(L["Progress: "] .. localMsg, false)
         end
         self:SendMsg(L["Progress: "] .. newMsg, false)
     end
@@ -1123,6 +1123,7 @@ function QuestAnnounce:SendMsg(msg, isComplete)
 
     local announceIn = self.db.profile.announceIn
     local announceTo = self.db.profile.announceTo
+    local allowSelfOutput = self:ShouldShowSelfMessages()
 
     -- Nachricht an Chatkanäle senden
     if announceTo.chatFrame then
@@ -1207,20 +1208,22 @@ function QuestAnnounce:SendMsg(msg, isComplete)
     end
 
     -- Nachricht zusätzlich im RaidWarningFrame anzeigen
-    if announceTo.raidWarningFrame then
+    if allowSelfOutput and announceTo.raidWarningFrame then
         RaidNotice_AddMessage(RaidWarningFrame, msg, ChatTypeInfo["RAID_WARNING"])
     end
 
     -- Nachricht zusätzlich im UIErrorsFrame anzeigen
-    if announceTo.uiErrorsFrame then
+    if allowSelfOutput and announceTo.uiErrorsFrame then
         UIErrorsFrame:AddMessage(msg, 1.0, 1.0, 0.0, 7)
     end
 
     -- DE: Geordnete Sound-Ausgabe ohne Sound-Flut / EN: Ordered sound output without sound spam.
-    if isComplete == true then
-        self:PlayConfiguredSound("complete")
-    else
-        self:PlayConfiguredSound("progress")
+    if allowSelfOutput then
+        if isComplete == true then
+            self:PlayConfiguredSound("complete")
+        else
+            self:PlayConfiguredSound("progress")
+        end
     end
     QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg - " .. msg)
 end

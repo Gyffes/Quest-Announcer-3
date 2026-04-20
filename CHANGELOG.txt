@@ -17,6 +17,10 @@ v9.3.0.5 Multi - 20-04-2026
          - [EN] Fixed (TBC 2.5.5): missing C_QuestLog/GetNumQuestLogEntries caused Lua error in BuildQuestCache
          - [DE] Kompatibilitäts-Layer ergänzt: Legacy-Questlog-APIs werden auf C_QuestLog-Funktionen abgebildet (GetInfo, GetNumQuestLogEntries, GetQuestObjectives usw.)
          - [EN] Added compatibility layer: maps legacy quest log APIs to C_QuestLog-style helpers (GetInfo, GetNumQuestLogEntries, GetQuestObjectives, etc.)
+         - [DE] UI-Feinschliff: Beschriftung auf „Eigene Meldungen anzeigen“ geändert und Layout-Kollisionen im General-Header-Bereich behoben
+         - [EN] UI polish: renamed label to “Show Self Messages” and fixed layout overlaps in the general header area
+         - [DE] Verhalten angepasst: bei deaktivierten „Eigenen Meldungen“ werden lokale Meldungen/Sounds/UI-Frames unterdrückt, Chat-Posts in aktive Gruppenkanäle bleiben möglich
+         - [EN] Behavior adjusted: when “Self Messages” is disabled, local messages/sounds/UI frames are suppressed while chat posts to active group channels remain possible
 
 v9.3.0.4 Multi - 17-04-2026
          - [DE] Neues Optionen-Untermenü "Sound Settings" erstellt und alle Sound-Einstellungen aus dem Hauptbereich dorthin verschoben
