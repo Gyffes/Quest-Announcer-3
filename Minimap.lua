@@ -172,6 +172,13 @@ local function openConfig()
         return
     end
 
+    -- DE: Blizzard-Settings dürfen im Kampf nicht sicher geöffnet werden.
+    -- EN: Blizzard settings cannot be safely opened while in combat lockdown.
+    if InCombatLockdown and InCombatLockdown() then
+        QuestAnnounce:NotifySelf(L["Cannot open settings in combat."], true)
+        return
+    end
+
     Settings.OpenToCategory(category:GetID())
     Settings.OpenToCategory(category:GetID())
 end
@@ -187,11 +194,9 @@ end
             QuestAnnounce.db.profile.settings.paused = not QuestAnnounce.db.profile.settings.paused
 
             if QuestAnnounce.db.profile.settings.paused then
-                QuestAnnounce:Print(L["QuestAnnounce temporarily paused!"])
-                UIErrorsFrame:AddMessage(L["QuestAnnounce temporarily paused!"])
+                QuestAnnounce:NotifySelf(L["QuestAnnounce temporarily paused!"], true)
             else
-                QuestAnnounce:Print(L["QuestAnnounce pause ended."])
-                UIErrorsFrame:AddMessage(L["QuestAnnounce pause ended."])
+                QuestAnnounce:NotifySelf(L["QuestAnnounce pause ended."], true)
             end
         else
             -- Linksklick schaltet das Addon nur im Profil an oder aus
@@ -201,11 +206,9 @@ end
             QuestAnnounce.db.profile.settings.paused = false
 
             if QuestAnnounce.db.profile.settings.enable then
-                QuestAnnounce:Print(L["QuestAnnounce activated!"])
-                UIErrorsFrame:AddMessage(L["QuestAnnounce activated!"])
+                QuestAnnounce:NotifySelf(L["QuestAnnounce activated!"], true)
             else
-                QuestAnnounce:Print(L["QuestAnnounce deactivated!"])
-                UIErrorsFrame:AddMessage(L["QuestAnnounce deactivated!"])
+                QuestAnnounce:NotifySelf(L["QuestAnnounce deactivated!"], true)
             end
         end
     end)
@@ -213,7 +216,26 @@ end
 --    MinimapButton:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
 QuestAnnounce:SendDebugMsg("Minimap button successfully created and positioned.")  -- Debugging-Ausgabe
 
-    MinimapButton:Show()  -- Sicherstellen, dass der Button angezeigt wird
+    self:UpdateMinimapButtonVisibility()
+end
+
+-- Zeigt oder versteckt den Minimap-Button basierend auf den Profileinstellungen.
+function QuestAnnounce:UpdateMinimapButtonVisibility()
+    if not self.minimapButton then
+        return
+    end
+
+    local settings = self.db and self.db.profile and self.db.profile.settings
+    local showButton = true
+    if settings and settings.showMinimapButton == false then
+        showButton = false
+    end
+
+    if showButton then
+        self.minimapButton:Show()
+    else
+        self.minimapButton:Hide()
+    end
 end
 
 -- Setzt die gespeicherte Position des Minimap-Buttons auf den Standard zurück

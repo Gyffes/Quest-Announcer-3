@@ -1,3 +1,75 @@
+v9.3.0.5 Multi - 20-04-2026
+         - [DE] Neue Option im Bereich „Aktivieren/Deaktivieren“: Minimap-Button anzeigen/verstecken
+         - [EN] Added a new option in the enable/disable area: show/hide minimap button
+         - [DE] Neue Checkbox „Eigene Meldungen“ ergänzt (Status-/Warnmeldungen für den eigenen Client an/aus)
+         - [EN] Added new “Self Messages” checkbox (toggle status/warning messages for the local player client)
+         - [DE] Addon-interne Hinweise (z. B. Aktiviert/Deaktiviert, Pause, Fokus/Kanal-Hinweise, Combat-Settings-Hinweis) respektieren jetzt „Eigene Meldungen“
+         - [EN] Addon self-notifications (e.g. activated/deactivated, pause, focus/channel hints, combat settings hint) now respect “Self Messages”
+         - [DE] Profilübersicht um die neuen Werte „Minimap-Button“ und „Eigene Meldungen“ erweitert
+         - [EN] Extended profile overview with the new values “Show Minimap Button” and “Self Messages”
+         - [DE] README und Lokalisierungen für die neuen Optionen ergänzt
+         - [EN] Updated README and localizations for the new options
+         - [DE] Lokalisierung ergänzt: neue Optionen „Minimap-Button anzeigen“ und „Eigene Meldungen“ jetzt in allen unterstützten Sprachen übersetzt
+         - [EN] Localization extended: new options “Show Minimap Button” and “Self Messages” are now translated for all supported locales
+         - [DE] Tooltip-/Beschreibungstexte zu den neuen Optionen ebenfalls in allen unterstützten Sprachen ergänzt
+         - [EN] Tooltip/description texts for the new options were also added across all supported locales
+         - [DE] Fehler behoben (TBC 2.5.5): fehlendes C_QuestLog/GetNumQuestLogEntries führte zu Lua-Fehler in BuildQuestCache
+         - [EN] Fixed (TBC 2.5.5): missing C_QuestLog/GetNumQuestLogEntries caused Lua error in BuildQuestCache
+         - [DE] Kompatibilitäts-Layer ergänzt: Legacy-Questlog-APIs werden auf C_QuestLog-Funktionen abgebildet (GetInfo, GetNumQuestLogEntries, GetQuestObjectives usw.)
+         - [EN] Added compatibility layer: maps legacy quest log APIs to C_QuestLog-style helpers (GetInfo, GetNumQuestLogEntries, GetQuestObjectives, etc.)
+         - [DE] UI-Feinschliff: Beschriftung auf „Eigene Meldungen anzeigen“ geändert und Layout-Kollisionen im General-Header-Bereich behoben
+         - [EN] UI polish: renamed label to “Show Self Messages” and fixed layout overlaps in the general header area
+         - [DE] Verhalten angepasst: bei deaktivierten „Eigenen Meldungen“ werden lokale Meldungen/Sounds/UI-Frames unterdrückt, Chat-Posts in aktive Gruppenkanäle bleiben möglich
+         - [EN] Behavior adjusted: when “Self Messages” is disabled, local messages/sounds/UI frames are suppressed while chat posts to active group channels remain possible
+         - [DE] Neue separate Option ergänzt: „Lokale Fortschrittsmeldungen anzeigen“ steuert nur die QA3-Eigenmeldungen im eigenen Chatfenster
+         - [EN] Added new separate option: “Show Local Progress Messages” controls only QA3 local progress/completion lines in the player's own chat frame
+         - [DE] Neue optionale Logik ergänzt: „Eigene Meldungen nur solo stummschalten“ (Self-Messages im Gruppen-/Raidspiel weiter sichtbar)
+         - [EN] Added optional logic: “Mute Self Messages Only When Solo” (self messages remain visible while grouped/raiding)
+         - [DE] Lokalisierungen für die neue Solo-Stummschaltung in allen unterstützten Sprachen ergänzt
+         - [EN] Added localization texts for the new solo-mute option across all supported locales
+         - [DE] Layout-Anpassung im General-Bereich: Debug + Testnachricht eine Zeile tiefer, nachfolgende Bereiche entsprechend nach unten verschoben
+         - [EN] General layout adjustment: moved Debug + Test Message one row lower and shifted following sections downward accordingly
+         - [DE] Tooltip-Texte der drei Self-Checkboxen präzisiert (klarer Unterschied zwischen Text-only und Text+Sound)
+         - [EN] Clarified tooltip texts for the three self-message checkboxes (clear distinction between text-only and text+sound)
+
+v9.3.0.4 Multi - 17-04-2026
+         - [DE] Neues Optionen-Untermenü "Sound Settings" erstellt und alle Sound-Einstellungen aus dem Hauptbereich dorthin verschoben
+         - [EN] Added a new "Sound Settings" options sub-menu and moved all sound settings from the main panel into it
+         - [DE] Neue Sound-IDs ergänzt: Quest angenommen (Standard 6197) und Questabgabe (Standard-Questabgabe)
+         - [EN] Added new sound IDs: quest accepted (default 6197) and quest turn-in (default quest turn-in sound)
+         - [DE] Für jede Sound-Art Testbutton, Zurücksetzen-Button und Aktivierungs-Checkbox ergänzt
+         - [EN] Added test button, reset button, and enable checkbox for each sound type
+         - [DE] Option für Sound-Ausgabekanal ergänzt (Master, Effekte/SFX, Umgebung, Dialoge, Musik)
+         - [EN] Added selectable sound output channel (Master, Effects/SFX, Ambience, Dialog, Music)
+         - [DE] Sound-Wiedergabe geordnet: aktive Sounds werden nicht chaotisch überlagert, neue Requests folgen einer einfachen Prioritäts-/Wartelogik
+         - [EN] Ordered sound playback: active sounds are not chaotically overlapped, new requests follow a simple priority/queue strategy
+         - [DE] README und Lokalisierungen für die neuen Sound-Funktionen erweitert
+         - [EN] Extended README and localizations for the new sound functionality
+         - [DE] UI-Layout weiter dynamisiert: Sound-Zeilen und Questtyp-Filter reagieren auf Panelgröße/UI-Skalierung, um Überlagerungen zu vermeiden
+         - [EN] Further dynamic UI layout updates: sound rows and quest type filters now react to panel size/UI scaling to avoid overlap
+         - [DE] Sound-Testpfad überarbeitet: Testbuttons nutzen direkten kanalbewussten Test-Flow mit aktueller ID-Eingabe
+         - [EN] Reworked sound test path: test buttons now use direct channel-aware preview flow with current typed ID
+         - [DE] Spezialfall Sound-ID 8959 verbessert: bei stummem Zielkanal bleibt sie stumm, bei hörbarem Nicht-Master-Kanal wird sie kontrolliert abgespielt
+         - [EN] Improved special-case handling for sound ID 8959: stays silent when target channel is muted, plays in a controlled way when non-master channel is audible
+
+v9.3.0.3 Multi - 17-04-2026
+         - [DE] Neuer Optionen-Unterbereich "Questtyp-Filter" ergänzt (normal, Weltquest, trivial, Kampagne, Story)
+         - [EN] Added new options subcategory "Quest Type Filters" (normal, world, trivial, campaign, story)
+         - [DE] Ankündigungen filtern jetzt optional nach zuverlässig unterscheidbaren Blizzard-API-Questtypen
+         - [EN] Announcements can now be optionally filtered by reliably distinguishable Blizzard API quest types
+         - [DE] Erkennung defensiv umgesetzt (versionsfreundlich, keine spekulativen Typzuordnungen)
+         - [EN] Detection implemented defensively (version-friendly, no speculative type guessing)
+         - [DE] Lokalisierungen und Dokumentation für Questtyp-Filter erweitert
+         - [EN] Extended localizations and documentation for quest-type filters
+         - [DE] Questtyp-Filter-Texte in allen unterstützten Locales ergänzt
+         - [EN] Added quest-type filter texts across all supported locales
+         - [DE] Questtyp-Filter-Texte für alle unterstützten Sprachen übersetzt
+         - [EN] Translated quest type filter texts for all supported locales
+         - [DE] Fehler behoben: Rechtsklick auf den Minimap-Button öffnet Optionen im Kampf nicht mehr (kein ADDON_ACTION_BLOCKED)
+         - [EN] Fixed: right-click minimap options opening is now blocked safely in combat (no ADDON_ACTION_BLOCKED)
+         - [DE] Fehler behoben: "Alle X Schritte" wird wieder korrekt angewendet
+         - [EN] Fixed: "Announce Every" now correctly throttles progress announcements
+
 ﻿Changelog ist zweisprachig aufgebaut: Deutsch (Hauptsprache) + Englisch.
 Changelog is maintained bilingually: German (primary language) + English.
 
