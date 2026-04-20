@@ -7,15 +7,163 @@ QuestAnnounce.lastMessage = nil
 
 local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L["enUS"]
 
+-- ---------------------------------------------------------
+-- QuestLog-API-Kompatibilität (Retail + Classic/TBC/Wrath)
+-- ---------------------------------------------------------
+-- DE: Manche Clients (z. B. TBC 2.5.5) haben kein C_QuestLog.
+-- EN: Some clients (e.g. TBC 2.5.5) do not provide C_QuestLog.
+C_QuestLog = C_QuestLog or {}
+
+local function GetQuestIDFromLink(link)
+    if type(link) ~= "string" then
+        return nil
+    end
+    return tonumber(link:match("quest:(%d+)"))
+end
+
+local function LegacyGetQuestLogIndexByQuestID(questID)
+    if not questID or not GetNumQuestLogEntries or not GetQuestLogTitle then
+        return nil
+    end
+
+    local numEntries = GetNumQuestLogEntries() or 0
+    for i = 1, numEntries do
+        local title, _, _, isHeader = GetQuestLogTitle(i)
+        if not isHeader and title then
+            local link = GetQuestLink and GetQuestLink(i) or nil
+            if GetQuestIDFromLink(link) == questID then
+                return i
+            end
+        end
+    end
+end
+
+if not C_QuestLog.GetNumQuestLogEntries and GetNumQuestLogEntries then
+    C_QuestLog.GetNumQuestLogEntries = function()
+        return GetNumQuestLogEntries() or 0
+    end
+end
+
+if not C_QuestLog.GetInfo and GetQuestLogTitle then
+    C_QuestLog.GetInfo = function(index)
+        if not index then
+            return nil
+        end
+
+        local title, level, suggestedGroup, isHeader, isCollapsed, isComplete, frequency, questID = GetQuestLogTitle(index)
+        local link = GetQuestLink and GetQuestLink(index) or nil
+        questID = questID or GetQuestIDFromLink(link)
+
+        return {
+            title = title,
+            level = level,
+            suggestedGroup = suggestedGroup,
+            isHeader = isHeader and true or false,
+            isCollapsed = isCollapsed and true or false,
+            isComplete = isComplete and true or false,
+            frequency = frequency,
+            questID = questID,
+            questLogIndex = index,
+        }
+    end
+end
+
+if not C_QuestLog.GetQuestObjectives and GetNumQuestLeaderBoards and GetQuestLogLeaderBoard then
+    C_QuestLog.GetQuestObjectives = function(questID)
+        local index = LegacyGetQuestLogIndexByQuestID(questID)
+        if not index then
+            return {}
+        end
+
+        local objectives = {}
+        local numObjectives = GetNumQuestLeaderBoards(index) or 0
+        for j = 1, numObjectives do
+            local text, objectiveType, finished = GetQuestLogLeaderBoard(j, index)
+            local fulfilled, required = text and text:match("(%d+)%s*/%s*(%d+)")
+            table.insert(objectives, {
+                text = text,
+                type = objectiveType,
+                finished = finished and true or false,
+                numFulfilled = tonumber(fulfilled),
+                numRequired = tonumber(required),
+            })
+        end
+        return objectives
+    end
+end
+
+if not C_QuestLog.GetQuestLink and GetQuestLink then
+    C_QuestLog.GetQuestLink = function(questID)
+        local index = LegacyGetQuestLogIndexByQuestID(questID)
+        if index then
+            return GetQuestLink(index)
+        end
+    end
+end
+
+if not C_QuestLog.SetSelectedQuest and SelectQuestLogEntry then
+    C_QuestLog.SetSelectedQuest = function(questID)
+        local index = LegacyGetQuestLogIndexByQuestID(questID)
+        if index then
+            SelectQuestLogEntry(index)
+        end
+    end
+end
+
+if not C_QuestLog.IsComplete then
+    C_QuestLog.IsComplete = function(questIDOrIndex)
+        local numeric = tonumber(questIDOrIndex)
+        if not numeric then
+            return false
+        end
+
+        local questID = numeric
+        local index = nil
+        if GetQuestLogTitle then
+            local title = GetQuestLogTitle(numeric)
+            if title then
+                index = numeric
+                local link = GetQuestLink and GetQuestLink(index) or nil
+                questID = GetQuestIDFromLink(link) or questID
+            else
+                index = LegacyGetQuestLogIndexByQuestID(questID)
+            end
+        end
+
+        if IsQuestFlaggedCompleted then
+            return IsQuestFlaggedCompleted(questID) and true or false
+        end
+
+        index = index or LegacyGetQuestLogIndexByQuestID(questID) or numeric
+        if GetQuestLogTitle and index then
+            local _, _, _, _, _, isComplete = GetQuestLogTitle(index)
+            return isComplete and true or false
+        end
+
+        return false
+    end
+end
+
 -- Standardkonfigurationen für einen neuen Benutzer
 local defaults = {
     profile = {
         settings = {
             enable = true,          -- Addon aktiviert
+            showMinimapButton = true, -- DE: Minimap-Button sichtbar / EN: Minimap button visible
+            selfMessages = true,    -- DE: Eigene Addon-Meldungen anzeigen / EN: Show addon self messages
+            soloMuteSelfMessagesOnly = false, -- DE: Eigene Meldungen nur solo stummschalten / EN: Mute self messages only while solo
+            showLocalProgressMessages = true, -- DE: Lokale Fortschrittstexte anzeigen / EN: Show local progress texts
             every = 1,              -- Benachrichtigungsfrequenz
             sound = true,           -- Soundbenachrichtigungen aktiviert
 			progressSound = 8959,     -- Standard: UI Quest Progress
-			completeSound = 6199,    -- Standard: Quest Complete
+			completeSound = 6197,    -- Standard: Quest Complete
+            acceptSound = 6192,      -- DE: Standard Quest angenommen / EN: Default quest accepted
+            turnInSound = 6199,      -- DE: Standard Quest abgegeben / EN: Default quest turn-in
+            soundChannel = "Master", -- DE: Standard-Audio-Kanal / EN: Default audio channel
+            enableProgressSound = true, -- DE: Fortschrittssound aktiv / EN: Progress sound enabled
+            enableCompleteSound = true, -- DE: Abschlusssound aktiv / EN: Completion sound enabled
+            enableAcceptSound = true,   -- DE: Quest-angenommen-Sound aktiv / EN: Quest-accepted sound enabled
+            enableTurnInSound = true,   -- DE: Quest-abgegeben-Sound aktiv / EN: Quest-turn-in sound enabled
             debug = false,          -- Debug-Modus deaktiviert
 			linkQuest = true,		-- Quest Link
             paused = false,         -- Temporäre Pause
@@ -144,13 +292,14 @@ QuestAnnounceDB = QuestAnnounceDB or {} -- Gespeicherte Datenbank initialisieren
 	end
 	
 	self:SendDebugMsg("Addon Enabled :: " .. tostring(self.db.profile.settings.enable))
-    QuestAnnounce:Print(L["QuestAnnounce activated!"])
-    UIErrorsFrame:AddMessage(L["QuestAnnounce activated!"])
+    self:NotifySelf(L["QuestAnnounce activated!"], true)
 end
 
 QuestAnnounce:RegisterEvent("ADDON_LOADED")											-- Register Event Addon Laden
 QuestAnnounce:RegisterEvent("UI_INFO_MESSAGE")										-- Register Event Ui Info Message
 QuestAnnounce:RegisterEvent("QUEST_LOG_UPDATE")										-- Register Event Quest Log Update
+QuestAnnounce:RegisterEvent("QUEST_ACCEPTED")                                         -- DE: Quest angenommen / EN: Quest accepted
+QuestAnnounce:RegisterEvent("QUEST_TURNED_IN")                                        -- DE: Quest abgegeben / EN: Quest turned in
 
 QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4, arg5)
 	-- Quest Log Update Event 
@@ -169,8 +318,191 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
         self:UI_INFO_MESSAGE(event, arg1, arg2, arg3, arg4, arg5)
         return
     end
+    if event == "QUEST_ACCEPTED" then
+        self:PlayConfiguredSound("accept")
+        return
+    end
+    if event == "QUEST_TURNED_IN" then
+        self:PlayConfiguredSound("turnin")
+        return
+    end
 
 end)
+
+-- DE: Definierte Sound-Events und Priorität / EN: Defined sound events and priority.
+QuestAnnounce.soundEventConfig = {
+    progress = { idKey = "progressSound", enableKey = "enableProgressSound", defaultID = 8959, priority = 1 },
+    complete = { idKey = "completeSound", enableKey = "enableCompleteSound", defaultID = 6197, priority = 2 },
+    accept = { idKey = "acceptSound", enableKey = "enableAcceptSound", defaultID = 6192, priority = 3 },
+    turnin = { idKey = "turnInSound", enableKey = "enableTurnInSound", defaultID = 6199, priority = 4 },
+}
+
+-- DE: Vereinheitlicht Soundkanäle aus Einstellungen/Localizations auf WoW-API-Werte.
+-- EN: Normalizes setting/localized sound channels to WoW API channel values.
+function QuestAnnounce:GetNormalizedSoundChannel(rawChannel)
+    local channelMap = {
+        ["Master"] = "Master",
+        ["SFX"] = "SFX",
+        ["Effects"] = "SFX",
+        ["Effekte"] = "SFX",
+        ["Ambience"] = "Ambience",
+        ["Umgebung"] = "Ambience",
+        ["Dialog"] = "Dialog",
+        ["Dialoge"] = "Dialog",
+        ["Music"] = "Music",
+        ["Musik"] = "Music",
+    }
+    return channelMap[tostring(rawChannel or "Master")] or "Master"
+end
+
+-- DE: Bestimmte IDs (z. B. 8959/Raidwarnung) ignorieren Kanalwahl und sollen außerhalb von Master unterdrückt werden.
+-- EN: Certain IDs (e.g. 8959/raid warning) ignore channel routing and should be suppressed outside Master.
+function QuestAnnounce:ShouldSuppressSoundByChannel(soundID, channel)
+    local id = tonumber(soundID)
+    if not id then
+        return false
+    end
+
+    -- DE: 8959 wird in manchen Clients wie Master behandelt.
+    -- EN: 8959 is treated like Master on some clients.
+    -- DE/EN: Nur unterdrücken, wenn der gewünschte Zielkanal effektiv stumm ist.
+    if id == 8959 and channel ~= "Master" then
+        local cvarByChannel = {
+            Master = "Sound_MasterVolume",
+            SFX = "Sound_SFXVolume",
+            Ambience = "Sound_AmbienceVolume",
+            Dialog = "Sound_DialogVolume",
+            Music = "Sound_MusicVolume",
+        }
+        local cvar = cvarByChannel[channel]
+        if cvar then
+            local volume = tonumber(GetCVar(cvar) or "1") or 1
+            if volume <= 0 then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+-- DE: Manche IDs (z. B. 8959) sind intern an Master gebunden.
+-- EN: Some IDs (e.g. 8959) are internally tied to Master.
+function QuestAnnounce:GetPlaybackChannelForSound(soundID, channel)
+    local id = tonumber(soundID)
+    if id == 8959 and channel ~= "Master" then
+        return "Master"
+    end
+    return channel
+end
+
+-- DE: Direkter Sound-Test ohne Queue/Priorität, damit der Testbutton den gewählten Kanal sofort nutzt.
+-- EN: Direct sound preview without queue/priority so the test button immediately uses the selected channel.
+function QuestAnnounce:PlayTestSound(eventKey, explicitSoundID)
+    local settings = self.db and self.db.profile and self.db.profile.settings
+    local config = self.soundEventConfig and self.soundEventConfig[eventKey]
+    if not settings or not config then
+        return
+    end
+
+    local soundID = tonumber(explicitSoundID) or tonumber(settings[config.idKey]) or config.defaultID
+    local channel = self:GetNormalizedSoundChannel(settings.soundChannel)
+    settings.soundChannel = channel
+
+    if self:ShouldSuppressSoundByChannel(soundID, channel) then
+        self:SendDebugMsg("Test sound suppressed by channel rule :: " .. tostring(soundID) .. " @ " .. tostring(channel))
+        return
+    end
+
+    local playbackChannel = self:GetPlaybackChannelForSound(soundID, channel)
+    local willPlay = PlaySound(soundID, playbackChannel)
+    if not willPlay then
+        self:SendDebugMsg("Test sound failed :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ " .. tostring(playbackChannel))
+    else
+        self:SendDebugMsg("Test sound played :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ req:" .. tostring(channel) .. " play:" .. tostring(playbackChannel))
+    end
+end
+
+-- DE: Spielt Sounds geordnet ab (ein aktiver Sound, optional eine wartende Anforderung).
+-- EN: Plays sounds in an orderly way (one active sound, optional one queued request).
+function QuestAnnounce:PlayConfiguredSound(eventKey)
+    local settings = self.db and self.db.profile and self.db.profile.settings
+    if not settings or not settings.sound then
+        return
+    end
+
+    local config = self.soundEventConfig and self.soundEventConfig[eventKey]
+    if not config then
+        return
+    end
+
+    if settings[config.enableKey] == false then
+        self:SendDebugMsg("Sound disabled for event :: " .. tostring(eventKey))
+        return
+    end
+
+    local soundID = tonumber(settings[config.idKey]) or config.defaultID
+    local channel = self:GetNormalizedSoundChannel(settings.soundChannel)
+    settings.soundChannel = channel
+
+    if self:ShouldSuppressSoundByChannel(soundID, channel) then
+        self:SendDebugMsg("Sound suppressed by channel rule :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ " .. tostring(channel))
+        return
+    end
+    local now = GetTime()
+    local lockSeconds = 0.35
+
+    self.soundState = self.soundState or { activeUntil = 0, activePriority = 0, activeHandle = nil, pending = nil }
+    local state = self.soundState
+
+    local function PlayNow()
+        local playbackChannel = self:GetPlaybackChannelForSound(soundID, channel)
+        local willPlay, handle = PlaySound(soundID, playbackChannel)
+        if not willPlay then
+            self:SendDebugMsg("Sound failed (no fallback) :: " .. tostring(soundID) .. " @ " .. tostring(playbackChannel))
+            return
+        end
+
+        state.activeHandle = handle
+        state.activePriority = config.priority or 0
+        state.activeUntil = GetTime() + lockSeconds
+        self:SendDebugMsg("Play sound :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ req:" .. tostring(channel) .. " play:" .. tostring(playbackChannel))
+    end
+
+    if now < (state.activeUntil or 0) then
+        if (config.priority or 0) >= (state.activePriority or 0) then
+            if state.activeHandle then
+                StopSound(state.activeHandle, 0)
+            end
+            PlayNow()
+        else
+            state.pending = {
+                eventKey = eventKey,
+                priority = config.priority or 0,
+                queuedAt = now,
+            }
+            if not state.pendingTimerActive then
+                state.pendingTimerActive = true
+                C_Timer.After(lockSeconds, function()
+                    if not QuestAnnounce or not QuestAnnounce.soundState then
+                        return
+                    end
+                    local pendingState = QuestAnnounce.soundState
+                    pendingState.pendingTimerActive = false
+                    local pending = pendingState.pending
+                    pendingState.pending = nil
+                    if pending and pending.eventKey then
+                        QuestAnnounce:PlayConfiguredSound(pending.eventKey)
+                    end
+                end)
+            end
+            self:SendDebugMsg("Sound queued :: " .. tostring(eventKey))
+        end
+        return
+    end
+
+    PlayNow()
+end
 
 -- ==============================
 -- Quest- und Objective-Cache Builder (ROBUST)
@@ -633,11 +965,11 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
             return
         end
 
-        if questID then
+        if questID and self:ShouldShowLocalProgressMessages() then
             if announceAsComplete then
-                self:Print(L["Completed: "] .. localMsg)
+                self:NotifySelf(L["Completed: "] .. localMsg, false)
             else
-                self:Print(L["Progress: "] .. localMsg)
+                self:NotifySelf(L["Progress: "] .. localMsg, false)
             end
         end
         if announceAsComplete then
@@ -654,8 +986,8 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
     end
 
     if isComplete then
-        if questID then
-            self:Print(L["Completed: "] .. localMsg)
+        if questID and self:ShouldShowLocalProgressMessages() then
+            self:NotifySelf(L["Completed: "] .. localMsg, false)
         end
         self:SendMsg(L["Completed: "] .. newMsg, true)
     else
@@ -664,8 +996,8 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
             return
         end
 
-        if questID then
-            self:Print(L["Progress: "] .. localMsg)
+        if questID and self:ShouldShowLocalProgressMessages() then
+            self:NotifySelf(L["Progress: "] .. localMsg, false)
         end
         self:SendMsg(L["Progress: "] .. newMsg, false)
     end
@@ -741,6 +1073,51 @@ function QuestAnnounce:SendDebugMsg(msg)
     end
 end
 
+-- Prüft, ob addon-interne Meldungen für den Spieler erlaubt sind.
+function QuestAnnounce:ShouldShowSelfMessages()
+    local settings = self.db and self.db.profile and self.db.profile.settings
+    if settings and settings.selfMessages == false then
+        -- DE: Optional: Stummschaltung nur anwenden, wenn der Spieler solo ist.
+        -- EN: Optional: Apply muting only while the player is solo.
+        if settings.soloMuteSelfMessagesOnly then
+            local inHomeGroup = IsInGroup and IsInGroup(LE_PARTY_CATEGORY_HOME)
+            local inInstanceGroup = IsInGroup and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)
+            local inRaidGroup = IsInRaid and IsInRaid()
+            if inHomeGroup or inInstanceGroup or inRaidGroup then
+                return true
+            end
+        end
+        return false
+    end
+    return true
+end
+
+-- Zeigt eine addon-interne Meldung im Chat und optional zusätzlich in UIErrorsFrame.
+function QuestAnnounce:NotifySelf(msg, showUIError)
+    if not msg or msg == "" then
+        return
+    end
+
+    if not self:ShouldShowSelfMessages() then
+        return
+    end
+
+    self:Print(msg)
+
+    if showUIError and UIErrorsFrame and UIErrorsFrame.AddMessage then
+        UIErrorsFrame:AddMessage(msg)
+    end
+end
+
+-- Prüft, ob lokale Fortschritts-/Abschlussmeldungen im eigenen Chat gezeigt werden sollen.
+function QuestAnnounce:ShouldShowLocalProgressMessages()
+    local settings = self.db and self.db.profile and self.db.profile.settings
+    if settings and settings.showLocalProgressMessages == false then
+        return false
+    end
+    return true
+end
+
 --[[ Sends a chat message to the selected chat channels and frames where applicable,
     if we have a message to send; will also send a debugging message if debug is enabled ]]--
 -- Sendet die Nachricht an die aktivierten Ausgabekanäle und Ausgabefenster
@@ -767,6 +1144,7 @@ function QuestAnnounce:SendMsg(msg, isComplete)
 
     local announceIn = self.db.profile.announceIn
     local announceTo = self.db.profile.announceTo
+    local allowSelfOutput = self:ShouldShowSelfMessages()
 
     -- Nachricht an Chatkanäle senden
     if announceTo.chatFrame then
@@ -817,7 +1195,7 @@ function QuestAnnounce:SendMsg(msg, isComplete)
                     QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(FOCUS->WHISPER) :: " .. msg)
                 end
             else
-                QuestAnnounce:Print(L["No focus set, message not sent."])
+                self:NotifySelf(L["No focus set, message not sent."], false)
             end
         end
 
@@ -845,49 +1223,28 @@ function QuestAnnounce:SendMsg(msg, isComplete)
                     QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(CHANNEL) :: " .. msg)
                 end
             else
-                QuestAnnounce:Print(L["No channel set."])
+                self:NotifySelf(L["No channel set."], false)
             end
         end
     end
 
     -- Nachricht zusätzlich im RaidWarningFrame anzeigen
-    if announceTo.raidWarningFrame then
+    if allowSelfOutput and announceTo.raidWarningFrame then
         RaidNotice_AddMessage(RaidWarningFrame, msg, ChatTypeInfo["RAID_WARNING"])
     end
 
     -- Nachricht zusätzlich im UIErrorsFrame anzeigen
-    if announceTo.uiErrorsFrame then
+    if allowSelfOutput and announceTo.uiErrorsFrame then
         UIErrorsFrame:AddMessage(msg, 1.0, 1.0, 0.0, 7)
     end
 
--- ==============================
--- Sound Logik mit Anti-Spam
--- ==============================
-if self.db.profile.settings.sound then
-    self.lastSoundTime = self.lastSoundTime or 0
-    local now = GetTime()
-
-    if now - self.lastSoundTime >= 1 then
-        local soundID
-
+    -- DE: Geordnete Sound-Ausgabe ohne Sound-Flut / EN: Ordered sound output without sound spam.
+    if allowSelfOutput then
         if isComplete == true then
-            soundID = tonumber(self.db.profile.settings.completeSound) or 6199
-            self:SendDebugMsg("Play COMPLETE sound :: " .. tostring(soundID))
+            self:PlayConfiguredSound("complete")
         else
-            soundID = tonumber(self.db.profile.settings.progressSound) or 8959
-            self:SendDebugMsg("Play PROGRESS sound :: " .. tostring(soundID))
+            self:PlayConfiguredSound("progress")
         end
-
-        local success = PlaySound(soundID, "Master")
-        if not success then
-            self:SendDebugMsg("Sound failed -> fallback RAID_WARNING")
-            PlaySound(SOUNDKIT.RAID_WARNING, "Master")
-        end
-
-        self.lastSoundTime = now
-    else
-        self:SendDebugMsg("Sound skipped (Anti-Spam)")
     end
-end
     QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg - " .. msg)
 end
