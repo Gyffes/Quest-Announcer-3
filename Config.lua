@@ -1135,7 +1135,10 @@ end
     end)
     RefreshSoundPanel()
 
-    local soundCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, soundPanel, L["Sound Settings"])
+    local soundCategory
+    local tooltipCategory
+    local profileCategory
+    local questTypeCategory
 
     -- =========================================================
     -- UNTERPANEL: Tooltip-Einstellungen
@@ -1357,11 +1360,7 @@ end
     -- Tooltip-Panel beim Anzeigen aktualisieren
     tooltipPanel:HookScript("OnShow", RefreshTooltipPanel)
 
-    -- Tooltip-Unterfenster als echte Unterkategorie registrieren
-    local tooltipCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, tooltipPanel, L["Tooltip Settings"])
-
-    -- Speichert optional auch die Tooltip-Kategorie für spätere Nutzung
-    self.tooltipOptionsCategory = tooltipCategory
+    -- Tooltip-Unterfenster wird weiter unten registriert, um die Reihenfolge gezielt zu steuern.
 
     -- =========================================================
     -- UNTERPANEL: Profilverwaltung
@@ -1866,8 +1865,6 @@ end
     end
 
     profilePanel:HookScript("OnShow", RefreshProfilePanel)
-    local profileCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, profilePanel, L["Profile Management"])
-    self.profileOptionsCategory = profileCategory
 
     -- =========================================================
     -- UNTERPANEL: Questtyp-Filter
@@ -1987,7 +1984,11 @@ end
     questTypePanel:HookScript("OnSizeChanged", function()
         C_Timer.After(0, LayoutQuestTypePanel)
     end)
-    local questTypeCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, questTypePanel, L["Quest Type Filters"] or "Quest Type Filters")
+    soundCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, soundPanel, L["Sound Settings"])
+    questTypeCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, questTypePanel, L["Quest Type Filters"] or "Quest Type Filters")
+    tooltipCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, tooltipPanel, L["Tooltip Settings"])
+    profileCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, profilePanel, L["Profile Management"])
+
     -- Reihenfolge der Untermenüs:
     -- 1) Sound-Einstellungen
     -- 2) Questtyp-Filter
@@ -1997,6 +1998,9 @@ end
     Settings.RegisterAddOnCategory(questTypeCategory)
     Settings.RegisterAddOnCategory(tooltipCategory)
     Settings.RegisterAddOnCategory(profileCategory)
+
+    self.tooltipOptionsCategory = tooltipCategory
+    self.profileOptionsCategory = profileCategory
     self.questTypeOptionsCategory = questTypeCategory
 
     -- Slash-Befehl /qa registrieren, um die Einstellungen zu öffnen
