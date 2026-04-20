@@ -408,6 +408,20 @@ end
         L["When disabled, you will not receive addon status or warning messages."]
     )
 
+    -- Lokale QA3-Fortschrittsmeldungen an/aus
+    local localProgressMessagesCheckbox = CreateCheckbox(
+        content,
+        L["Show Local Progress Messages"],
+        420,
+        -150,
+        function(self)
+            QuestAnnounce.db.profile.settings.showLocalProgressMessages = self:GetChecked() and true or false
+            QuestAnnounce:SendDebugMsg("setSettings: showLocalProgressMessages :: " .. tostring(QuestAnnounce.db.profile.settings.showLocalProgressMessages))
+        end,
+        L["Show Local Progress Messages"],
+        L["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."]
+    )
+
 	
     -- Quest-Links aktivieren / deaktivieren
     local linkQuestCheckbox = CreateCheckbox(
@@ -865,6 +879,7 @@ local function RefreshGeneralPanel()
     enableCheckbox:SetChecked(settings.enable and true or false)
     minimapButtonCheckbox:SetChecked(settings.showMinimapButton ~= false)
     selfMessagesCheckbox:SetChecked(settings.selfMessages ~= false)
+    localProgressMessagesCheckbox:SetChecked(settings.showLocalProgressMessages ~= false)
     debugCheckbox:SetChecked(settings.debug and true or false)
     linkQuestCheckbox:SetChecked(settings.linkQuest and true or false)
 
@@ -1557,6 +1572,7 @@ end
             string.format("%s %s", L["Addon Enabled"], FormatBoolean(settings.enable)),
             string.format("%s %s", L["Show Minimap Button"], FormatBoolean(settings.showMinimapButton ~= false)),
             string.format("%s %s", L["Self Messages"], FormatBoolean(settings.selfMessages ~= false)),
+            string.format("%s %s", L["Show Local Progress Messages"], FormatBoolean(settings.showLocalProgressMessages ~= false)),
             string.format("%s %s", L["Sound Enabled"], FormatBoolean(settings.sound)),
             string.format("%s %s", L["Progress Sound"], GetSoundLabel(settings.progressSound, "Progress Sound ID")),
             string.format("%s %s", L["Enable Progress Sound"], FormatBoolean(settings.enableProgressSound ~= false)),

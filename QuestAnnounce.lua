@@ -151,6 +151,7 @@ local defaults = {
             enable = true,          -- Addon aktiviert
             showMinimapButton = true, -- DE: Minimap-Button sichtbar / EN: Minimap button visible
             selfMessages = true,    -- DE: Eigene Addon-Meldungen anzeigen / EN: Show addon self messages
+            showLocalProgressMessages = true, -- DE: Lokale Fortschrittstexte anzeigen / EN: Show local progress texts
             every = 1,              -- Benachrichtigungsfrequenz
             sound = true,           -- Soundbenachrichtigungen aktiviert
 			progressSound = 8959,     -- Standard: UI Quest Progress
@@ -963,7 +964,7 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
             return
         end
 
-        if questID then
+        if questID and self:ShouldShowLocalProgressMessages() then
             if announceAsComplete then
                 self:NotifySelf(L["Completed: "] .. localMsg, false)
             else
@@ -984,7 +985,7 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
     end
 
     if isComplete then
-        if questID then
+        if questID and self:ShouldShowLocalProgressMessages() then
             self:NotifySelf(L["Completed: "] .. localMsg, false)
         end
         self:SendMsg(L["Completed: "] .. newMsg, true)
@@ -994,7 +995,7 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
             return
         end
 
-        if questID then
+        if questID and self:ShouldShowLocalProgressMessages() then
             self:NotifySelf(L["Progress: "] .. localMsg, false)
         end
         self:SendMsg(L["Progress: "] .. newMsg, false)
@@ -1095,6 +1096,15 @@ function QuestAnnounce:NotifySelf(msg, showUIError)
     if showUIError and UIErrorsFrame and UIErrorsFrame.AddMessage then
         UIErrorsFrame:AddMessage(msg)
     end
+end
+
+-- Prüft, ob lokale Fortschritts-/Abschlussmeldungen im eigenen Chat gezeigt werden sollen.
+function QuestAnnounce:ShouldShowLocalProgressMessages()
+    local settings = self.db and self.db.profile and self.db.profile.settings
+    if settings and settings.showLocalProgressMessages == false then
+        return false
+    end
+    return true
 end
 
 --[[ Sends a chat message to the selected chat channels and frames where applicable,
