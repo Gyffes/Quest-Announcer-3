@@ -487,7 +487,7 @@ end
 
 	-- Slider für die Anzahl der Fortschrittsmeldungen
 	local everySlider = CreateFrame("Slider", nil, content, "OptionsSliderTemplate")
-	everySlider:SetPoint("TOPLEFT", content, "TOPLEFT", 60, -240)
+	everySlider:SetPoint("TOPLEFT", content, "TOPLEFT", 60, -260)
 	everySlider:SetMinMaxValues(0, 100)
 	everySlider:SetValueStep(1)
 	everySlider:SetObeyStepOnDrag(true)
