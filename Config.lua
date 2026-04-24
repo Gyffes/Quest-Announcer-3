@@ -31,6 +31,46 @@ function QuestAnnounce:SetupOptions()
     -- ---------------------------------------------------------
     -- Tooltip-Helfer
     -- ---------------------------------------------------------
+    local addonTooltip = CreateFrame("GameTooltip", "QuestAnnounceConfigTooltip", UIParent, "GameTooltipTemplate")
+    addonTooltip:SetFrameStrata("TOOLTIP")
+    addonTooltip:SetClampedToScreen(true)
+
+    local tooltipFontPaths = {
+        ["Friz Quadrata TT"] = "Fonts\\FRIZQT__.TTF",
+        ["Arial Narrow"] = "Fonts\\ARIALN.TTF",
+        ["Morpheus"] = "Fonts\\MORPHEUS.TTF",
+        ["Skurri"] = "Fonts\\skurri.ttf",
+    }
+
+    local function ResolveTooltipFontPath(fontValue)
+        if type(fontValue) ~= "string" or fontValue == "" then
+            return STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
+        end
+
+        if tooltipFontPaths[fontValue] then
+            return tooltipFontPaths[fontValue]
+        end
+
+        if fontValue:find("\\") or fontValue:find("/") then
+            return fontValue
+        end
+
+        return STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
+    end
+
+    local function ResolveTooltipFontLabel(fontValue)
+        if tooltipFontPaths[fontValue] then
+            return fontValue
+        end
+
+        for label, path in pairs(tooltipFontPaths) do
+            if fontValue == path then
+                return label
+            end
+        end
+
+        return "Friz Quadrata TT"
+    end
 
     -- Liefert die aktuell konfigurierten Tooltip-Einstellungen mit Fallbacks
     local function GetTooltipSettings()
@@ -66,7 +106,7 @@ function QuestAnnounce:SetupOptions()
 
         local settings = GetTooltipSettings()
 
-        local font = settings.font
+        local font = ResolveTooltipFontPath(settings.font)
         local fontSize = settings.fontSize
         local fontColor = settings.fontColor
         local bgColor = settings.bgColor
@@ -99,7 +139,8 @@ function QuestAnnounce:SetupOptions()
                 local right = _G[name .. "TextRight" .. i]
 
                 if left then
-                    left:SetFont(font, fontSize)
+                    local _, _, flags = left:GetFont()
+                    left:SetFont(font, fontSize, flags)
                     left:SetTextColor(
                         fontColor[1] or 1,
                         fontColor[2] or 1,
@@ -108,7 +149,8 @@ function QuestAnnounce:SetupOptions()
                 end
 
                 if right then
-                    right:SetFont(font, fontSize)
+                    local _, _, flags = right:GetFont()
+                    right:SetFont(font, fontSize, flags)
                     right:SetTextColor(
                         fontColor[1] or 1,
                         fontColor[2] or 1,
@@ -126,15 +168,14 @@ function QuestAnnounce:SetupOptions()
         end
 
         widget:HookScript("OnEnter", function(self)
-            ApplyConfiguredTooltipStyle(GameTooltip)
-
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            ApplyConfiguredTooltipStyle(addonTooltip)
+            addonTooltip:SetOwner(self, "ANCHOR_RIGHT")
 
             local settings = GetTooltipSettings()
             local fontColor = settings.fontColor or {1, 1, 1}
 
-            GameTooltip:ClearLines()
-            GameTooltip:SetText(
+            addonTooltip:ClearLines()
+            addonTooltip:SetText(
                 title or "",
                 fontColor[1] or 1,
                 fontColor[2] or 1,
@@ -142,7 +183,7 @@ function QuestAnnounce:SetupOptions()
             )
 
             if text and text ~= "" then
-                GameTooltip:AddLine(
+                addonTooltip:AddLine(
                     text,
                     fontColor[1] or 1,
                     fontColor[2] or 1,
@@ -151,12 +192,12 @@ function QuestAnnounce:SetupOptions()
                 )
             end
 
-            ApplyConfiguredTooltipStyle(GameTooltip)
-            GameTooltip:Show()
+            ApplyConfiguredTooltipStyle(addonTooltip)
+            addonTooltip:Show()
         end)
 
         widget:HookScript("OnLeave", function()
-            GameTooltip:Hide()
+            addonTooltip:Hide()
         end)
     end
 
@@ -1282,8 +1323,9 @@ end
         local tooltipDB = QuestAnnounce.db.profile.tooltip
 
         -- Gespeicherte Schriftart im Dropdown anzeigen
-        UIDropDownMenu_SetSelectedValue(tooltipFontDropdown, tooltipDB.font or "Friz Quadrata TT")
-        UIDropDownMenu_SetText(tooltipFontDropdown, tooltipDB.font or "Friz Quadrata TT")
+        local selectedTooltipFont = ResolveTooltipFontLabel(tooltipDB.font)
+        UIDropDownMenu_SetSelectedValue(tooltipFontDropdown, selectedTooltipFont)
+        UIDropDownMenu_SetText(tooltipFontDropdown, selectedTooltipFont)
 
         -- Gespeicherte Schriftgröße im Slider anzeigen
         tooltipFontSizeSlider:SetValue(tooltipDB.fontSize or 12)
