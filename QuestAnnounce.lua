@@ -10,9 +10,13 @@ local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L["enUS"]
 -- ---------------------------------------------------------
 -- QuestLog-API-Kompatibilität (Retail + Classic/TBC/Wrath)
 -- ---------------------------------------------------------
--- DE: Manche Clients (z. B. TBC 2.5.5) haben kein C_QuestLog.
--- EN: Some clients (e.g. TBC 2.5.5) do not provide C_QuestLog.
-C_QuestLog = C_QuestLog or {}
+-- DE: Auf Retail niemals das globale C_QuestLog neu zuweisen (Taint-Risiko).
+-- EN: Never reassign global C_QuestLog on Retail (taint risk).
+local C_QuestLog = _G.C_QuestLog
+if not C_QuestLog then
+    C_QuestLog = {}
+    _G.C_QuestLog = C_QuestLog
+end
 
 local function GetQuestIDFromLink(link)
     if type(link) ~= "string" then

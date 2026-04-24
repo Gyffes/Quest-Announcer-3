@@ -1,6 +1,18 @@
 v9.3.0.5 Multi - 20-04-2026
-         - [DE] Neue Option im Bereich „Aktivieren/Deaktivieren“: Minimap-Button anzeigen/verstecken
-         - [EN] Added a new option in the enable/disable area: show/hide minimap button
+	         - [DE] Weiterer Taint-Audit-Fix: globale C_QuestLog-Neuzuweisung auf Retail entfernt; Fallback wird nur noch auf Clients ohne C_QuestLog gesetzt
+	         - [EN] Additional taint-audit fix: removed global C_QuestLog reassignment on Retail; fallback is now only created on clients that lack C_QuestLog
+	         - [DE] Taint-Fix: versehentliche globale Variablen in den Optionskategorien wurden auf local umgestellt, um ADDON_ACTION_BLOCKED (u. a. WorldMap / SetPassThroughButtons) zu vermeiden
+	         - [EN] Taint fix: accidental global variables in options category setup were changed to locals to prevent ADDON_ACTION_BLOCKED (including WorldMap / SetPassThroughButtons)
+	         - [DE] Fix nachgereicht: Tooltip-Styling greift jetzt auf alle QuestAnnounce-eigenen Tooltips (z. B. Optionen + Minimap), aber nicht auf fremde Addons oder Blizzard-Tooltips
+	         - [EN] Follow-up fix: tooltip styling now applies to all QuestAnnounce-owned tooltips (e.g. options + minimap), but not to third-party addons or Blizzard tooltips
+	         - [DE] Zusätzlicher Hotfix: Tooltip-Schriftarten werden jetzt vor SetFont auf gültige WoW-Font-Assetpfade aufgelöst (behebt „Invalid font file asset“ nach aktuellem Inhaltsupdate)
+	         - [EN] Additional hotfix: tooltip fonts are now resolved to valid WoW font asset paths before SetFont (fixes “Invalid font file asset” after the latest content update)
+	         - [DE] Fallback ergänzt: ungültige/alte gespeicherte Schriftwerte nutzen automatisch STANDARD_TEXT_FONT
+	         - [EN] Added fallback: invalid/legacy saved font values now automatically use STANDARD_TEXT_FONT
+	         - [DE] Tooltip-Dropdown normalisiert: gespeicherte Font-Pfade werden wieder korrekt als bekannte Schriftnamen angezeigt
+	         - [EN] Tooltip dropdown normalization: saved font paths are mapped back to known font labels for display
+	         - [DE] Neue Option im Bereich „Aktivieren/Deaktivieren“: Minimap-Button anzeigen/verstecken
+	         - [EN] Added a new option in the enable/disable area: show/hide minimap button
          - [DE] Neue Checkbox „Eigene Meldungen“ ergänzt (Status-/Warnmeldungen für den eigenen Client an/aus)
          - [EN] Added new “Self Messages” checkbox (toggle status/warning messages for the local player client)
          - [DE] Addon-interne Hinweise (z. B. Aktiviert/Deaktiviert, Pause, Fokus/Kanal-Hinweise, Combat-Settings-Hinweis) respektieren jetzt „Eigene Meldungen“
