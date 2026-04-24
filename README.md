@@ -27,6 +27,7 @@ Das Addon wurde in der aktuellen Entwicklungsphase grundlegend modernisiert:
 - Neue Allgemein-Optionen: Minimap-Button sichtbar/unsichtbar sowie „Eigene Meldungen“ (Addon-Status-/Warnmeldungen für den eigenen Client an/aus).
 - Lokalisierungen für die neuen Optionen in allen unterstützten Sprachen ergänzt.
 - TBC-2.5.5-Kompatibilitätsfix: Legacy-Questlog-APIs werden abgefangen, damit kein `GetNumQuestLogEntries`-Lua-Fehler mehr auftritt.
+- Zusätzlicher 9.3.0.5-Hotfix: Tooltip-Schriften werden intern auf gültige WoW-Assetpfade gemappt, damit kein `SetFont(): Invalid font file asset` mehr auftritt.
 
 ## Project Status (EN)
 
@@ -47,6 +48,7 @@ The addon has been significantly modernized in the current development phase:
 - New general options: show/hide minimap button and “Self Messages” (toggle addon status/warning messages for your own client).
 - Added translations for the new options across all supported locales.
 - TBC 2.5.5 compatibility fix: legacy quest log APIs are now bridged to avoid `GetNumQuestLogEntries` Lua errors.
+- Additional 9.3.0.5 hotfix: tooltip fonts are internally mapped to valid WoW asset paths to prevent `SetFont(): Invalid font file asset`.
 
 ## Hauptfunktionen (DE)
 
@@ -65,6 +67,7 @@ The addon has been significantly modernized in the current development phase:
   - Rechtsklick: Optionen öffnen
   - Drag & Drop mit gespeicherter Position
 - Tooltip-Styling (Schriftart, Größe, Farben)
+- Robuste Font-Auflösung für Tooltips (Label/Pfad + Fallback auf `STANDARD_TEXT_FONT`)
 - Slash-Command: `/qa`
 
 ## Main Features (EN)
@@ -85,6 +88,7 @@ The addon has been significantly modernized in the current development phase:
   - Right click: open options
   - Drag & drop with saved position
 - Tooltip styling (font, size, colors)
+- Robust tooltip font resolution (label/path + `STANDARD_TEXT_FONT` fallback)
 - Slash command: `/qa`
 
 ## Dateistruktur / File Structure
