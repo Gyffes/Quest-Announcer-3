@@ -1,4 +1,6 @@
 v9.3.0.5 Multi - 20-04-2026
+	         - [DE] Fix nachgereicht: Tooltip-Styling greift jetzt auf alle QuestAnnounce-eigenen Tooltips (z. B. Optionen + Minimap), aber nicht auf fremde Addons oder Blizzard-Tooltips
+	         - [EN] Follow-up fix: tooltip styling now applies to all QuestAnnounce-owned tooltips (e.g. options + minimap), but not to third-party addons or Blizzard tooltips
 	         - [DE] Zusätzlicher Hotfix: Tooltip-Schriftarten werden jetzt vor SetFont auf gültige WoW-Font-Assetpfade aufgelöst (behebt „Invalid font file asset“ nach aktuellem Inhaltsupdate)
 	         - [EN] Additional hotfix: tooltip fonts are now resolved to valid WoW font asset paths before SetFont (fixes “Invalid font file asset” after the latest content update)
 	         - [DE] Fallback ergänzt: ungültige/alte gespeicherte Schriftwerte nutzen automatisch STANDARD_TEXT_FONT

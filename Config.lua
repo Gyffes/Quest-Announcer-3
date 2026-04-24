@@ -31,6 +31,46 @@ function QuestAnnounce:SetupOptions()
     -- ---------------------------------------------------------
     -- Tooltip-Helfer
     -- ---------------------------------------------------------
+    local addonTooltip = CreateFrame("GameTooltip", "QuestAnnounceConfigTooltip", UIParent, "GameTooltipTemplate")
+    addonTooltip:SetFrameStrata("TOOLTIP")
+    addonTooltip:SetClampedToScreen(true)
+
+    local tooltipFontPaths = {
+        ["Friz Quadrata TT"] = "Fonts\\FRIZQT__.TTF",
+        ["Arial Narrow"] = "Fonts\\ARIALN.TTF",
+        ["Morpheus"] = "Fonts\\MORPHEUS.TTF",
+        ["Skurri"] = "Fonts\\skurri.ttf",
+    }
+
+    local function ResolveTooltipFontPath(fontValue)
+        if type(fontValue) ~= "string" or fontValue == "" then
+            return STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
+        end
+
+        if tooltipFontPaths[fontValue] then
+            return tooltipFontPaths[fontValue]
+        end
+
+        if fontValue:find("\\") or fontValue:find("/") then
+            return fontValue
+        end
+
+        return STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
+    end
+
+    local function ResolveTooltipFontLabel(fontValue)
+        if tooltipFontPaths[fontValue] then
+            return fontValue
+        end
+
+        for label, path in pairs(tooltipFontPaths) do
+            if fontValue == path then
+                return label
+            end
+        end
+
+        return "Friz Quadrata TT"
+    end
 
     local tooltipFontPaths = {
         ["Friz Quadrata TT"] = "Fonts\\FRIZQT__.TTF",
@@ -165,15 +205,14 @@ function QuestAnnounce:SetupOptions()
         end
 
         widget:HookScript("OnEnter", function(self)
-            ApplyConfiguredTooltipStyle(GameTooltip)
-
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            ApplyConfiguredTooltipStyle(addonTooltip)
+            addonTooltip:SetOwner(self, "ANCHOR_RIGHT")
 
             local settings = GetTooltipSettings()
             local fontColor = settings.fontColor or {1, 1, 1}
 
-            GameTooltip:ClearLines()
-            GameTooltip:SetText(
+            addonTooltip:ClearLines()
+            addonTooltip:SetText(
                 title or "",
                 fontColor[1] or 1,
                 fontColor[2] or 1,
@@ -181,7 +220,7 @@ function QuestAnnounce:SetupOptions()
             )
 
             if text and text ~= "" then
-                GameTooltip:AddLine(
+                addonTooltip:AddLine(
                     text,
                     fontColor[1] or 1,
                     fontColor[2] or 1,
@@ -190,12 +229,12 @@ function QuestAnnounce:SetupOptions()
                 )
             end
 
-            ApplyConfiguredTooltipStyle(GameTooltip)
-            GameTooltip:Show()
+            ApplyConfiguredTooltipStyle(addonTooltip)
+            addonTooltip:Show()
         end)
 
         widget:HookScript("OnLeave", function()
-            GameTooltip:Hide()
+            addonTooltip:Hide()
         end)
     end
 

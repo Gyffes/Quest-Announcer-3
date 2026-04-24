@@ -68,6 +68,7 @@ The addon has been significantly modernized in the current development phase:
   - Drag & Drop mit gespeicherter Position
 - Tooltip-Styling (Schriftart, Größe, Farben)
 - Robuste Font-Auflösung für Tooltips (Label/Pfad + Fallback auf `STANDARD_TEXT_FONT`)
+- Tooltip-Styling wirkt auf QuestAnnounce-eigene Tooltips (z. B. Optionen + Minimap), ohne globale Beeinflussung fremder Addon-/Blizzard-Tooltips
 - Slash-Command: `/qa`
 
 ## Main Features (EN)
@@ -89,6 +90,7 @@ The addon has been significantly modernized in the current development phase:
   - Drag & drop with saved position
 - Tooltip styling (font, size, colors)
 - Robust tooltip font resolution (label/path + `STANDARD_TEXT_FONT` fallback)
+- Tooltip styling applies to QuestAnnounce-owned tooltips (e.g. options + minimap) without globally impacting third-party/Blizzard tooltips
 - Slash command: `/qa`
 
 ## Dateistruktur / File Structure

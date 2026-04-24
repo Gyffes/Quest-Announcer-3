@@ -138,18 +138,20 @@ function QuestAnnounce:InitializeMinimapButton()
         for i = 1, tooltip:NumLines() do
             local leftLine = _G["QuestAnnounceTooltipTextLeft" .. i]
             if leftLine then
+                local _, _, flags = leftLine:GetFont()
                 if i == 1 then  -- Spezifische Anpassungen für die erste Zeile (Überschrift)
-                    leftLine:SetFont(font, fontSize + 4)  -- Feste Schriftgröße: 2 Punkte größer
+                    leftLine:SetFont(font, fontSize + 4, flags)  -- Feste Schriftgröße: 2 Punkte größer
                     leftLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
                 else
-                    leftLine:SetFont(font, fontSize)
+                    leftLine:SetFont(font, fontSize, flags)
                     leftLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
                 end
             end
             local rightLine = _G["QuestAnnounceTooltipTextRight" .. i]
             if rightLine then
-                rightLine:SetFont(font, fontSize)
-				rightLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
+                local _, _, flags = rightLine:GetFont()
+                rightLine:SetFont(font, fontSize, flags)
+					rightLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
             end
         end
 		QuestAnnounce:UpdateTooltipBackground()
@@ -259,11 +261,23 @@ function QuestAnnounce:GetTooltipFontPath(fontName)
     local fonts = {
         ["Friz Quadrata TT"] = "Fonts\\FRIZQT__.TTF",
         ["Arial Narrow"] = "Fonts\\ARIALN.TTF",
-        ["Morpheus"] = "Fonts\\MORPHEUS.ttf",
+        ["Morpheus"] = "Fonts\\MORPHEUS.TTF",
         ["Skurri"] = "Fonts\\skurri.ttf",
     }
 
-    return fonts[fontName] or "Fonts\\FRIZQT__.TTF"
+    if type(fontName) ~= "string" or fontName == "" then
+        return STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
+    end
+
+    if fonts[fontName] then
+        return fonts[fontName]
+    end
+
+    if fontName:find("\\") or fontName:find("/") then
+        return fontName
+    end
+
+    return STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
 end
 
 function QuestAnnounce:CreateCustomTooltip()
@@ -314,16 +328,18 @@ function QuestAnnounce:UpdateTooltipBackground()
         local rightLine = _G["QuestAnnounceTooltipTextRight" .. i]
 
         if leftLine then
+            local _, _, flags = leftLine:GetFont()
             if i == 1 then
-                leftLine:SetFont(font, fontSize + 4)
+                leftLine:SetFont(font, fontSize + 4, flags)
             else
-                leftLine:SetFont(font, fontSize)
+                leftLine:SetFont(font, fontSize, flags)
             end
             leftLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
         end
 
         if rightLine then
-            rightLine:SetFont(font, fontSize)
+            local _, _, flags = rightLine:GetFont()
+            rightLine:SetFont(font, fontSize, flags)
             rightLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
         end
     end
