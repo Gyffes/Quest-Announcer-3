@@ -72,6 +72,43 @@ function QuestAnnounce:SetupOptions()
         return "Friz Quadrata TT"
     end
 
+    local tooltipFontPaths = {
+        ["Friz Quadrata TT"] = "Fonts\\FRIZQT__.TTF",
+        ["Arial Narrow"] = "Fonts\\ARIALN.TTF",
+        ["Morpheus"] = "Fonts\\MORPHEUS.TTF",
+        ["Skurri"] = "Fonts\\skurri.ttf",
+    }
+
+    local function ResolveTooltipFontPath(fontValue)
+        if type(fontValue) ~= "string" or fontValue == "" then
+            return STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
+        end
+
+        if tooltipFontPaths[fontValue] then
+            return tooltipFontPaths[fontValue]
+        end
+
+        if fontValue:find("\\") or fontValue:find("/") then
+            return fontValue
+        end
+
+        return STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
+    end
+
+    local function ResolveTooltipFontLabel(fontValue)
+        if tooltipFontPaths[fontValue] then
+            return fontValue
+        end
+
+        for label, path in pairs(tooltipFontPaths) do
+            if fontValue == path then
+                return label
+            end
+        end
+
+        return "Friz Quadrata TT"
+    end
+
     -- Liefert die aktuell konfigurierten Tooltip-Einstellungen mit Fallbacks
     local function GetTooltipSettings()
         local tooltipDB = QuestAnnounce
