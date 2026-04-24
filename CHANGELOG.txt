@@ -1,6 +1,12 @@
 v9.3.0.5 Multi - 20-04-2026
-         - [DE] Neue Option im Bereich „Aktivieren/Deaktivieren“: Minimap-Button anzeigen/verstecken
-         - [EN] Added a new option in the enable/disable area: show/hide minimap button
+	         - [DE] Zusätzlicher Hotfix: Tooltip-Schriftarten werden jetzt vor SetFont auf gültige WoW-Font-Assetpfade aufgelöst (behebt „Invalid font file asset“ nach aktuellem Inhaltsupdate)
+	         - [EN] Additional hotfix: tooltip fonts are now resolved to valid WoW font asset paths before SetFont (fixes “Invalid font file asset” after the latest content update)
+	         - [DE] Fallback ergänzt: ungültige/alte gespeicherte Schriftwerte nutzen automatisch STANDARD_TEXT_FONT
+	         - [EN] Added fallback: invalid/legacy saved font values now automatically use STANDARD_TEXT_FONT
+	         - [DE] Tooltip-Dropdown normalisiert: gespeicherte Font-Pfade werden wieder korrekt als bekannte Schriftnamen angezeigt
+	         - [EN] Tooltip dropdown normalization: saved font paths are mapped back to known font labels for display
+	         - [DE] Neue Option im Bereich „Aktivieren/Deaktivieren“: Minimap-Button anzeigen/verstecken
+	         - [EN] Added a new option in the enable/disable area: show/hide minimap button
          - [DE] Neue Checkbox „Eigene Meldungen“ ergänzt (Status-/Warnmeldungen für den eigenen Client an/aus)
          - [EN] Added new “Self Messages” checkbox (toggle status/warning messages for the local player client)
          - [DE] Addon-interne Hinweise (z. B. Aktiviert/Deaktiviert, Pause, Fokus/Kanal-Hinweise, Combat-Settings-Hinweis) respektieren jetzt „Eigene Meldungen“
