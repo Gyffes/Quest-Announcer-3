@@ -1222,6 +1222,23 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
     else
         if objectiveLooksComplete and questID then
             self:SendDebugMsg("objective complete event but quest not complete yet :: questID=" .. tostring(questID) .. " :: reason=" .. tostring(completeReason))
+            C_Timer.After(0.20, function()
+                if not QuestAnnounce or not QuestAnnounce.IsQuestCompleteByObjectives then
+                    return
+                end
+                local delayedComplete, delayedReason = QuestAnnounce:IsQuestCompleteByObjectives(questID, logIndex)
+                if delayedComplete and not QuestAnnounce.questCompletionAnnounced[questID] then
+                    QuestAnnounce.questCompletionAnnounced[questID] = true
+                    QuestAnnounce.questCompletionAnnouncedAt[questID] = GetTime and GetTime() or 0
+                    if QuestAnnounce:ShouldShowLocalProgressMessages() then
+                        QuestAnnounce:NotifySelf(L["Completed: "] .. localMsg, false)
+                    end
+                    QuestAnnounce:SendDebugMsg("delayed completion confirmed :: questID=" .. tostring(questID) .. " :: " .. tostring(delayedReason))
+                    QuestAnnounce:SendMsg(L["Completed: "] .. newMsg, true)
+                else
+                    QuestAnnounce:SendDebugMsg("delayed completion not confirmed :: questID=" .. tostring(questID) .. " :: " .. tostring(delayedReason))
+                end
+            end)
         end
         if not self:ShouldAnnounceProgressByEvery(currentAmount, requiredAmount) then
             self:SendDebugMsg("Progress skipped by every setting :: " .. tostring(currentAmount) .. "/" .. tostring(requiredAmount))

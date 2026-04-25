@@ -39,6 +39,8 @@ v9.3.0.6 Multi - 25-04-2026
 		         - [EN] Turn-in trigger hardened further: context fallback disabled; 6199 now requires explicit intent or enabled auto turn-in option
 		         - [DE] Zusätzliche Intent-Erfassung über `QUEST_PROGRESS`/`QUEST_COMPLETE`, damit manuelle Abgabe-Aktionen zuverlässiger erkannt werden
 		         - [EN] Additional intent capture via `QUEST_PROGRESS`/`QUEST_COMPLETE` to detect manual turn-in actions more reliably
+		         - [DE] Neues Delayed-Completion-Recheck (0,20s): Wenn ein Objective-`x/x`-Event zunächst noch „objective incomplete“ meldet, wird kurz danach erneut geprüft und bei bestätigtem Complete der 6197-Sound nachgezogen
+		         - [EN] New delayed completion recheck (0.20s): if an objective `x/x` event initially reports `objective incomplete`, completion is rechecked shortly after and 6197 is played when confirmed
 
 v9.3.0.5 Multi - 20-04-2026
 	         - [DE] Fix nachgereicht: Tooltip-Styling greift jetzt auf alle QuestAnnounce-eigenen Tooltips (z. B. Optionen + Minimap), aber nicht auf fremde Addons oder Blizzard-Tooltips
