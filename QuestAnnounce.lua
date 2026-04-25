@@ -3,6 +3,7 @@ QuestAnnounce = CreateFrame("Frame")
 QuestAnnounce.events = {}
 QuestAnnounce.questCache = {}
 QuestAnnounce.objectiveCache = {}
+QuestAnnounce.questCompletionAnnounced = {}
 QuestAnnounce.lastMessage = nil
 QuestAnnounce.lastManualTurnInIntent = nil
 QuestAnnounce.manualTurnInHooksInstalled = false
@@ -455,6 +456,9 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
     if event == "QUEST_TURNED_IN" then
         self:EnsureManualTurnInHooks()
         local questID = tonumber(arg1)
+        if questID then
+            self.questCompletionAnnounced[questID] = nil
+        end
         local manualContext, contextReason = self:IsManualQuestTurnInContext()
         local hasManualIntent, intentReason = self:IsRecentManualTurnInIntent(questID)
         local allowAutoTurnIn = self.db
@@ -687,11 +691,13 @@ function QuestAnnounce:BuildQuestCache()
     local questCount = 0
     local objectiveCount = 0
     local numEntries = C_QuestLog.GetNumQuestLogEntries()
+    local activeQuestIDs = {}
 
     for i = 1, numEntries do
         local info = C_QuestLog.GetInfo(i)
 
         if info and info.title and info.questID and not info.isHeader then
+            activeQuestIDs[info.questID] = true
             local normalizedTitle = self:NormalizeQuestTitle(info.title)
 
             self.questCache[normalizedTitle] = {
@@ -718,6 +724,14 @@ function QuestAnnounce:BuildQuestCache()
                         objectiveCount = objectiveCount + 1
                     end
                 end
+            end
+        end
+    end
+
+    if self.questCompletionAnnounced then
+        for questID in pairs(self.questCompletionAnnounced) do
+            if not activeQuestIDs[questID] then
+                self.questCompletionAnnounced[questID] = nil
             end
         end
     end
@@ -1165,12 +1179,21 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
         return
     end
 
-    local isComplete = C_QuestLog.IsComplete(logIndex)
+    local isComplete, completeReason = self:IsQuestCompleteByObjectives(questID, logIndex)
+
+    if isComplete and questID and self.questCompletionAnnounced[questID] then
+        self:SendDebugMsg("completion already announced for questID=" .. tostring(questID) .. " :: " .. tostring(completeReason))
+        return
+    end
 
     if isComplete then
+        if questID then
+            self.questCompletionAnnounced[questID] = true
+        end
         if questID and self:ShouldShowLocalProgressMessages() then
             self:NotifySelf(L["Completed: "] .. localMsg, false)
         end
+        self:SendDebugMsg("quest completion detected :: questID=" .. tostring(questID) .. " :: " .. tostring(completeReason))
         self:SendMsg(L["Completed: "] .. newMsg, true)
     else
         if not self:ShouldAnnounceProgressByEvery(currentAmount, requiredAmount) then
@@ -1246,6 +1269,39 @@ function QuestAnnounce:FindQuestByTitle(title)
     end
 
     self:SendDebugMsg("Quest NOT FOUND in title/objective cache :: " .. tostring(title))
+end
+
+function QuestAnnounce:IsQuestCompleteByObjectives(questID, logIndex)
+    if not questID then
+        return false, "no questID"
+    end
+
+    if C_QuestLog and C_QuestLog.IsComplete and C_QuestLog.IsComplete(logIndex or questID) then
+        return true, "C_QuestLog.IsComplete=true"
+    end
+
+    local objectives = C_QuestLog and C_QuestLog.GetQuestObjectives and C_QuestLog.GetQuestObjectives(questID) or nil
+    if type(objectives) ~= "table" or #objectives == 0 then
+        return false, "no objective data"
+    end
+
+    local anyObjective = false
+    for _, objective in ipairs(objectives) do
+        if objective and objective.text and objective.text ~= "" then
+            anyObjective = true
+            local finished = objective.finished == true
+            local fulfilled = tonumber(objective.numFulfilled)
+            local required = tonumber(objective.numRequired)
+            if not finished and not (fulfilled and required and required > 0 and fulfilled >= required) then
+                return false, "objective incomplete"
+            end
+        end
+    end
+
+    if anyObjective then
+        return true, "all objectives complete"
+    end
+    return false, "no objective rows"
 end
 
 --[[ Sends a debugging message if debug is enabled and we have a message to send ]]--

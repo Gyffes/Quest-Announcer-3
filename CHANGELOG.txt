@@ -27,6 +27,8 @@ v9.3.0.6 Multi - 25-04-2026
 		         - [EN] Reduced false completion positives: objective `1/1` no longer forces full quest completion when `C_QuestLog.IsComplete` does not report the quest as complete yet
 		         - [DE] Unaufgelöste Questtexte (kein `questID`/Cache-Treffer) werden bei `x/x` nicht mehr als „Abgeschlossen“ behandelt; stattdessen Progress-Fallback + klarere Debug-Ausgabe
 		         - [EN] Unresolved quest texts (no `questID`/cache hit) are no longer treated as “Completed” on `x/x`; now use progress fallback + clearer debug output
+		         - [DE] Abschluss-Erkennung verbessert: Mehrziel-Quests nutzen jetzt eine Objective-Gesamtprüfung (`IsQuestCompleteByObjectives`), damit 6197 beim echten „Quest komplett“ kommt
+		         - [EN] Improved completion detection: multi-objective quests now use aggregate objective checks (`IsQuestCompleteByObjectives`) so 6197 plays on actual quest completion
 
 v9.3.0.5 Multi - 20-04-2026
 	         - [DE] Fix nachgereicht: Tooltip-Styling greift jetzt auf alle QuestAnnounce-eigenen Tooltips (z. B. Optionen + Minimap), aber nicht auf fremde Addons oder Blizzard-Tooltips
