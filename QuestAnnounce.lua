@@ -1271,7 +1271,11 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
         if questID and self:ShouldShowLocalProgressMessages() then
             self:NotifySelf(L["Progress: "] .. localMsg, false)
         end
-        self:SendMsg(L["Progress: "] .. newMsg, false)
+        local progressSoundOverride = objectiveLooksComplete and "complete" or nil
+        if progressSoundOverride == "complete" then
+            self:SendDebugMsg("objective completion uses complete sound :: questID=" .. tostring(questID))
+        end
+        self:SendMsg(L["Progress: "] .. newMsg, false, progressSoundOverride)
     end
 
     self:SendDebugMsg("Quest processed: " .. questTitle)
@@ -1430,7 +1434,7 @@ end
 --[[ Sends a chat message to the selected chat channels and frames where applicable,
     if we have a message to send; will also send a debugging message if debug is enabled ]]--
 -- Sendet die Nachricht an die aktivierten Ausgabekanäle und Ausgabefenster
-function QuestAnnounce:SendMsg(msg, isComplete)
+function QuestAnnounce:SendMsg(msg, isComplete, soundOverrideEvent)
     -- Sicherheitsabbruch, wenn keine Nachricht vorhanden ist
     if not msg then
         return
@@ -1549,7 +1553,11 @@ function QuestAnnounce:SendMsg(msg, isComplete)
 
     -- DE: Geordnete Sound-Ausgabe ohne Sound-Flut / EN: Ordered sound output without sound spam.
     if allowSelfOutput then
-        if isComplete == true then
+        if soundOverrideEvent == "complete" then
+            self:PlayConfiguredSound("complete")
+        elseif soundOverrideEvent == "progress" then
+            self:PlayConfiguredSound("progress")
+        elseif isComplete == true then
             self:PlayConfiguredSound("complete")
         else
             self:PlayConfiguredSound("progress")
