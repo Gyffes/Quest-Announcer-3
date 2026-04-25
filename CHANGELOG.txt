@@ -31,6 +31,10 @@ v9.3.0.6 Multi - 25-04-2026
 		         - [EN] Improved completion detection: multi-objective quests now use aggregate objective checks (`IsQuestCompleteByObjectives`) so 6197 plays on actual quest completion
 		         - [DE] Completion-Check erweitert: `IsQuestFlaggedCompleted(questID)` wird vor Objective-Checks ausgewertet; zusätzliches Debug, wenn ein `x/x`-Event noch kein echtes Quest-Complete ist
 		         - [EN] Extended completion check: `IsQuestFlaggedCompleted(questID)` is evaluated before objective checks; added debug when an `x/x` event is still not a true quest-complete
+		         - [DE] Turn-In-Sound entprellt: Kontext-Fallback blockiert jetzt kurz nach lokalem Completion-Sound ohne Intent (verhindert 6199 direkt nach 6197) + Duplicate-Schutz pro QuestID
+		         - [EN] Turn-in sound debounced: context fallback is now blocked briefly after local completion sound without intent (prevents 6199 immediately after 6197) + per-quest duplicate guard
+		         - [DE] Questlink-Fallback verwendet kein `ToggleQuestLog()` mehr, um weitere WorldMap/MapCanvas-`ADDON_ACTION_BLOCKED`-Meldungen zu vermeiden
+		         - [EN] Quest-link fallback no longer calls `ToggleQuestLog()` to avoid further WorldMap/MapCanvas `ADDON_ACTION_BLOCKED` taint errors
 
 v9.3.0.5 Multi - 20-04-2026
 	         - [DE] Fix nachgereicht: Tooltip-Styling greift jetzt auf alle QuestAnnounce-eigenen Tooltips (z. B. Optionen + Minimap), aber nicht auf fremde Addons oder Blizzard-Tooltips

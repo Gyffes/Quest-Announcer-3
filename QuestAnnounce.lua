@@ -4,6 +4,8 @@ QuestAnnounce.events = {}
 QuestAnnounce.questCache = {}
 QuestAnnounce.objectiveCache = {}
 QuestAnnounce.questCompletionAnnounced = {}
+QuestAnnounce.questCompletionAnnouncedAt = {}
+QuestAnnounce.turnInSoundHistory = {}
 QuestAnnounce.lastMessage = nil
 QuestAnnounce.lastManualTurnInIntent = nil
 QuestAnnounce.manualTurnInHooksInstalled = false
@@ -456,32 +458,51 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
     if event == "QUEST_TURNED_IN" then
         self:EnsureManualTurnInHooks()
         local questID = tonumber(arg1)
-        if questID then
-            self.questCompletionAnnounced[questID] = nil
-        end
         local manualContext, contextReason = self:IsManualQuestTurnInContext()
         local hasManualIntent, intentReason = self:IsRecentManualTurnInIntent(questID)
         local allowAutoTurnIn = self.db
             and self.db.profile
             and self.db.profile.settings
             and self.db.profile.settings.playTurnInOnAutoTurnIn
+        local now = GetTime and GetTime() or 0
+        local completionAt = questID and self.questCompletionAnnouncedAt and self.questCompletionAnnouncedAt[questID] or nil
+        local secondsSinceCompletion = completionAt and (now - completionAt) or nil
 
         local allowByManualIntent = hasManualIntent and true or false
         local allowByAutoSetting = allowAutoTurnIn and true or false
         local allowByContextFallback = manualContext and true or false
 
+        -- DE: Verhindert direkten 6199-Trigger unmittelbar nach lokalem 6197 ohne expliziten Intent.
+        -- EN: Prevents immediate 6199 right after local 6197 without explicit intent.
+        if allowByContextFallback and not allowByManualIntent and not allowByAutoSetting and secondsSinceCompletion and secondsSinceCompletion < 1.5 then
+            allowByContextFallback = false
+            contextReason = tostring(contextReason) .. " (cooldown after completion " .. string.format("%.2fs", secondsSinceCompletion) .. ")"
+        end
+
         if allowByManualIntent or allowByAutoSetting or allowByContextFallback then
+            if questID and self.turnInSoundHistory and self.turnInSoundHistory[questID] and (now - self.turnInSoundHistory[questID]) < 10 then
+                self:SendDebugMsg("turn-in sound skipped duplicate :: questID=" .. tostring(questID) .. " :: dt=" .. string.format("%.2fs", now - self.turnInSoundHistory[questID]))
+                return
+            end
             local decision = string.format(
-                "turn-in sound allowed :: questID=%s :: byIntent=%s :: byAutoSetting=%s :: byContextFallback=%s :: context=%s :: intent=%s",
+                "turn-in sound allowed :: questID=%s :: byIntent=%s :: byAutoSetting=%s :: byContextFallback=%s :: sinceComplete=%s :: context=%s :: intent=%s",
                 tostring(questID),
                 tostring(allowByManualIntent),
                 tostring(allowByAutoSetting),
                 tostring(allowByContextFallback),
+                tostring(secondsSinceCompletion and string.format("%.2f", secondsSinceCompletion) or "nil"),
                 tostring(contextReason),
                 tostring(intentReason)
             )
             self:SendDebugMsg(decision)
+            if questID and self.turnInSoundHistory then
+                self.turnInSoundHistory[questID] = now
+            end
             self:PlayConfiguredSound("turnin")
+            if questID then
+                self.questCompletionAnnounced[questID] = nil
+                self.questCompletionAnnouncedAt[questID] = nil
+            end
         else
             local allowByManualIntent = hasManualIntent and true or false
             local allowByAutoSetting = allowAutoTurnIn and true or false
@@ -495,6 +516,8 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
                     .. tostring(allowByAutoSetting)
                     .. " :: byContextFallback="
                     .. tostring(allowByContextFallback)
+                    .. " :: sinceComplete="
+                    .. tostring(secondsSinceCompletion and string.format("%.2f", secondsSinceCompletion) or "nil")
                     .. " :: context="
                     .. tostring(contextReason)
                     .. " :: intent="
@@ -732,6 +755,9 @@ function QuestAnnounce:BuildQuestCache()
         for questID in pairs(self.questCompletionAnnounced) do
             if not activeQuestIDs[questID] then
                 self.questCompletionAnnounced[questID] = nil
+                if self.questCompletionAnnouncedAt then
+                    self.questCompletionAnnouncedAt[questID] = nil
+                end
             end
         end
     end
@@ -955,12 +981,8 @@ function QuestAnnounce:OpenQuestInLog(questID)
         return
     end
 
-    -- Fallback
-    if not QuestMapFrame or not QuestMapFrame:IsShown() then
-        ToggleQuestLog()
-    end
-
-    -- Einen Tick später auswählen/anzeigen, damit das UI sicher da ist
+    -- Fallback ohne geschützte Toggle-Funktionen (vermeidet ADDON_ACTION_BLOCKED/Taint).
+    -- Einen Tick später auswählen/anzeigen, falls verfügbare API-Teile vorhanden sind.
     C_Timer.After(0, function()
         if C_QuestLog and C_QuestLog.SetSelectedQuest then
             C_QuestLog.SetSelectedQuest(questID)
@@ -972,6 +994,8 @@ function QuestAnnounce:OpenQuestInLog(questID)
 
         if QuestMapFrame_ShowQuestDetails then
             QuestMapFrame_ShowQuestDetails(questID)
+        else
+            QuestAnnounce:SendDebugMsg("OpenQuestInLog fallback ran without QuestMapFrame_ShowQuestDetails :: questID=" .. tostring(questID))
         end
     end)
 end
@@ -1189,6 +1213,7 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
     if isComplete then
         if questID then
             self.questCompletionAnnounced[questID] = true
+            self.questCompletionAnnouncedAt[questID] = GetTime and GetTime() or 0
         end
         if questID and self:ShouldShowLocalProgressMessages() then
             self:NotifySelf(L["Completed: "] .. localMsg, false)
