@@ -374,7 +374,7 @@ function QuestAnnounce:IsRecentManualTurnInIntent(questID)
 
     local now = GetTime and GetTime() or 0
     local age = now - (intent.time or 0)
-    if age < 0 or age > 4 then
+    if age < 0 or age > 12 then
         return false, string.format("manual intent too old (age=%.2fs)", age)
     end
 
@@ -505,9 +505,6 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
                 self.pendingCompletionRecheck[questID] = nil
             end
         else
-            local allowByManualIntent = hasManualIntent and true or false
-            local allowByAutoSetting = allowAutoTurnIn and true or false
-            local allowByContextFallback = manualContext and true or false
             self:SendDebugMsg(
                 "suppressed turn-in sound :: questID="
                     .. tostring(questID)

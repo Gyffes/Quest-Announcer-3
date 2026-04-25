@@ -45,6 +45,10 @@ v9.3.0.6 Multi - 25-04-2026
 		         - [EN] Delayed recheck expanded to multiple attempts (0.20s / 0.60s / 1.20s) with per-quest pending guard to better absorb delayed API updates in multi-objective quests
 		         - [DE] Objektiv-Abschluss-Feedback erweitert: bei `x/x`-Objective-Events wird jetzt (auch vor finalem Quest-Complete) der Complete-Sound 6197 verwendet, während der Text weiterhin als Fortschritt ausgegeben werden kann
 		         - [EN] Objective-complete feedback expanded: on `x/x` objective events, complete sound 6197 is now used (even before final quest complete), while text output may still remain progress
+		         - [DE] Manual-Intent-Zeitfenster für Turn-In von 4s auf 12s erweitert, damit längere Reward-/Dialogwege nicht fälschlich als „intent too old“ unterdrückt werden
+		         - [EN] Extended manual-intent window for turn-in from 4s to 12s so longer reward/dialog flows are not falsely suppressed as `intent too old`
+		         - [DE] Suppressed-Debug korrigiert: `byContextFallback` zeigt jetzt den tatsächlich verwendeten Entscheidungswert (kein irreführendes Recompute mehr)
+		         - [EN] Corrected suppressed-debug: `byContextFallback` now reflects the actual decision value (no misleading recompute)
 
 v9.3.0.5 Multi - 20-04-2026
 	         - [DE] Fix nachgereicht: Tooltip-Styling greift jetzt auf alle QuestAnnounce-eigenen Tooltips (z. B. Optionen + Minimap), aber nicht auf fremde Addons oder Blizzard-Tooltips
