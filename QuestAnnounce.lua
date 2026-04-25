@@ -4,6 +4,8 @@ QuestAnnounce.events = {}
 QuestAnnounce.questCache = {}
 QuestAnnounce.objectiveCache = {}
 QuestAnnounce.lastMessage = nil
+QuestAnnounce.lastManualTurnInIntent = nil
+QuestAnnounce.manualTurnInHooksInstalled = false
 
 local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L["enUS"]
 
@@ -287,6 +289,7 @@ QuestAnnounceDB = QuestAnnounceDB or {} -- Gespeicherte Datenbank initialisieren
 	self:BuildQuestCache()
 	self:SetupOptions() 																-- Einrichten der Optionen
 	self:InitializeLinkHandler()
+	self:EnsureManualTurnInHooks()
 	
 	if self.InitializeMinimapButton then
 		self:InitializeMinimapButton()
@@ -337,6 +340,92 @@ function QuestAnnounce:IsManualQuestTurnInContext()
     return false, "no visible quest dialog frame and UnitExists(\"npc\") is false"
 end
 
+function QuestAnnounce:GetCurrentQuestDialogQuestID()
+    if GetQuestID then
+        local questID = tonumber(GetQuestID())
+        if questID and questID > 0 then
+            return questID
+        end
+    end
+    return nil
+end
+
+function QuestAnnounce:RecordManualTurnInIntent(source, questID)
+    local intentQuestID = tonumber(questID) or self:GetCurrentQuestDialogQuestID()
+    self.lastManualTurnInIntent = {
+        time = GetTime and GetTime() or 0,
+        questID = intentQuestID,
+        source = source or "unknown",
+    }
+    self:SendDebugMsg("manual turn-in intent recorded :: source=" .. tostring(source) .. " :: questID=" .. tostring(intentQuestID))
+end
+
+function QuestAnnounce:IsRecentManualTurnInIntent(questID)
+    local intent = self.lastManualTurnInIntent
+    if not intent or not intent.time then
+        return false, "no manual turn-in intent recorded"
+    end
+
+    local now = GetTime and GetTime() or 0
+    local age = now - (intent.time or 0)
+    if age < 0 or age > 4 then
+        return false, string.format("manual intent too old (age=%.2fs)", age)
+    end
+
+    local turnedInQuestID = tonumber(questID)
+    if intent.questID and turnedInQuestID and intent.questID ~= turnedInQuestID then
+        return false, "manual intent quest mismatch (intent=" .. tostring(intent.questID) .. ", turnedIn=" .. tostring(turnedInQuestID) .. ")"
+    end
+
+    return true, "manual intent within " .. string.format("%.2f", age) .. "s via " .. tostring(intent.source)
+end
+
+function QuestAnnounce:EnsureManualTurnInHooks()
+    if self.manualTurnInHooksInstalled then
+        return
+    end
+
+    local installedAnyHook = false
+
+    local function HookFunction(functionName, sourceName)
+        if type(_G[functionName]) == "function" then
+            hooksecurefunc(functionName, function(...)
+                local qid = select(1, ...)
+                QuestAnnounce:RecordManualTurnInIntent(sourceName or functionName, qid)
+            end)
+            installedAnyHook = true
+        end
+    end
+
+    local function HookButton(buttonName, sourceName)
+        local button = _G[buttonName]
+        if button and button.HookScript then
+            button:HookScript("OnClick", function()
+                QuestAnnounce:RecordManualTurnInIntent(sourceName or buttonName)
+            end)
+            installedAnyHook = true
+        end
+    end
+
+    -- DE: Explizite Abschluss-/Abgabe-Aktionen abfangen.
+    -- EN: Capture explicit completion/turn-in actions.
+    HookFunction("QuestFrameCompleteQuest", "QuestFrameCompleteQuest")
+    HookFunction("QuestRewardCompleteButton_OnClick", "QuestRewardCompleteButton_OnClick")
+    HookFunction("QuestFrameCompleteButton_OnClick", "QuestFrameCompleteButton_OnClick")
+
+    HookButton("QuestFrameCompleteQuestButton", "QuestFrameCompleteQuestButton")
+    HookButton("QuestFrameCompleteButton", "QuestFrameCompleteButton")
+    HookButton("QuestFrameCompleteQuestButtonLeft", "QuestFrameCompleteQuestButtonLeft")
+    HookButton("QuestRewardCompleteButton", "QuestRewardCompleteButton")
+
+    if installedAnyHook then
+        self.manualTurnInHooksInstalled = true
+        self:SendDebugMsg("manual turn-in hooks installed")
+    else
+        self:SendDebugMsg("manual turn-in hooks not installed yet (UI elements unavailable)")
+    end
+end
+
 QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4, arg5)
 	-- Quest Log Update Event 
 	if event == "QUEST_LOG_UPDATE" then
@@ -359,22 +448,31 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
         return
     end
     if event == "QUEST_TURNED_IN" then
+        self:EnsureManualTurnInHooks()
         local questID = tonumber(arg1)
         local manualContext, contextReason = self:IsManualQuestTurnInContext()
+        local hasManualIntent, intentReason = self:IsRecentManualTurnInIntent(questID)
         local allowAutoTurnIn = self.db
             and self.db.profile
             and self.db.profile.settings
             and self.db.profile.settings.playTurnInOnAutoTurnIn
 
-        if manualContext or allowAutoTurnIn then
-            if manualContext then
-                self:SendDebugMsg("QUEST_TURNED_IN manual context detected :: questID=" .. tostring(questID) .. " :: " .. tostring(contextReason))
+        if (manualContext and hasManualIntent) or allowAutoTurnIn then
+            if manualContext and hasManualIntent then
+                self:SendDebugMsg("QUEST_TURNED_IN explicit manual turn-in detected :: questID=" .. tostring(questID) .. " :: " .. tostring(contextReason) .. " :: " .. tostring(intentReason))
             else
                 self:SendDebugMsg("QUEST_TURNED_IN auto-turn-in override enabled :: questID=" .. tostring(questID))
             end
             self:PlayConfiguredSound("turnin")
         else
-            self:SendDebugMsg("suppressed turn-in sound :: questID=" .. tostring(questID) .. " :: reason=" .. tostring(contextReason))
+            self:SendDebugMsg(
+                "suppressed turn-in sound :: questID="
+                    .. tostring(questID)
+                    .. " :: context="
+                    .. tostring(contextReason)
+                    .. " :: intent="
+                    .. tostring(intentReason)
+            )
         end
         return
     end

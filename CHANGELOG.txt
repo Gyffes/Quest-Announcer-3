@@ -1,3 +1,11 @@
+v9.3.0.7 Multi - 25-04-2026
+	         - [DE] Questabgabe-Sound im manuellen Questdialog erfordert jetzt zusätzlich eine explizite Abgabe-Aktion (Abgeben/Quest beenden Button)
+	         - [EN] Quest turn-in sound in manual quest dialog now additionally requires an explicit turn-in action (turn-in/complete quest button)
+	         - [DE] Neue Intent-Logik ergänzt: Turn-In-Sound wird nur abgespielt, wenn kurz zuvor ein passender Abgabe-Klick erkannt wurde
+	         - [EN] Added intent logic: turn-in sound only plays when a matching turn-in click was detected shortly before
+	         - [DE] Debug-Ausgaben erweitert um Kontext + Intent-Grund, damit Fehltrigger besser nachvollziehbar sind
+	         - [EN] Extended debug output with context + intent reasons to better trace false triggers
+
 v9.3.0.6 Multi - 25-04-2026
 	         - [DE] Questabgabe-Sound (QUEST_TURNED_IN) wird jetzt nur noch im manuellen Questdialog-Kontext abgespielt
 	         - [EN] Quest turn-in sound (QUEST_TURNED_IN) now only plays in manual quest dialog context
