@@ -1,22 +1,20 @@
-v9.3.0.7 Multi - 25-04-2026
-	         - [DE] Questabgabe-Sound im manuellen Questdialog erfordert jetzt zusätzlich eine explizite Abgabe-Aktion (Abgeben/Quest beenden Button)
-	         - [EN] Quest turn-in sound in manual quest dialog now additionally requires an explicit turn-in action (turn-in/complete quest button)
-	         - [DE] Neue Intent-Logik ergänzt: Turn-In-Sound wird nur abgespielt, wenn kurz zuvor ein passender Abgabe-Klick erkannt wurde
-	         - [EN] Added intent logic: turn-in sound only plays when a matching turn-in click was detected shortly before
-	         - [DE] Debug-Ausgaben erweitert um Kontext + Intent-Grund, damit Fehltrigger besser nachvollziehbar sind
-	         - [EN] Extended debug output with context + intent reasons to better trace false triggers
-
 v9.3.0.6 Multi - 25-04-2026
-	         - [DE] Questabgabe-Sound (QUEST_TURNED_IN) wird jetzt nur noch im manuellen Questdialog-Kontext abgespielt
-	         - [EN] Quest turn-in sound (QUEST_TURNED_IN) now only plays in manual quest dialog context
-	         - [DE] Neue Kontextprüfung ergänzt (QuestFrame/QuestGreeting/Gossip oder NPC-Dialoghinweise), inklusive Debug-Grundtexten bei Unterdrückung
+		         - [DE] Questabgabe-Sound (QUEST_TURNED_IN) wird jetzt nur noch im manuellen Questdialog-Kontext abgespielt
+		         - [EN] Quest turn-in sound (QUEST_TURNED_IN) now only plays in manual quest dialog context
+		         - [DE] Neue Kontextprüfung ergänzt (QuestFrame/QuestGreeting/Gossip oder NPC-Dialoghinweise), inklusive Debug-Grundtexten bei Unterdrückung
 	         - [EN] Added context detection (QuestFrame/QuestGreeting/Gossip or NPC dialog hints), including debug reason text when suppressed
 	         - [DE] Neue optionale Einstellung ergänzt: „Play Turn-In Sound for Auto Turn-In“ (Standard: deaktiviert)
 	         - [EN] Added new optional setting: “Play Turn-In Sound for Auto Turn-In” (default: disabled)
-	         - [DE] Sound-Optionen und Profilübersicht um den neuen Auto-Turn-In-Schalter erweitert
-	         - [EN] Extended sound options and profile overview with the new auto turn-in toggle
-	         - [DE] Complete-Sound-Verhalten bleibt unverändert (`SendMsg(..., true)` -> `complete`)
-	         - [EN] Complete-sound behavior remains unchanged (`SendMsg(..., true)` -> `complete`)
+		         - [DE] Sound-Optionen und Profilübersicht um den neuen Auto-Turn-In-Schalter erweitert
+		         - [EN] Extended sound options and profile overview with the new auto turn-in toggle
+		         - [DE] Complete-Sound-Verhalten bleibt unverändert (`SendMsg(..., true)` -> `complete`)
+		         - [EN] Complete-sound behavior remains unchanged (`SendMsg(..., true)` -> `complete`)
+		         - [DE] Questabgabe-Sound im manuellen Questdialog erfordert jetzt zusätzlich eine explizite Abgabe-Aktion (Abgeben/Quest beenden Button)
+		         - [EN] Quest turn-in sound in manual quest dialog now additionally requires an explicit turn-in action (turn-in/complete quest button)
+		         - [DE] Neue Intent-Logik ergänzt: Turn-In-Sound wird nur abgespielt, wenn kurz zuvor ein passender Abgabe-Klick erkannt wurde
+		         - [EN] Added intent logic: turn-in sound only plays when a matching turn-in click was detected shortly before
+		         - [DE] Debug-Ausgaben erweitert um Kontext + Intent-Grund, damit Fehltrigger besser nachvollziehbar sind
+		         - [EN] Extended debug output with context + intent reasons to better trace false triggers
 
 v9.3.0.5 Multi - 20-04-2026
 	         - [DE] Fix nachgereicht: Tooltip-Styling greift jetzt auf alle QuestAnnounce-eigenen Tooltips (z. B. Optionen + Minimap), aber nicht auf fremde Addons oder Blizzard-Tooltips
