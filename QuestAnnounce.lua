@@ -457,9 +457,9 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
             and self.db.profile.settings
             and self.db.profile.settings.playTurnInOnAutoTurnIn
 
-        if (manualContext and hasManualIntent) or allowAutoTurnIn then
-            if manualContext and hasManualIntent then
-                self:SendDebugMsg("QUEST_TURNED_IN explicit manual turn-in detected :: questID=" .. tostring(questID) .. " :: " .. tostring(contextReason) .. " :: " .. tostring(intentReason))
+        if hasManualIntent or allowAutoTurnIn then
+            if hasManualIntent then
+                self:SendDebugMsg("QUEST_TURNED_IN manual intent detected :: questID=" .. tostring(questID) .. " :: context=" .. tostring(contextReason) .. " :: " .. tostring(intentReason))
             else
                 self:SendDebugMsg("QUEST_TURNED_IN auto-turn-in override enabled :: questID=" .. tostring(questID))
             end

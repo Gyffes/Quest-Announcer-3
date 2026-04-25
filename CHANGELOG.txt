@@ -15,6 +15,8 @@ v9.3.0.6 Multi - 25-04-2026
 		         - [EN] Added intent logic: turn-in sound only plays when a matching turn-in click was detected shortly before
 		         - [DE] Debug-Ausgaben erweitert um Kontext + Intent-Grund, damit Fehltrigger besser nachvollziehbar sind
 		         - [EN] Extended debug output with context + intent reasons to better trace false triggers
+		         - [DE] Turn-In-Sound-Trigger verbessert: bei vorhandenem, aktuellem Manual-Intent wird der Abgabe-Sound auch dann abgespielt, wenn beim Eventzeitpunkt kein Questdialog-Frame mehr sichtbar ist
+		         - [EN] Improved turn-in trigger: when a recent manual intent exists, the turn-in sound now plays even if no quest dialog frame is visible at event time
 
 v9.3.0.5 Multi - 20-04-2026
 	         - [DE] Fix nachgereicht: Tooltip-Styling greift jetzt auf alle QuestAnnounce-eigenen Tooltips (z. B. Optionen + Minimap), aber nicht auf fremde Addons oder Blizzard-Tooltips
