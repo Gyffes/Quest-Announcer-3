@@ -373,8 +373,13 @@ function QuestAnnounce:IsRecentManualTurnInIntent(questID)
     end
 
     local turnedInQuestID = tonumber(questID)
-    if intent.questID and turnedInQuestID and intent.questID ~= turnedInQuestID then
-        return false, "manual intent quest mismatch (intent=" .. tostring(intent.questID) .. ", turnedIn=" .. tostring(turnedInQuestID) .. ")"
+    if turnedInQuestID then
+        if not intent.questID then
+            return false, "manual intent has no questID for turned-in quest " .. tostring(turnedInQuestID)
+        end
+        if intent.questID ~= turnedInQuestID then
+            return false, "manual intent quest mismatch (intent=" .. tostring(intent.questID) .. ", turnedIn=" .. tostring(turnedInQuestID) .. ")"
+        end
     end
 
     return true, "manual intent within " .. string.format("%.2f", age) .. "s via " .. tostring(intent.source)
