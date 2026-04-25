@@ -164,6 +164,7 @@ local defaults = {
             enableCompleteSound = true, -- DE: Abschlusssound aktiv / EN: Completion sound enabled
             enableAcceptSound = true,   -- DE: Quest-angenommen-Sound aktiv / EN: Quest-accepted sound enabled
             enableTurnInSound = true,   -- DE: Quest-abgegeben-Sound aktiv / EN: Quest-turn-in sound enabled
+            playTurnInOnAutoTurnIn = false, -- DE: Turn-In-Sound auch ohne manuellen Questdialog / EN: Play turn-in sound even without manual quest dialog
             debug = false,          -- Debug-Modus deaktiviert
 			linkQuest = true,		-- Quest Link
             paused = false,         -- Temporäre Pause
@@ -301,6 +302,41 @@ QuestAnnounce:RegisterEvent("QUEST_LOG_UPDATE")										-- Register Event Quest
 QuestAnnounce:RegisterEvent("QUEST_ACCEPTED")                                         -- DE: Quest angenommen / EN: Quest accepted
 QuestAnnounce:RegisterEvent("QUEST_TURNED_IN")                                        -- DE: Quest abgegeben / EN: Quest turned in
 
+function QuestAnnounce:IsManualQuestTurnInContext()
+    local visibleFrameReasons = {}
+
+    local function IsFrameShown(frameName)
+        local frame = _G[frameName]
+        return frame and frame.IsShown and frame:IsShown()
+    end
+
+    local function AddVisibleReason(frameName, reason)
+        if IsFrameShown(frameName) then
+            table.insert(visibleFrameReasons, reason or frameName)
+        end
+    end
+
+    AddVisibleReason("QuestFrame", "QuestFrame visible")
+    AddVisibleReason("QuestGreetingFrame", "QuestGreetingFrame visible")
+    AddVisibleReason("GossipFrame", "GossipFrame visible")
+
+    if #visibleFrameReasons > 0 then
+        return true, table.concat(visibleFrameReasons, ", ")
+    end
+
+    local hasNpcTarget = UnitExists and UnitExists("npc")
+    if hasNpcTarget then
+        local activeQuests = GetNumActiveQuests and (GetNumActiveQuests() or 0) or 0
+        local availableQuests = GetNumAvailableQuests and (GetNumAvailableQuests() or 0) or 0
+        if activeQuests > 0 or availableQuests > 0 then
+            return true, string.format("npc exists with quest dialog entries (%d active / %d available)", activeQuests, availableQuests)
+        end
+        return false, "npc exists but no visible quest dialog frame or quest dialog entries"
+    end
+
+    return false, "no visible quest dialog frame and UnitExists(\"npc\") is false"
+end
+
 QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4, arg5)
 	-- Quest Log Update Event 
 	if event == "QUEST_LOG_UPDATE" then
@@ -323,7 +359,23 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
         return
     end
     if event == "QUEST_TURNED_IN" then
-        self:PlayConfiguredSound("turnin")
+        local questID = tonumber(arg1)
+        local manualContext, contextReason = self:IsManualQuestTurnInContext()
+        local allowAutoTurnIn = self.db
+            and self.db.profile
+            and self.db.profile.settings
+            and self.db.profile.settings.playTurnInOnAutoTurnIn
+
+        if manualContext or allowAutoTurnIn then
+            if manualContext then
+                self:SendDebugMsg("QUEST_TURNED_IN manual context detected :: questID=" .. tostring(questID) .. " :: " .. tostring(contextReason))
+            else
+                self:SendDebugMsg("QUEST_TURNED_IN auto-turn-in override enabled :: questID=" .. tostring(questID))
+            end
+            self:PlayConfiguredSound("turnin")
+        else
+            self:SendDebugMsg("suppressed turn-in sound :: questID=" .. tostring(questID) .. " :: reason=" .. tostring(contextReason))
+        end
         return
     end
 

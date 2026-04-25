@@ -1133,6 +1133,19 @@ end
     local acceptRow = CreateSoundRow(-284, "Accepted Sound ID", "acceptSound", 6192, "Reset Accepted Sound", "Test Accepted Sound", "enableAcceptSound", "Enable Accepted Sound", "accept")
     local turnInRow = CreateSoundRow(-344, "Turn-In Sound ID", "turnInSound", 6199, "Reset Turn-In Sound", "Test Turn-In Sound", "enableTurnInSound", "Enable Turn-In Sound", "turnin")
     soundRows = { progressRow, completeRow, acceptRow, turnInRow }
+    local autoTurnInLabel = L["Play Turn-In Sound for Auto Turn-In"] or "Play Turn-In Sound for Auto Turn-In"
+    local autoTurnInTooltip = L["If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."] or "If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."
+    local turnInAutoCheckbox = CreateCheckbox(
+        soundPanel,
+        autoTurnInLabel,
+        16,
+        -520,
+        function(self)
+            QuestAnnounce.db.profile.settings.playTurnInOnAutoTurnIn = self:GetChecked() and true or false
+        end,
+        autoTurnInLabel,
+        autoTurnInTooltip
+    )
 
     local function LayoutSoundRows()
         local panelWidth = soundPanel:GetWidth() or 760
@@ -1201,6 +1214,7 @@ end
         completeRow.enableCb:SetChecked(settings.enableCompleteSound ~= false)
         acceptRow.enableCb:SetChecked(settings.enableAcceptSound ~= false)
         turnInRow.enableCb:SetChecked(settings.enableTurnInSound ~= false)
+        turnInAutoCheckbox:SetChecked(settings.playTurnInOnAutoTurnIn and true or false)
         LayoutSoundRows()
     end
 
@@ -1482,6 +1496,7 @@ end
         if profile.settings.enableCompleteSound == nil then profile.settings.enableCompleteSound = true end
         if profile.settings.enableAcceptSound == nil then profile.settings.enableAcceptSound = true end
         if profile.settings.enableTurnInSound == nil then profile.settings.enableTurnInSound = true end
+        if profile.settings.playTurnInOnAutoTurnIn == nil then profile.settings.playTurnInOnAutoTurnIn = false end
         return profile
     end
 
@@ -1674,6 +1689,7 @@ end
             string.format("%s %s", L["Enable Accepted Sound"], FormatBoolean(settings.enableAcceptSound ~= false)),
             string.format("%s %s", L["Turn-In Sound ID"], GetSoundLabel(settings.turnInSound, "Turn-In Sound ID")),
             string.format("%s %s", L["Enable Turn-In Sound"], FormatBoolean(settings.enableTurnInSound ~= false)),
+            string.format("%s %s", autoTurnInLabel, FormatBoolean(settings.playTurnInOnAutoTurnIn and true or false)),
             string.format("%s %s", L["Sound Output Channel"], tostring(settings.soundChannel or "Master")),
             string.format("%s %s", L["Announce Every Value"], tostring(settings.every or L["Not set"])),
             string.format("%s %s", L["Debug Mode"], FormatBoolean(settings.debug)),

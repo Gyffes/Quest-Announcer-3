@@ -5,8 +5,8 @@ Quest Announce 3 is a World of Warcraft addon that automatically announces quest
 
 ## Version / Version
 
-Aktueller Stand: **9.3.0.5**
-Current version: **9.3.0.5**
+Aktueller Stand: **9.3.0.6**
+Current version: **9.3.0.6**
 
 ## Projektstatus (DE)
 
@@ -28,6 +28,7 @@ Das Addon wurde in der aktuellen Entwicklungsphase grundlegend modernisiert:
 - Lokalisierungen für die neuen Optionen in allen unterstützten Sprachen ergänzt.
 - TBC-2.5.5-Kompatibilitätsfix: Legacy-Questlog-APIs werden abgefangen, damit kein `GetNumQuestLogEntries`-Lua-Fehler mehr auftritt.
 - Zusätzlicher 9.3.0.5-Hotfix: Tooltip-Schriften werden intern auf gültige WoW-Assetpfade gemappt, damit kein `SetFont(): Invalid font file asset` mehr auftritt.
+- 9.3.0.6-Update: Questabgabe-Sound wird standardmäßig nur noch im manuellen Questdialog-Kontext abgespielt; optional kann Auto-Turn-In-Sound separat aktiviert werden.
 
 ## Project Status (EN)
 
@@ -49,6 +50,7 @@ The addon has been significantly modernized in the current development phase:
 - Added translations for the new options across all supported locales.
 - TBC 2.5.5 compatibility fix: legacy quest log APIs are now bridged to avoid `GetNumQuestLogEntries` Lua errors.
 - Additional 9.3.0.5 hotfix: tooltip fonts are internally mapped to valid WoW asset paths to prevent `SetFont(): Invalid font file asset`.
+- 9.3.0.6 update: quest turn-in sound now plays only in manual quest dialog context by default; auto turn-in sound can be enabled separately.
 
 ## Hauptfunktionen (DE)
 
@@ -58,6 +60,7 @@ The addon has been significantly modernized in the current development phase:
   - UI-Rahmen (Chat Frame, Raid Warning Frame, UI Errors Frame)
 - Konfigurierbare Sound-IDs für Fortschritt, Abschluss, Quest angenommen und Questabgabe.
 - Pro Sound ein Test-Button, Zurücksetzen-Button und Aktivierungs-Checkbox.
+- Neue optionale Sound-Checkbox für Auto-Turn-In-Quests (`Play Turn-In Sound for Auto Turn-In`, Standard: aus).
 - Auswahl des WoW-Soundkanals (Master, Effekt, Umgebung, Dialoge, Musik).
 - Dynamische Layout-Anpassung für Sound- und Questtyp-Bereiche bei abweichender UI-Skalierung.
 - Sound-ID 8959 berücksichtigt Kanal-Stummschaltung (kein unerwarteter Ton bei stummem Zielkanal).
@@ -79,6 +82,7 @@ The addon has been significantly modernized in the current development phase:
   - UI frames (Chat Frame, Raid Warning Frame, UI Errors Frame)
 - Configurable sound IDs for progress, completion, quest accepted, and quest turn-in.
 - Per-sound test button, reset button, and enable checkbox.
+- New optional auto-turn-in sound checkbox (`Play Turn-In Sound for Auto Turn-In`, default: off).
 - Selectable WoW sound channel (Master, Effects, Ambience, Dialog, Music).
 - Dynamic layout adaptation for sound and quest-type sections under different UI scales.
 - Sound ID 8959 respects target-channel muting (no unexpected playback when target channel is muted).
