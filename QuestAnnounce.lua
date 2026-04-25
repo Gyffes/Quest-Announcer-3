@@ -374,7 +374,7 @@ function QuestAnnounce:IsRecentManualTurnInIntent(questID)
 
     local now = GetTime and GetTime() or 0
     local age = now - (intent.time or 0)
-    if age < 0 or age > 12 then
+    if age < 0 or age > 45 then
         return false, string.format("manual intent too old (age=%.2fs)", age)
     end
 
