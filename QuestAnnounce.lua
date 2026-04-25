@@ -6,6 +6,7 @@ QuestAnnounce.objectiveCache = {}
 QuestAnnounce.questCompletionAnnounced = {}
 QuestAnnounce.questCompletionAnnouncedAt = {}
 QuestAnnounce.turnInSoundHistory = {}
+QuestAnnounce.pendingCompletionRecheck = {}
 QuestAnnounce.lastMessage = nil
 QuestAnnounce.lastManualTurnInIntent = nil
 QuestAnnounce.manualTurnInHooksInstalled = false
@@ -501,6 +502,7 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
             if questID then
                 self.questCompletionAnnounced[questID] = nil
                 self.questCompletionAnnouncedAt[questID] = nil
+                self.pendingCompletionRecheck[questID] = nil
             end
         else
             local allowByManualIntent = hasManualIntent and true or false
@@ -756,6 +758,9 @@ function QuestAnnounce:BuildQuestCache()
                 self.questCompletionAnnounced[questID] = nil
                 if self.questCompletionAnnouncedAt then
                     self.questCompletionAnnouncedAt[questID] = nil
+                end
+                if self.pendingCompletionRecheck then
+                    self.pendingCompletionRecheck[questID] = nil
                 end
             end
         end
@@ -1222,23 +1227,41 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
     else
         if objectiveLooksComplete and questID then
             self:SendDebugMsg("objective complete event but quest not complete yet :: questID=" .. tostring(questID) .. " :: reason=" .. tostring(completeReason))
-            C_Timer.After(0.20, function()
-                if not QuestAnnounce or not QuestAnnounce.IsQuestCompleteByObjectives then
-                    return
-                end
-                local delayedComplete, delayedReason = QuestAnnounce:IsQuestCompleteByObjectives(questID, logIndex)
-                if delayedComplete and not QuestAnnounce.questCompletionAnnounced[questID] then
-                    QuestAnnounce.questCompletionAnnounced[questID] = true
-                    QuestAnnounce.questCompletionAnnouncedAt[questID] = GetTime and GetTime() or 0
-                    if QuestAnnounce:ShouldShowLocalProgressMessages() then
-                        QuestAnnounce:NotifySelf(L["Completed: "] .. localMsg, false)
+            if not self.pendingCompletionRecheck[questID] then
+                self.pendingCompletionRecheck[questID] = true
+                local retryDelays = { 0.20, 0.60, 1.20 }
+                local function RunDelayedCheck(attempt)
+                    local delay = retryDelays[attempt]
+                    if not delay then
+                        QuestAnnounce.pendingCompletionRecheck[questID] = nil
+                        return
                     end
-                    QuestAnnounce:SendDebugMsg("delayed completion confirmed :: questID=" .. tostring(questID) .. " :: " .. tostring(delayedReason))
-                    QuestAnnounce:SendMsg(L["Completed: "] .. newMsg, true)
-                else
-                    QuestAnnounce:SendDebugMsg("delayed completion not confirmed :: questID=" .. tostring(questID) .. " :: " .. tostring(delayedReason))
+                    C_Timer.After(delay, function()
+                        if not QuestAnnounce or not QuestAnnounce.IsQuestCompleteByObjectives then
+                            return
+                        end
+                        local delayedComplete, delayedReason = QuestAnnounce:IsQuestCompleteByObjectives(questID, logIndex)
+                        if delayedComplete and not QuestAnnounce.questCompletionAnnounced[questID] then
+                            QuestAnnounce.questCompletionAnnounced[questID] = true
+                            QuestAnnounce.questCompletionAnnouncedAt[questID] = GetTime and GetTime() or 0
+                            QuestAnnounce.pendingCompletionRecheck[questID] = nil
+                            if QuestAnnounce:ShouldShowLocalProgressMessages() then
+                                QuestAnnounce:NotifySelf(L["Completed: "] .. localMsg, false)
+                            end
+                            QuestAnnounce:SendDebugMsg("delayed completion confirmed :: questID=" .. tostring(questID) .. " :: attempt=" .. tostring(attempt) .. " :: " .. tostring(delayedReason))
+                            QuestAnnounce:SendMsg(L["Completed: "] .. newMsg, true)
+                            return
+                        end
+                        if attempt >= #retryDelays then
+                            QuestAnnounce.pendingCompletionRecheck[questID] = nil
+                            QuestAnnounce:SendDebugMsg("delayed completion not confirmed :: questID=" .. tostring(questID) .. " :: attempt=" .. tostring(attempt) .. " :: " .. tostring(delayedReason))
+                        else
+                            RunDelayedCheck(attempt + 1)
+                        end
+                    end)
                 end
-            end)
+                RunDelayedCheck(1)
+            end
         end
         if not self:ShouldAnnounceProgressByEvery(currentAmount, requiredAmount) then
             self:SendDebugMsg("Progress skipped by every setting :: " .. tostring(currentAmount) .. "/" .. tostring(requiredAmount))
