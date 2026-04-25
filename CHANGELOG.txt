@@ -21,6 +21,10 @@ v9.3.0.6 Multi - 25-04-2026
 		         - [EN] Added combat-lockdown guard: opening quest links no longer calls protected WorldMap/quest log toggle functions in combat (prevents ADDON_ACTION_BLOCKED)
 		         - [DE] Manual-Intent-Prüfung verschärft: Turn-In-Sound erfordert jetzt bei QUEST_TURNED_IN eine passende QuestID im Intent (verhindert falsche 6199-Trigger durch ID-lose Alt-Intents)
 		         - [EN] Tightened manual-intent validation: QUEST_TURNED_IN now requires a matching questID in the recorded intent (prevents false 6199 triggers from stale intents without IDs)
+		         - [DE] Turn-In-Entscheidungs-Logging präzisiert: Debug zeigt jetzt klar `byIntent/byAutoSetting/byContextFallback` inkl. Kontext-/Intent-Gründen
+		         - [EN] Improved turn-in decision logging: debug now clearly prints `byIntent/byAutoSetting/byContextFallback` including context/intent reasons
+		         - [DE] Falsch-positive Abschlussmeldungen reduziert: Objective-`1/1` wird nicht mehr als Questabschluss erzwungen, wenn `C_QuestLog.IsComplete` die Quest noch nicht als komplett meldet
+		         - [EN] Reduced false completion positives: objective `1/1` no longer forces full quest completion when `C_QuestLog.IsComplete` does not report the quest as complete yet
 
 v9.3.0.5 Multi - 20-04-2026
 	         - [DE] Fix nachgereicht: Tooltip-Styling greift jetzt auf alle QuestAnnounce-eigenen Tooltips (z. B. Optionen + Minimap), aber nicht auf fremde Addons oder Blizzard-Tooltips

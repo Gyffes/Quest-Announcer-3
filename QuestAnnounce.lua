@@ -334,7 +334,7 @@ function QuestAnnounce:IsManualQuestTurnInContext()
         if activeQuests > 0 or availableQuests > 0 then
             return true, string.format("npc exists with quest dialog entries (%d active / %d available)", activeQuests, availableQuests)
         end
-        return false, "npc exists but no visible quest dialog frame or quest dialog entries"
+        return true, "npc exists without visible quest dialog entries (fallback manual context)"
     end
 
     return false, "no visible quest dialog frame and UnitExists(\"npc\") is false"
@@ -462,12 +462,21 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
             and self.db.profile.settings
             and self.db.profile.settings.playTurnInOnAutoTurnIn
 
-        if hasManualIntent or allowAutoTurnIn then
-            if hasManualIntent then
-                self:SendDebugMsg("QUEST_TURNED_IN manual intent detected :: questID=" .. tostring(questID) .. " :: context=" .. tostring(contextReason) .. " :: " .. tostring(intentReason))
-            else
-                self:SendDebugMsg("QUEST_TURNED_IN auto-turn-in override enabled :: questID=" .. tostring(questID))
-            end
+        local allowByManualIntent = hasManualIntent and true or false
+        local allowByAutoSetting = allowAutoTurnIn and true or false
+        local allowByContextFallback = manualContext and true or false
+
+        if allowByManualIntent or allowByAutoSetting or allowByContextFallback then
+            local decision = string.format(
+                "turn-in sound allowed :: questID=%s :: byIntent=%s :: byAutoSetting=%s :: byContextFallback=%s :: context=%s :: intent=%s",
+                tostring(questID),
+                tostring(allowByManualIntent),
+                tostring(allowByAutoSetting),
+                tostring(allowByContextFallback),
+                tostring(contextReason),
+                tostring(intentReason)
+            )
+            self:SendDebugMsg(decision)
             self:PlayConfiguredSound("turnin")
         else
             self:SendDebugMsg(
@@ -1144,9 +1153,6 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
     end
 
     local isComplete = C_QuestLog.IsComplete(logIndex)
-    if not isComplete and objectiveLooksComplete then
-        isComplete = true
-    end
 
     if isComplete then
         if questID and self:ShouldShowLocalProgressMessages() then
