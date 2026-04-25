@@ -904,6 +904,14 @@ function QuestAnnounce:OpenQuestInLog(questID)
         return
     end
 
+    -- DE: In CombatLockdown keine geschützten Map/Questlog-Toggles aufrufen.
+    -- EN: Do not call protected map/quest log toggles during combat lockdown.
+    if InCombatLockdown and InCombatLockdown() then
+        self:NotifySelf(L["Cannot open settings in combat."], true)
+        self:SendDebugMsg("OpenQuestInLog skipped in combat :: questID=" .. tostring(questID))
+        return
+    end
+
     -- Beste verfügbare Blizzard-Funktion zuerst benutzen
     if QuestMapFrame_OpenToQuestDetails then
         QuestMapFrame_OpenToQuestDetails(questID)

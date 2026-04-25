@@ -17,6 +17,8 @@ v9.3.0.6 Multi - 25-04-2026
 		         - [EN] Extended debug output with context + intent reasons to better trace false triggers
 		         - [DE] Turn-In-Sound-Trigger verbessert: bei vorhandenem, aktuellem Manual-Intent wird der Abgabe-Sound auch dann abgespielt, wenn beim Eventzeitpunkt kein Questdialog-Frame mehr sichtbar ist
 		         - [EN] Improved turn-in trigger: when a recent manual intent exists, the turn-in sound now plays even if no quest dialog frame is visible at event time
+		         - [DE] Combat-Lockdown-Schutz ergänzt: Questlink-Öffnen ruft im Kampf keine geschützten WorldMap/Questlog-Toggle-Funktionen mehr auf (verhindert ADDON_ACTION_BLOCKED)
+		         - [EN] Added combat-lockdown guard: opening quest links no longer calls protected WorldMap/quest log toggle functions in combat (prevents ADDON_ACTION_BLOCKED)
 
 v9.3.0.5 Multi - 20-04-2026
 	         - [DE] Fix nachgereicht: Tooltip-Styling greift jetzt auf alle QuestAnnounce-eigenen Tooltips (z. B. Optionen + Minimap), aber nicht auf fremde Addons oder Blizzard-Tooltips
