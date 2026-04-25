@@ -1196,6 +1196,9 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
         self:SendDebugMsg("quest completion detected :: questID=" .. tostring(questID) .. " :: " .. tostring(completeReason))
         self:SendMsg(L["Completed: "] .. newMsg, true)
     else
+        if objectiveLooksComplete and questID then
+            self:SendDebugMsg("objective complete event but quest not complete yet :: questID=" .. tostring(questID) .. " :: reason=" .. tostring(completeReason))
+        end
         if not self:ShouldAnnounceProgressByEvery(currentAmount, requiredAmount) then
             self:SendDebugMsg("Progress skipped by every setting :: " .. tostring(currentAmount) .. "/" .. tostring(requiredAmount))
             return
@@ -1274,6 +1277,10 @@ end
 function QuestAnnounce:IsQuestCompleteByObjectives(questID, logIndex)
     if not questID then
         return false, "no questID"
+    end
+
+    if IsQuestFlaggedCompleted and IsQuestFlaggedCompleted(questID) then
+        return true, "IsQuestFlaggedCompleted=true"
     end
 
     if C_QuestLog and C_QuestLog.IsComplete and C_QuestLog.IsComplete(logIndex or questID) then
