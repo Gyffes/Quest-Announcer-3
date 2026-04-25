@@ -479,9 +479,18 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
             self:SendDebugMsg(decision)
             self:PlayConfiguredSound("turnin")
         else
+            local allowByManualIntent = hasManualIntent and true or false
+            local allowByAutoSetting = allowAutoTurnIn and true or false
+            local allowByContextFallback = manualContext and true or false
             self:SendDebugMsg(
                 "suppressed turn-in sound :: questID="
                     .. tostring(questID)
+                    .. " :: byIntent="
+                    .. tostring(allowByManualIntent)
+                    .. " :: byAutoSetting="
+                    .. tostring(allowByAutoSetting)
+                    .. " :: byContextFallback="
+                    .. tostring(allowByContextFallback)
                     .. " :: context="
                     .. tostring(contextReason)
                     .. " :: intent="
@@ -1130,7 +1139,11 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
 
     -- Send Logic
     if not logIndex then
-        local announceAsComplete = objectiveLooksComplete and true or false
+        local announceAsComplete = (questID and objectiveLooksComplete) and true or false
+
+        if objectiveLooksComplete and not questID then
+            self:SendDebugMsg("objective looks complete but quest unresolved -> fallback to progress :: " .. tostring(questTitle))
+        end
 
         if not announceAsComplete and not self:ShouldAnnounceProgressByEvery(currentAmount, requiredAmount) then
             self:SendDebugMsg("Progress skipped by every setting (no logIndex) :: " .. tostring(currentAmount) .. "/" .. tostring(requiredAmount))
