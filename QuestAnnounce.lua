@@ -307,6 +307,8 @@ QuestAnnounce:RegisterEvent("UI_INFO_MESSAGE")										-- Register Event Ui Inf
 QuestAnnounce:RegisterEvent("QUEST_LOG_UPDATE")										-- Register Event Quest Log Update
 QuestAnnounce:RegisterEvent("QUEST_ACCEPTED")                                         -- DE: Quest angenommen / EN: Quest accepted
 QuestAnnounce:RegisterEvent("QUEST_TURNED_IN")                                        -- DE: Quest abgegeben / EN: Quest turned in
+QuestAnnounce:RegisterEvent("QUEST_PROGRESS")                                         -- DE/EN: Questfortschritt im Dialog (Turn-In-Kontext)
+QuestAnnounce:RegisterEvent("QUEST_COMPLETE")                                         -- DE/EN: Questabschlussdialog (Turn-In-Kontext)
 
 function QuestAnnounce:IsManualQuestTurnInContext()
     local visibleFrameReasons = {}
@@ -455,6 +457,10 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
         self:PlayConfiguredSound("accept")
         return
     end
+    if event == "QUEST_PROGRESS" or event == "QUEST_COMPLETE" then
+        self:RecordManualTurnInIntent(event, self:GetCurrentQuestDialogQuestID())
+        return
+    end
     if event == "QUEST_TURNED_IN" then
         self:EnsureManualTurnInHooks()
         local questID = tonumber(arg1)
@@ -470,14 +476,7 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
 
         local allowByManualIntent = hasManualIntent and true or false
         local allowByAutoSetting = allowAutoTurnIn and true or false
-        local allowByContextFallback = manualContext and true or false
-
-        -- DE: Verhindert direkten 6199-Trigger unmittelbar nach lokalem 6197 ohne expliziten Intent.
-        -- EN: Prevents immediate 6199 right after local 6197 without explicit intent.
-        if allowByContextFallback and not allowByManualIntent and not allowByAutoSetting and secondsSinceCompletion and secondsSinceCompletion < 1.5 then
-            allowByContextFallback = false
-            contextReason = tostring(contextReason) .. " (cooldown after completion " .. string.format("%.2fs", secondsSinceCompletion) .. ")"
-        end
+        local allowByContextFallback = false
 
         if allowByManualIntent or allowByAutoSetting or allowByContextFallback then
             if questID and self.turnInSoundHistory and self.turnInSoundHistory[questID] and (now - self.turnInSoundHistory[questID]) < 10 then

@@ -35,6 +35,10 @@ v9.3.0.6 Multi - 25-04-2026
 		         - [EN] Turn-in sound debounced: context fallback is now blocked briefly after local completion sound without intent (prevents 6199 immediately after 6197) + per-quest duplicate guard
 		         - [DE] Questlink-Fallback verwendet kein `ToggleQuestLog()` mehr, um weitere WorldMap/MapCanvas-`ADDON_ACTION_BLOCKED`-Meldungen zu vermeiden
 		         - [EN] Quest-link fallback no longer calls `ToggleQuestLog()` to avoid further WorldMap/MapCanvas `ADDON_ACTION_BLOCKED` taint errors
+		         - [DE] Turn-In-Trigger weiter gehärtet: Kontext-Fallback deaktiviert; 6199 kommt jetzt nur noch über expliziten Intent oder aktivierte Auto-Turn-In-Option
+		         - [EN] Turn-in trigger hardened further: context fallback disabled; 6199 now requires explicit intent or enabled auto turn-in option
+		         - [DE] Zusätzliche Intent-Erfassung über `QUEST_PROGRESS`/`QUEST_COMPLETE`, damit manuelle Abgabe-Aktionen zuverlässiger erkannt werden
+		         - [EN] Additional intent capture via `QUEST_PROGRESS`/`QUEST_COMPLETE` to detect manual turn-in actions more reliably
 
 v9.3.0.5 Multi - 20-04-2026
 	         - [DE] Fix nachgereicht: Tooltip-Styling greift jetzt auf alle QuestAnnounce-eigenen Tooltips (z. B. Optionen + Minimap), aber nicht auf fremde Addons oder Blizzard-Tooltips
