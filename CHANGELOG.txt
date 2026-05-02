@@ -57,6 +57,8 @@ v9.3.0.6 Multi - 25-04-2026
 		         - [EN] Further reduced taint risk: quest-log compatibility now uses a local `QA_QuestLog` API instead of mutating global `C_QuestLog`, helping avoid Blizzard UI taint in MapCanvas/WorldMap events
 		         - [DE] Tooltip-Text für „Questlinks aktivieren“ erweitert: klare Klick-Übersicht für Links/Rechts/Shift+Links/Mittel in allen unterstützten Sprachen
 		         - [EN] Expanded tooltip text for "Enable Quest Links": clear click-action overview for Left/Right/Shift+Left/Middle across all supported locales
+		         - [DE] Questlink-Verhalten wiederhergestellt: Linksklick öffnet wieder die Quest im Questlog, Rechtsklick bleibt Wowhead-URL, Shift+Linksklick fügt den offiziellen Questlink in den Chat ein
+		         - [EN] Restored quest-link behavior: left-click opens quest log again, right-click remains Wowhead URL, and Shift+left-click inserts the official quest link into chat
 
 v9.3.0.5 Multi - 20-04-2026
 	         - [DE] Fix nachgereicht: Tooltip-Styling greift jetzt auf alle QuestAnnounce-eigenen Tooltips (z. B. Optionen + Minimap), aber nicht auf fremde Addons oder Blizzard-Tooltips

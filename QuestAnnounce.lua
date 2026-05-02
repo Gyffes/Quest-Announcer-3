@@ -968,15 +968,30 @@ function QuestAnnounce:OpenQuestInLog(questID)
         return
     end
 
-    -- Harte Sicherheitsregel gegen MapCanvas/WorldMap-Taint:
-    -- Kein direkter Zugriff mehr auf QuestMap/WorldMap APIs aus Link-Klicks.
-    local url = self:GetWowheadQuestURL(questID)
-    if url then
-        self:ShowCopyDialog(url, L["Wowhead Quest URL"])
-        self:NotifySelf("Quest link opened as URL (taint-safe mode).", true)
+    if InCombatLockdown and InCombatLockdown() then
+        self:NotifySelf(L["Cannot open settings in combat."], true)
+        self:SendDebugMsg("OpenQuestInLog skipped in combat :: questID=" .. tostring(questID))
+        return
     end
 
-    self:SendDebugMsg("OpenQuestInLog taint-safe mode: map APIs skipped :: questID=" .. tostring(questID))
+    if QuestMapFrame_OpenToQuestDetails then
+        QuestMapFrame_OpenToQuestDetails(questID)
+        return
+    end
+
+    C_Timer.After(0, function()
+        if QA_QuestLog and QA_QuestLog.SetSelectedQuest then
+            QA_QuestLog.SetSelectedQuest(questID)
+        end
+
+        if QuestMapFrame_SetFocusedQuest then
+            QuestMapFrame_SetFocusedQuest(questID)
+        end
+
+        if QuestMapFrame_ShowQuestDetails then
+            QuestMapFrame_ShowQuestDetails(questID)
+        end
+    end)
 end
 
 
