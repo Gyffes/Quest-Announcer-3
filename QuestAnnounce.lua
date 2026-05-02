@@ -976,27 +976,25 @@ function QuestAnnounce:OpenQuestInLog(questID)
         return
     end
 
-    -- Beste verfügbare Blizzard-Funktion zuerst benutzen
-    if QuestMapFrame_OpenToQuestDetails then
-        QuestMapFrame_OpenToQuestDetails(questID)
-        return
-    end
-
-    -- Fallback ohne geschützte Toggle-Funktionen (vermeidet ADDON_ACTION_BLOCKED/Taint).
-    -- Einen Tick später auswählen/anzeigen, falls verfügbare API-Teile vorhanden sind.
+    -- In neueren WoW-Versionen kann QuestMapFrame_OpenToQuestDetails() im falschen Kontext
+    -- (z. B. während QUEST_LOG_UPDATE/MapCanvas-Events) geschützte WorldMap-Calls auslösen.
+    -- Deshalb nur noch taint-arme APIs verwenden und niemals WorldMap/QuestLog toggeln.
     C_Timer.After(0, function()
         if C_QuestLog and C_QuestLog.SetSelectedQuest then
             C_QuestLog.SetSelectedQuest(questID)
         end
 
-        if QuestMapFrame_SetFocusedQuest then
-            QuestMapFrame_SetFocusedQuest(questID)
-        end
+        -- Nur Details fokussieren, wenn die Karte bereits offen ist.
+        if WorldMapFrame and WorldMapFrame:IsShown() then
+            if QuestMapFrame_SetFocusedQuest then
+                QuestMapFrame_SetFocusedQuest(questID)
+            end
 
-        if QuestMapFrame_ShowQuestDetails then
-            QuestMapFrame_ShowQuestDetails(questID)
+            if QuestMapFrame_ShowQuestDetails then
+                QuestMapFrame_ShowQuestDetails(questID)
+            end
         else
-            QuestAnnounce:SendDebugMsg("OpenQuestInLog fallback ran without QuestMapFrame_ShowQuestDetails :: questID=" .. tostring(questID))
+            QuestAnnounce:SendDebugMsg("OpenQuestInLog selected quest without opening map :: questID=" .. tostring(questID))
         end
     end)
 end
