@@ -55,6 +55,8 @@ v9.3.0.6 Multi - 25-04-2026
 		         - [EN] Additional emergency fix for `ADDON_ACTION_BLOCKED` (`SetPassThroughButtons`): left-click on QA quest links now uses a taint-safe URL dialog instead of WorldMap/QuestMap API calls
 		         - [DE] Taint-Ursache weiter reduziert: Questlog-Kompatibilität nutzt jetzt eine lokale `QA_QuestLog`-API statt globale `C_QuestLog`-Mutation, um Blizzard-UI-Taint in MapCanvas/WorldMap-Ereignissen zu vermeiden
 		         - [EN] Further reduced taint risk: quest-log compatibility now uses a local `QA_QuestLog` API instead of mutating global `C_QuestLog`, helping avoid Blizzard UI taint in MapCanvas/WorldMap events
+		         - [DE] Tooltip-Text für „Questlinks aktivieren“ erweitert: klare Klick-Übersicht für Links/Rechts/Shift+Links/Mittel in allen unterstützten Sprachen
+		         - [EN] Expanded tooltip text for "Enable Quest Links": clear click-action overview for Left/Right/Shift+Left/Middle across all supported locales
 
 v9.3.0.5 Multi - 20-04-2026
 	         - [DE] Fix nachgereicht: Tooltip-Styling greift jetzt auf alle QuestAnnounce-eigenen Tooltips (z. B. Optionen + Minimap), aber nicht auf fremde Addons oder Blizzard-Tooltips
