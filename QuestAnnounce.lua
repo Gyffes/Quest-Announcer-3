@@ -3,7 +3,13 @@ QuestAnnounce = CreateFrame("Frame")
 QuestAnnounce.events = {}
 QuestAnnounce.questCache = {}
 QuestAnnounce.objectiveCache = {}
+QuestAnnounce.questCompletionAnnounced = {}
+QuestAnnounce.questCompletionAnnouncedAt = {}
+QuestAnnounce.turnInSoundHistory = {}
+QuestAnnounce.pendingCompletionRecheck = {}
 QuestAnnounce.lastMessage = nil
+QuestAnnounce.lastManualTurnInIntent = nil
+QuestAnnounce.manualTurnInHooksInstalled = false
 
 local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L["enUS"]
 
@@ -164,6 +170,7 @@ local defaults = {
             enableCompleteSound = true, -- DE: Abschlusssound aktiv / EN: Completion sound enabled
             enableAcceptSound = true,   -- DE: Quest-angenommen-Sound aktiv / EN: Quest-accepted sound enabled
             enableTurnInSound = true,   -- DE: Quest-abgegeben-Sound aktiv / EN: Quest-turn-in sound enabled
+            playTurnInOnAutoTurnIn = false, -- DE: Turn-In-Sound auch ohne manuellen Questdialog / EN: Play turn-in sound even without manual quest dialog
             debug = false,          -- Debug-Modus deaktiviert
 			linkQuest = true,		-- Quest Link
             paused = false,         -- Temporäre Pause
@@ -286,6 +293,7 @@ QuestAnnounceDB = QuestAnnounceDB or {} -- Gespeicherte Datenbank initialisieren
 	self:BuildQuestCache()
 	self:SetupOptions() 																-- Einrichten der Optionen
 	self:InitializeLinkHandler()
+	self:EnsureManualTurnInHooks()
 	
 	if self.InitializeMinimapButton then
 		self:InitializeMinimapButton()
@@ -300,6 +308,134 @@ QuestAnnounce:RegisterEvent("UI_INFO_MESSAGE")										-- Register Event Ui Inf
 QuestAnnounce:RegisterEvent("QUEST_LOG_UPDATE")										-- Register Event Quest Log Update
 QuestAnnounce:RegisterEvent("QUEST_ACCEPTED")                                         -- DE: Quest angenommen / EN: Quest accepted
 QuestAnnounce:RegisterEvent("QUEST_TURNED_IN")                                        -- DE: Quest abgegeben / EN: Quest turned in
+QuestAnnounce:RegisterEvent("QUEST_PROGRESS")                                         -- DE/EN: Questfortschritt im Dialog (Turn-In-Kontext)
+QuestAnnounce:RegisterEvent("QUEST_COMPLETE")                                         -- DE/EN: Questabschlussdialog (Turn-In-Kontext)
+
+function QuestAnnounce:IsManualQuestTurnInContext()
+    local visibleFrameReasons = {}
+
+    local function IsFrameShown(frameName)
+        local frame = _G[frameName]
+        return frame and frame.IsShown and frame:IsShown()
+    end
+
+    local function AddVisibleReason(frameName, reason)
+        if IsFrameShown(frameName) then
+            table.insert(visibleFrameReasons, reason or frameName)
+        end
+    end
+
+    AddVisibleReason("QuestFrame", "QuestFrame visible")
+    AddVisibleReason("QuestGreetingFrame", "QuestGreetingFrame visible")
+    AddVisibleReason("GossipFrame", "GossipFrame visible")
+
+    if #visibleFrameReasons > 0 then
+        return true, table.concat(visibleFrameReasons, ", ")
+    end
+
+    local hasNpcTarget = UnitExists and UnitExists("npc")
+    if hasNpcTarget then
+        local activeQuests = GetNumActiveQuests and (GetNumActiveQuests() or 0) or 0
+        local availableQuests = GetNumAvailableQuests and (GetNumAvailableQuests() or 0) or 0
+        if activeQuests > 0 or availableQuests > 0 then
+            return true, string.format("npc exists with quest dialog entries (%d active / %d available)", activeQuests, availableQuests)
+        end
+        return true, "npc exists without visible quest dialog entries (fallback manual context)"
+    end
+
+    return false, "no visible quest dialog frame and UnitExists(\"npc\") is false"
+end
+
+function QuestAnnounce:GetCurrentQuestDialogQuestID()
+    if GetQuestID then
+        local questID = tonumber(GetQuestID())
+        if questID and questID > 0 then
+            return questID
+        end
+    end
+    return nil
+end
+
+function QuestAnnounce:RecordManualTurnInIntent(source, questID)
+    local intentQuestID = tonumber(questID) or self:GetCurrentQuestDialogQuestID()
+    self.lastManualTurnInIntent = {
+        time = GetTime and GetTime() or 0,
+        questID = intentQuestID,
+        source = source or "unknown",
+    }
+    self:SendDebugMsg("manual turn-in intent recorded :: source=" .. tostring(source) .. " :: questID=" .. tostring(intentQuestID))
+end
+
+function QuestAnnounce:IsRecentManualTurnInIntent(questID)
+    local intent = self.lastManualTurnInIntent
+    if not intent or not intent.time then
+        return false, "no manual turn-in intent recorded"
+    end
+
+    local now = GetTime and GetTime() or 0
+    local age = now - (intent.time or 0)
+    if age < 0 or age > 45 then
+        return false, string.format("manual intent too old (age=%.2fs)", age)
+    end
+
+    local turnedInQuestID = tonumber(questID)
+    if turnedInQuestID then
+        if not intent.questID then
+            return false, "manual intent has no questID for turned-in quest " .. tostring(turnedInQuestID)
+        end
+        if intent.questID ~= turnedInQuestID then
+            return false, "manual intent quest mismatch (intent=" .. tostring(intent.questID) .. ", turnedIn=" .. tostring(turnedInQuestID) .. ")"
+        end
+    end
+
+    return true, "manual intent within " .. string.format("%.2f", age) .. "s via " .. tostring(intent.source)
+end
+
+function QuestAnnounce:EnsureManualTurnInHooks()
+    if self.manualTurnInHooksInstalled then
+        return
+    end
+
+    local installedAnyHook = false
+
+    local function HookFunction(functionName, sourceName)
+        if type(_G[functionName]) == "function" then
+            hooksecurefunc(functionName, function(...)
+                local qid = select(1, ...)
+                QuestAnnounce:RecordManualTurnInIntent(sourceName or functionName, qid)
+            end)
+            installedAnyHook = true
+        end
+    end
+
+    local function HookButton(buttonName, sourceName)
+        local button = _G[buttonName]
+        if button and button.HookScript then
+            button:HookScript("OnClick", function()
+                QuestAnnounce:RecordManualTurnInIntent(sourceName or buttonName)
+            end)
+            installedAnyHook = true
+        end
+    end
+
+    -- DE: Explizite Abschluss-/Abgabe-Aktionen abfangen.
+    -- EN: Capture explicit completion/turn-in actions.
+    HookFunction("QuestFrameCompleteQuest", "QuestFrameCompleteQuest")
+    HookFunction("QuestRewardCompleteButton_OnClick", "QuestRewardCompleteButton_OnClick")
+    HookFunction("QuestFrameCompleteButton_OnClick", "QuestFrameCompleteButton_OnClick")
+
+    HookButton("QuestFrameCompleteQuestButton", "QuestFrameCompleteQuestButton")
+    HookButton("QuestFrameCompleteButton", "QuestFrameCompleteButton")
+    HookButton("QuestFrameCompleteQuestButtonLeft", "QuestFrameCompleteQuestButtonLeft")
+    HookButton("QuestRewardCompleteButton", "QuestRewardCompleteButton")
+
+    if installedAnyHook then
+        self.manualTurnInHooksInstalled = true
+        self:SendDebugMsg("manual turn-in hooks installed")
+    else
+        self:SendDebugMsg("manual turn-in hooks not installed yet (UI elements unavailable)")
+    end
+end
 
 QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4, arg5)
 	-- Quest Log Update Event 
@@ -322,8 +458,70 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
         self:PlayConfiguredSound("accept")
         return
     end
+    if event == "QUEST_PROGRESS" or event == "QUEST_COMPLETE" then
+        self:RecordManualTurnInIntent(event, self:GetCurrentQuestDialogQuestID())
+        return
+    end
     if event == "QUEST_TURNED_IN" then
-        self:PlayConfiguredSound("turnin")
+        self:EnsureManualTurnInHooks()
+        local questID = tonumber(arg1)
+        local manualContext, contextReason = self:IsManualQuestTurnInContext()
+        local hasManualIntent, intentReason = self:IsRecentManualTurnInIntent(questID)
+        local allowAutoTurnIn = self.db
+            and self.db.profile
+            and self.db.profile.settings
+            and self.db.profile.settings.playTurnInOnAutoTurnIn
+        local now = GetTime and GetTime() or 0
+        local completionAt = questID and self.questCompletionAnnouncedAt and self.questCompletionAnnouncedAt[questID] or nil
+        local secondsSinceCompletion = completionAt and (now - completionAt) or nil
+
+        local allowByManualIntent = hasManualIntent and true or false
+        local allowByAutoSetting = allowAutoTurnIn and true or false
+        local allowByContextFallback = false
+
+        if allowByManualIntent or allowByAutoSetting or allowByContextFallback then
+            if questID and self.turnInSoundHistory and self.turnInSoundHistory[questID] and (now - self.turnInSoundHistory[questID]) < 10 then
+                self:SendDebugMsg("turn-in sound skipped duplicate :: questID=" .. tostring(questID) .. " :: dt=" .. string.format("%.2fs", now - self.turnInSoundHistory[questID]))
+                return
+            end
+            local decision = string.format(
+                "turn-in sound allowed :: questID=%s :: byIntent=%s :: byAutoSetting=%s :: byContextFallback=%s :: sinceComplete=%s :: context=%s :: intent=%s",
+                tostring(questID),
+                tostring(allowByManualIntent),
+                tostring(allowByAutoSetting),
+                tostring(allowByContextFallback),
+                tostring(secondsSinceCompletion and string.format("%.2f", secondsSinceCompletion) or "nil"),
+                tostring(contextReason),
+                tostring(intentReason)
+            )
+            self:SendDebugMsg(decision)
+            if questID and self.turnInSoundHistory then
+                self.turnInSoundHistory[questID] = now
+            end
+            self:PlayConfiguredSound("turnin")
+            if questID then
+                self.questCompletionAnnounced[questID] = nil
+                self.questCompletionAnnouncedAt[questID] = nil
+                self.pendingCompletionRecheck[questID] = nil
+            end
+        else
+            self:SendDebugMsg(
+                "suppressed turn-in sound :: questID="
+                    .. tostring(questID)
+                    .. " :: byIntent="
+                    .. tostring(allowByManualIntent)
+                    .. " :: byAutoSetting="
+                    .. tostring(allowByAutoSetting)
+                    .. " :: byContextFallback="
+                    .. tostring(allowByContextFallback)
+                    .. " :: sinceComplete="
+                    .. tostring(secondsSinceCompletion and string.format("%.2f", secondsSinceCompletion) or "nil")
+                    .. " :: context="
+                    .. tostring(contextReason)
+                    .. " :: intent="
+                    .. tostring(intentReason)
+            )
+        end
         return
     end
 
@@ -514,11 +712,13 @@ function QuestAnnounce:BuildQuestCache()
     local questCount = 0
     local objectiveCount = 0
     local numEntries = C_QuestLog.GetNumQuestLogEntries()
+    local activeQuestIDs = {}
 
     for i = 1, numEntries do
         local info = C_QuestLog.GetInfo(i)
 
         if info and info.title and info.questID and not info.isHeader then
+            activeQuestIDs[info.questID] = true
             local normalizedTitle = self:NormalizeQuestTitle(info.title)
 
             self.questCache[normalizedTitle] = {
@@ -544,6 +744,20 @@ function QuestAnnounce:BuildQuestCache()
                         }
                         objectiveCount = objectiveCount + 1
                     end
+                end
+            end
+        end
+    end
+
+    if self.questCompletionAnnounced then
+        for questID in pairs(self.questCompletionAnnounced) do
+            if not activeQuestIDs[questID] then
+                self.questCompletionAnnounced[questID] = nil
+                if self.questCompletionAnnouncedAt then
+                    self.questCompletionAnnouncedAt[questID] = nil
+                end
+                if self.pendingCompletionRecheck then
+                    self.pendingCompletionRecheck[questID] = nil
                 end
             end
         end
@@ -754,18 +968,22 @@ function QuestAnnounce:OpenQuestInLog(questID)
         return
     end
 
+    -- DE: In CombatLockdown keine geschützten Map/Questlog-Toggles aufrufen.
+    -- EN: Do not call protected map/quest log toggles during combat lockdown.
+    if InCombatLockdown and InCombatLockdown() then
+        self:NotifySelf(L["Cannot open settings in combat."], true)
+        self:SendDebugMsg("OpenQuestInLog skipped in combat :: questID=" .. tostring(questID))
+        return
+    end
+
     -- Beste verfügbare Blizzard-Funktion zuerst benutzen
     if QuestMapFrame_OpenToQuestDetails then
         QuestMapFrame_OpenToQuestDetails(questID)
         return
     end
 
-    -- Fallback
-    if not QuestMapFrame or not QuestMapFrame:IsShown() then
-        ToggleQuestLog()
-    end
-
-    -- Einen Tick später auswählen/anzeigen, damit das UI sicher da ist
+    -- Fallback ohne geschützte Toggle-Funktionen (vermeidet ADDON_ACTION_BLOCKED/Taint).
+    -- Einen Tick später auswählen/anzeigen, falls verfügbare API-Teile vorhanden sind.
     C_Timer.After(0, function()
         if C_QuestLog and C_QuestLog.SetSelectedQuest then
             C_QuestLog.SetSelectedQuest(questID)
@@ -777,6 +995,8 @@ function QuestAnnounce:OpenQuestInLog(questID)
 
         if QuestMapFrame_ShowQuestDetails then
             QuestMapFrame_ShowQuestDetails(questID)
+        else
+            QuestAnnounce:SendDebugMsg("OpenQuestInLog fallback ran without QuestMapFrame_ShowQuestDetails :: questID=" .. tostring(questID))
         end
     end)
 end
@@ -958,7 +1178,11 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
 
     -- Send Logic
     if not logIndex then
-        local announceAsComplete = objectiveLooksComplete and true or false
+        local announceAsComplete = (questID and objectiveLooksComplete) and true or false
+
+        if objectiveLooksComplete and not questID then
+            self:SendDebugMsg("objective looks complete but quest unresolved -> fallback to progress :: " .. tostring(questTitle))
+        end
 
         if not announceAsComplete and not self:ShouldAnnounceProgressByEvery(currentAmount, requiredAmount) then
             self:SendDebugMsg("Progress skipped by every setting (no logIndex) :: " .. tostring(currentAmount) .. "/" .. tostring(requiredAmount))
@@ -980,17 +1204,62 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
         return
     end
 
-    local isComplete = C_QuestLog.IsComplete(logIndex)
-    if not isComplete and objectiveLooksComplete then
-        isComplete = true
+    local isComplete, completeReason = self:IsQuestCompleteByObjectives(questID, logIndex)
+
+    if isComplete and questID and self.questCompletionAnnounced[questID] then
+        self:SendDebugMsg("completion already announced for questID=" .. tostring(questID) .. " :: " .. tostring(completeReason))
+        return
     end
 
     if isComplete then
+        if questID then
+            self.questCompletionAnnounced[questID] = true
+            self.questCompletionAnnouncedAt[questID] = GetTime and GetTime() or 0
+        end
         if questID and self:ShouldShowLocalProgressMessages() then
             self:NotifySelf(L["Completed: "] .. localMsg, false)
         end
+        self:SendDebugMsg("quest completion detected :: questID=" .. tostring(questID) .. " :: " .. tostring(completeReason))
         self:SendMsg(L["Completed: "] .. newMsg, true)
     else
+        if objectiveLooksComplete and questID then
+            self:SendDebugMsg("objective complete event but quest not complete yet :: questID=" .. tostring(questID) .. " :: reason=" .. tostring(completeReason))
+            if not self.pendingCompletionRecheck[questID] then
+                self.pendingCompletionRecheck[questID] = true
+                local retryDelays = { 0.20, 0.60, 1.20 }
+                local function RunDelayedCheck(attempt)
+                    local delay = retryDelays[attempt]
+                    if not delay then
+                        QuestAnnounce.pendingCompletionRecheck[questID] = nil
+                        return
+                    end
+                    C_Timer.After(delay, function()
+                        if not QuestAnnounce or not QuestAnnounce.IsQuestCompleteByObjectives then
+                            return
+                        end
+                        local delayedComplete, delayedReason = QuestAnnounce:IsQuestCompleteByObjectives(questID, logIndex)
+                        if delayedComplete and not QuestAnnounce.questCompletionAnnounced[questID] then
+                            QuestAnnounce.questCompletionAnnounced[questID] = true
+                            QuestAnnounce.questCompletionAnnouncedAt[questID] = GetTime and GetTime() or 0
+                            QuestAnnounce.pendingCompletionRecheck[questID] = nil
+                            if QuestAnnounce:ShouldShowLocalProgressMessages() then
+                                QuestAnnounce:NotifySelf(L["Completed: "] .. localMsg, false)
+                            end
+                            QuestAnnounce:SendDebugMsg("delayed completion confirmed :: questID=" .. tostring(questID) .. " :: attempt=" .. tostring(attempt) .. " :: " .. tostring(delayedReason))
+                            QuestAnnounce:SendMsg(L["Completed: "] .. newMsg, true)
+                            return
+                        end
+                        if attempt >= #retryDelays then
+                            QuestAnnounce.pendingCompletionRecheck[questID] = nil
+                            QuestAnnounce:SendDebugMsg("delayed completion not confirmed :: questID=" .. tostring(questID) .. " :: attempt=" .. tostring(attempt) .. " :: " .. tostring(delayedReason))
+                        else
+                            RunDelayedCheck(attempt + 1)
+                        end
+                    end)
+                end
+                RunDelayedCheck(1)
+            end
+        end
         if not self:ShouldAnnounceProgressByEvery(currentAmount, requiredAmount) then
             self:SendDebugMsg("Progress skipped by every setting :: " .. tostring(currentAmount) .. "/" .. tostring(requiredAmount))
             return
@@ -999,7 +1268,11 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
         if questID and self:ShouldShowLocalProgressMessages() then
             self:NotifySelf(L["Progress: "] .. localMsg, false)
         end
-        self:SendMsg(L["Progress: "] .. newMsg, false)
+        local progressSoundOverride = objectiveLooksComplete and "complete" or nil
+        if progressSoundOverride == "complete" then
+            self:SendDebugMsg("objective completion uses complete sound :: questID=" .. tostring(questID))
+        end
+        self:SendMsg(L["Progress: "] .. newMsg, false, progressSoundOverride)
     end
 
     self:SendDebugMsg("Quest processed: " .. questTitle)
@@ -1066,6 +1339,43 @@ function QuestAnnounce:FindQuestByTitle(title)
     self:SendDebugMsg("Quest NOT FOUND in title/objective cache :: " .. tostring(title))
 end
 
+function QuestAnnounce:IsQuestCompleteByObjectives(questID, logIndex)
+    if not questID then
+        return false, "no questID"
+    end
+
+    if IsQuestFlaggedCompleted and IsQuestFlaggedCompleted(questID) then
+        return true, "IsQuestFlaggedCompleted=true"
+    end
+
+    if C_QuestLog and C_QuestLog.IsComplete and C_QuestLog.IsComplete(logIndex or questID) then
+        return true, "C_QuestLog.IsComplete=true"
+    end
+
+    local objectives = C_QuestLog and C_QuestLog.GetQuestObjectives and C_QuestLog.GetQuestObjectives(questID) or nil
+    if type(objectives) ~= "table" or #objectives == 0 then
+        return false, "no objective data"
+    end
+
+    local anyObjective = false
+    for _, objective in ipairs(objectives) do
+        if objective and objective.text and objective.text ~= "" then
+            anyObjective = true
+            local finished = objective.finished == true
+            local fulfilled = tonumber(objective.numFulfilled)
+            local required = tonumber(objective.numRequired)
+            if not finished and not (fulfilled and required and required > 0 and fulfilled >= required) then
+                return false, "objective incomplete"
+            end
+        end
+    end
+
+    if anyObjective then
+        return true, "all objectives complete"
+    end
+    return false, "no objective rows"
+end
+
 --[[ Sends a debugging message if debug is enabled and we have a message to send ]]--
 function QuestAnnounce:SendDebugMsg(msg)
     if msg ~= nil and self.db and self.db.profile and self.db.profile.settings and self.db.profile.settings.debug then
@@ -1121,7 +1431,7 @@ end
 --[[ Sends a chat message to the selected chat channels and frames where applicable,
     if we have a message to send; will also send a debugging message if debug is enabled ]]--
 -- Sendet die Nachricht an die aktivierten Ausgabekanäle und Ausgabefenster
-function QuestAnnounce:SendMsg(msg, isComplete)
+function QuestAnnounce:SendMsg(msg, isComplete, soundOverrideEvent)
     -- Sicherheitsabbruch, wenn keine Nachricht vorhanden ist
     if not msg then
         return
@@ -1240,7 +1550,11 @@ function QuestAnnounce:SendMsg(msg, isComplete)
 
     -- DE: Geordnete Sound-Ausgabe ohne Sound-Flut / EN: Ordered sound output without sound spam.
     if allowSelfOutput then
-        if isComplete == true then
+        if soundOverrideEvent == "complete" then
+            self:PlayConfiguredSound("complete")
+        elseif soundOverrideEvent == "progress" then
+            self:PlayConfiguredSound("progress")
+        elseif isComplete == true then
             self:PlayConfiguredSound("complete")
         else
             self:PlayConfiguredSound("progress")
