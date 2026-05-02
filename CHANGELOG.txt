@@ -49,6 +49,12 @@ v9.3.0.6 Multi - 25-04-2026
 		         - [EN] Extended manual-intent window for turn-in from 4s to 45s so longer reward/dialog flows are not falsely suppressed as `intent too old`
 		         - [DE] Suppressed-Debug korrigiert: `byContextFallback` zeigt jetzt den tatsächlich verwendeten Entscheidungswert (kein irreführendes Recompute mehr)
 		         - [EN] Corrected suppressed-debug: `byContextFallback` now reflects the actual decision value (no misleading recompute)
+		         - [DE] Questlink-Öffnen weiter taint-sicher gemacht: kein direkter Aufruf von `QuestMapFrame_OpenToQuestDetails()` mehr; Quest wird sicher selektiert und Details nur bei bereits geöffneter Weltkarte fokussiert
+		         - [EN] Further hardened quest-link opening for taint safety: removed direct `QuestMapFrame_OpenToQuestDetails()` call; quest is selected safely and details are only focused when the world map is already open
+		         - [DE] Zusätzlicher Notfall-Fix für `ADDON_ACTION_BLOCKED` (`SetPassThroughButtons`): Linksklick auf QA-Questlinks nutzt jetzt einen taint-sicheren URL-Dialog statt WorldMap/QuestMap-API-Aufrufen
+		         - [EN] Additional emergency fix for `ADDON_ACTION_BLOCKED` (`SetPassThroughButtons`): left-click on QA quest links now uses a taint-safe URL dialog instead of WorldMap/QuestMap API calls
+		         - [DE] Taint-Ursache weiter reduziert: Questlog-Kompatibilität nutzt jetzt eine lokale `QA_QuestLog`-API statt globale `C_QuestLog`-Mutation, um Blizzard-UI-Taint in MapCanvas/WorldMap-Ereignissen zu vermeiden
+		         - [EN] Further reduced taint risk: quest-log compatibility now uses a local `QA_QuestLog` API instead of mutating global `C_QuestLog`, helping avoid Blizzard UI taint in MapCanvas/WorldMap events
 
 v9.3.0.5 Multi - 20-04-2026
 	         - [DE] Fix nachgereicht: Tooltip-Styling greift jetzt auf alle QuestAnnounce-eigenen Tooltips (z. B. Optionen + Minimap), aber nicht auf fremde Addons oder Blizzard-Tooltips
