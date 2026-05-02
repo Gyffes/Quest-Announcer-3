@@ -18,7 +18,7 @@ local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L["enUS"]
 -- ---------------------------------------------------------
 -- DE: Manche Clients (z. B. TBC 2.5.5) haben kein C_QuestLog.
 -- EN: Some clients (e.g. TBC 2.5.5) do not provide C_QuestLog.
-C_QuestLog = C_QuestLog or {}
+local QA_QuestLog = C_QuestLog or {}
 
 local function GetQuestIDFromLink(link)
     if type(link) ~= "string" then
@@ -44,14 +44,14 @@ local function LegacyGetQuestLogIndexByQuestID(questID)
     end
 end
 
-if not C_QuestLog.GetNumQuestLogEntries and GetNumQuestLogEntries then
-    C_QuestLog.GetNumQuestLogEntries = function()
+if not QA_QuestLog.GetNumQuestLogEntries and GetNumQuestLogEntries then
+    QA_QuestLog.GetNumQuestLogEntries = function()
         return GetNumQuestLogEntries() or 0
     end
 end
 
-if not C_QuestLog.GetInfo and GetQuestLogTitle then
-    C_QuestLog.GetInfo = function(index)
+if not QA_QuestLog.GetInfo and GetQuestLogTitle then
+    QA_QuestLog.GetInfo = function(index)
         if not index then
             return nil
         end
@@ -74,8 +74,8 @@ if not C_QuestLog.GetInfo and GetQuestLogTitle then
     end
 end
 
-if not C_QuestLog.GetQuestObjectives and GetNumQuestLeaderBoards and GetQuestLogLeaderBoard then
-    C_QuestLog.GetQuestObjectives = function(questID)
+if not QA_QuestLog.GetQuestObjectives and GetNumQuestLeaderBoards and GetQuestLogLeaderBoard then
+    QA_QuestLog.GetQuestObjectives = function(questID)
         local index = LegacyGetQuestLogIndexByQuestID(questID)
         if not index then
             return {}
@@ -98,8 +98,8 @@ if not C_QuestLog.GetQuestObjectives and GetNumQuestLeaderBoards and GetQuestLog
     end
 end
 
-if not C_QuestLog.GetQuestLink and GetQuestLink then
-    C_QuestLog.GetQuestLink = function(questID)
+if not QA_QuestLog.GetQuestLink and GetQuestLink then
+    QA_QuestLog.GetQuestLink = function(questID)
         local index = LegacyGetQuestLogIndexByQuestID(questID)
         if index then
             return GetQuestLink(index)
@@ -107,8 +107,8 @@ if not C_QuestLog.GetQuestLink and GetQuestLink then
     end
 end
 
-if not C_QuestLog.SetSelectedQuest and SelectQuestLogEntry then
-    C_QuestLog.SetSelectedQuest = function(questID)
+if not QA_QuestLog.SetSelectedQuest and SelectQuestLogEntry then
+    QA_QuestLog.SetSelectedQuest = function(questID)
         local index = LegacyGetQuestLogIndexByQuestID(questID)
         if index then
             SelectQuestLogEntry(index)
@@ -116,8 +116,8 @@ if not C_QuestLog.SetSelectedQuest and SelectQuestLogEntry then
     end
 end
 
-if not C_QuestLog.IsComplete then
-    C_QuestLog.IsComplete = function(questIDOrIndex)
+if not QA_QuestLog.IsComplete then
+    QA_QuestLog.IsComplete = function(questIDOrIndex)
         local numeric = tonumber(questIDOrIndex)
         if not numeric then
             return false
@@ -711,11 +711,11 @@ function QuestAnnounce:BuildQuestCache()
 
     local questCount = 0
     local objectiveCount = 0
-    local numEntries = C_QuestLog.GetNumQuestLogEntries()
+    local numEntries = QA_QuestLog.GetNumQuestLogEntries()
     local activeQuestIDs = {}
 
     for i = 1, numEntries do
-        local info = C_QuestLog.GetInfo(i)
+        local info = QA_QuestLog.GetInfo(i)
 
         if info and info.title and info.questID and not info.isHeader then
             activeQuestIDs[info.questID] = true
@@ -729,7 +729,7 @@ function QuestAnnounce:BuildQuestCache()
             }
             questCount = questCount + 1
 
-            local objectives = C_QuestLog.GetQuestObjectives(info.questID)
+            local objectives = QA_QuestLog.GetQuestObjectives(info.questID)
             if objectives then
                 for _, objective in ipairs(objectives) do
                     if objective and objective.text and objective.text ~= "" then
@@ -810,8 +810,8 @@ function QuestAnnounce:GetQuestTypeFlags(questID, logIndex)
     }
 
     local info
-    if logIndex and C_QuestLog and C_QuestLog.GetInfo then
-        info = C_QuestLog.GetInfo(logIndex)
+    if logIndex and QA_QuestLog and QA_QuestLog.GetInfo then
+        info = QA_QuestLog.GetInfo(logIndex)
     end
 
     if info then
@@ -824,8 +824,8 @@ function QuestAnnounce:GetQuestTypeFlags(questID, logIndex)
         end
     end
 
-    if not flags.trivial and questID and C_QuestLog and C_QuestLog.IsQuestTrivial then
-        local isTrivial = C_QuestLog.IsQuestTrivial(questID)
+    if not flags.trivial and questID and QA_QuestLog and QA_QuestLog.IsQuestTrivial then
+        local isTrivial = QA_QuestLog.IsQuestTrivial(questID)
         if type(isTrivial) == "boolean" then
             flags.trivial = isTrivial
         end
@@ -947,7 +947,7 @@ function QuestAnnounce:GetOfficialQuestLink(questID, fallbackTitle)
         return fallbackTitle or ""
     end
 
-    local questLink = C_QuestLog.GetQuestLink and C_QuestLog.GetQuestLink(questID) or GetQuestLink(questID)
+    local questLink = QA_QuestLog.GetQuestLink and QA_QuestLog.GetQuestLink(questID) or GetQuestLink(questID)
     return questLink or fallbackTitle or ""
 end
 
@@ -968,25 +968,20 @@ function QuestAnnounce:OpenQuestInLog(questID)
         return
     end
 
-    -- DE: In CombatLockdown keine geschützten Map/Questlog-Toggles aufrufen.
-    -- EN: Do not call protected map/quest log toggles during combat lockdown.
     if InCombatLockdown and InCombatLockdown() then
         self:NotifySelf(L["Cannot open settings in combat."], true)
         self:SendDebugMsg("OpenQuestInLog skipped in combat :: questID=" .. tostring(questID))
         return
     end
 
-    -- Beste verfügbare Blizzard-Funktion zuerst benutzen
     if QuestMapFrame_OpenToQuestDetails then
         QuestMapFrame_OpenToQuestDetails(questID)
         return
     end
 
-    -- Fallback ohne geschützte Toggle-Funktionen (vermeidet ADDON_ACTION_BLOCKED/Taint).
-    -- Einen Tick später auswählen/anzeigen, falls verfügbare API-Teile vorhanden sind.
     C_Timer.After(0, function()
-        if C_QuestLog and C_QuestLog.SetSelectedQuest then
-            C_QuestLog.SetSelectedQuest(questID)
+        if QA_QuestLog and QA_QuestLog.SetSelectedQuest then
+            QA_QuestLog.SetSelectedQuest(questID)
         end
 
         if QuestMapFrame_SetFocusedQuest then
@@ -995,11 +990,10 @@ function QuestAnnounce:OpenQuestInLog(questID)
 
         if QuestMapFrame_ShowQuestDetails then
             QuestMapFrame_ShowQuestDetails(questID)
-        else
-            QuestAnnounce:SendDebugMsg("OpenQuestInLog fallback ran without QuestMapFrame_ShowQuestDetails :: questID=" .. tostring(questID))
         end
     end)
 end
+
 
 -- ==============================
 -- Copy-Fenster für Wowhead-Links
@@ -1137,7 +1131,7 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
 	self:SendDebugMsg("questTitle :: " .. tostring(questTitle))
 	self:SendDebugMsg("realQuestTitle :: " .. tostring(realQuestTitle))
 	self:SendDebugMsg("questID :: " .. tostring(questID))
-	self:SendDebugMsg("questLink :: " .. tostring(questID and (C_QuestLog.GetQuestLink and C_QuestLog.GetQuestLink(questID) or GetQuestLink(questID)) or nil))
+	self:SendDebugMsg("questLink :: " .. tostring(questID and (QA_QuestLog.GetQuestLink and QA_QuestLog.GetQuestLink(questID) or GetQuestLink(questID)) or nil))
 
 	local linkTitle = realQuestTitle or questTitle
 
@@ -1152,10 +1146,10 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
     local logIndex = cachedIndex
 
     if not logIndex then
-        local numEntries = C_QuestLog.GetNumQuestLogEntries()
+        local numEntries = QA_QuestLog.GetNumQuestLogEntries()
 
         for i = 1, numEntries do
-            local info = C_QuestLog.GetInfo(i)
+            local info = QA_QuestLog.GetInfo(i)
             if info and info.questID == questID then
                 logIndex = i
                 break
@@ -1294,7 +1288,7 @@ function QuestAnnounce:BuildQuestLink(questID, title, level)
         return title
     end
 
-    local questLink = C_QuestLog.GetQuestLink and C_QuestLog.GetQuestLink(questID) or GetQuestLink(questID)
+    local questLink = QA_QuestLog.GetQuestLink and QA_QuestLog.GetQuestLink(questID) or GetQuestLink(questID)
 
     if questLink and questLink ~= "" then
         return questLink
@@ -1348,11 +1342,11 @@ function QuestAnnounce:IsQuestCompleteByObjectives(questID, logIndex)
         return true, "IsQuestFlaggedCompleted=true"
     end
 
-    if C_QuestLog and C_QuestLog.IsComplete and C_QuestLog.IsComplete(logIndex or questID) then
-        return true, "C_QuestLog.IsComplete=true"
+    if QA_QuestLog and QA_QuestLog.IsComplete and QA_QuestLog.IsComplete(logIndex or questID) then
+        return true, "QA_QuestLog.IsComplete=true"
     end
 
-    local objectives = C_QuestLog and C_QuestLog.GetQuestObjectives and C_QuestLog.GetQuestObjectives(questID) or nil
+    local objectives = QA_QuestLog and QA_QuestLog.GetQuestObjectives and QA_QuestLog.GetQuestObjectives(questID) or nil
     if type(objectives) ~= "table" or #objectives == 0 then
         return false, "no objective data"
     end

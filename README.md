@@ -74,6 +74,10 @@ The addon has been significantly modernized in the current development phase:
 - Tooltip-Styling (Schriftart, Größe, Farben)
 - Robuste Font-Auflösung für Tooltips (Label/Pfad + Fallback auf `STANDARD_TEXT_FONT`)
 - Tooltip-Styling wirkt auf QuestAnnounce-eigene Tooltips (z. B. Optionen + Minimap), ohne globale Beeinflussung fremder Addon-/Blizzard-Tooltips
+- Questlinks in Ankündigungen (taint-sicher):
+  - Linksklick: Quest im Questlog öffnen
+  - Rechtsklick: Wowhead-URL im Copy-Dialog öffnen
+  - Shift+Linksklick: offizieller Questlink wird in den Chat eingefügt
 - Slash-Command: `/qa`
 
 ## Main Features (EN)
@@ -97,6 +101,10 @@ The addon has been significantly modernized in the current development phase:
 - Tooltip styling (font, size, colors)
 - Robust tooltip font resolution (label/path + `STANDARD_TEXT_FONT` fallback)
 - Tooltip styling applies to QuestAnnounce-owned tooltips (e.g. options + minimap) without globally impacting third-party/Blizzard tooltips
+- Quest links in announcements (taint-safe):
+  - Left click: open quest in quest log
+  - Right click: open Wowhead URL in copy dialog
+  - Shift+Left click: insert official quest link into chat
 - Slash command: `/qa`
 
 ## Dateistruktur / File Structure
