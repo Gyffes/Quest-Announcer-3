@@ -312,18 +312,19 @@ end
 
                 local text = type(item) == "table" and item.text or item
                 local value = type(item) == "table" and item.value or item
+                local isSelected = (selectedValue == value)
 
-                info.text = text
+                info.text = (isSelected and "● " or "○ ") .. text
                 info.value = value
-                info.checked = (selectedValue == value)
-                info.isNotRadio = false -- DE: runder Punkt wie Blizzard-Standard / EN: round radio marker like Blizzard defaults
-                info.keepShownOnClick = false
+                info.checked = false
+                info.notCheckable = true
+                info.keepShownOnClick = true
                 info.justifyH = "LEFT"
                 info.func = function()
                     UIDropDownMenu_SetSelectedValue(dropdown, value)
                     UIDropDownMenu_SetText(dropdown, text)
                     onSelect(value, text)
-                    CloseDropDownMenus()
+                    CloseDropDownMenus(1)
                 end
 
                 UIDropDownMenu_AddButton(info, level)
