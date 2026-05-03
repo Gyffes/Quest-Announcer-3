@@ -328,6 +328,8 @@ end
                 local value = type(item) == "table" and item.value or item
                 info.text = text
                 info.value = value
+                info.isTitle = false
+                info.notCheckable = false
                 info.checked = (selectedValue == value)
                 info.justifyH = "LEFT"
                 info.padding = 12
