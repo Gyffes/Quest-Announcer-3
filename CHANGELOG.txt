@@ -1,6 +1,14 @@
 v9.3.0.6 Multi - 25-04-2026
-		         - [DE] Questabgabe-Sound (QUEST_TURNED_IN) wird jetzt nur noch im manuellen Questdialog-Kontext abgespielt
-		         - [EN] Quest turn-in sound (QUEST_TURNED_IN) now only plays in manual quest dialog context
+	         - [DE] Dropdown-Radio-Markierungen korrigiert: ausgewählte Einträge sind jetzt gefüllt, nicht ausgewählte leer (Blizzard-ähnliche Darstellung)
+	         - [EN] Corrected dropdown radio markers: selected entries are now filled, unselected entries are hollow (Blizzard-like appearance)
+	         - [DE] Tooltip-Rendering-Fix: QA3 nutzt wieder stabil benannte eigene Tooltip-Frames (`QuestAnnounceTooltip` / `QuestAnnounceConfigTooltip`), damit alle Tooltip-Zeilen zuverlässig angezeigt werden
+	         - [EN] Tooltip rendering fix: QA3 now again uses stable named addon-owned tooltip frames (`QuestAnnounceTooltip` / `QuestAnnounceConfigTooltip`) so all tooltip lines render reliably
+	         - [DE] Tooltip-Implementierung gehärtet: QA3-Tooltips bleiben addon-eigen, und fragiles Template-Region-Stripping wurde entfernt (geringeres Taint-/Nebenwirkungs-Risiko)
+	         - [EN] Tooltip implementation hardened: QA3 tooltips remain addon-owned and fragile template-region stripping was removed (reduced taint/side-effect risk)
+	         - [DE] Fragile Template-Region-Manipulation entfernt: keine pauschale `GetRegions()`-Texture-Löschung mehr im Minimap-Tooltip
+	         - [EN] Removed fragile template region manipulation: no blanket `GetRegions()` texture stripping in the minimap tooltip anymore
+	         - [DE] Questabgabe-Sound (QUEST_TURNED_IN) wird jetzt nur noch im manuellen Questdialog-Kontext abgespielt
+	         - [EN] Quest turn-in sound (QUEST_TURNED_IN) now only plays in manual quest dialog context
 		         - [DE] Neue Kontextprüfung ergänzt (QuestFrame/QuestGreeting/Gossip oder NPC-Dialoghinweise), inklusive Debug-Grundtexten bei Unterdrückung
 	         - [EN] Added context detection (QuestFrame/QuestGreeting/Gossip or NPC dialog hints), including debug reason text when suppressed
 	         - [DE] Neue optionale Einstellung ergänzt: „Play Turn-In Sound for Auto Turn-In“ (Standard: deaktiviert)

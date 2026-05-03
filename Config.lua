@@ -294,23 +294,57 @@ end
 
     -- Hilfsfunktion: Erstellt ein Dropdown-Menü mit einer Liste von Einträgen
     local function CreateDropdown(parent, width, x, y, items, onSelect, tooltipTitle, tooltipText)
+        if not QuestAnnounce._qaDropdownTimerPatch then
+            QuestAnnounce._qaDropdownTimerPatch = true
+            hooksecurefunc("ToggleDropDownMenu", function()
+                for level = 1, (UIDROPDOWNMENU_MAXLEVELS or 2) do
+                    local list = _G["DropDownList" .. level]
+                    if list then
+                        list.showTimer = nil
+                        list.hasTimer = nil
+                        list:SetScript("OnUpdate", nil)
+                    end
+                end
+            end)
+        end
+
         local dropdown = CreateFrame("Frame", nil, parent, "UIDropDownMenuTemplate")
         dropdown:SetPoint("TOPLEFT", x - 16, y + 10)
         UIDropDownMenu_SetWidth(dropdown, width)
+        UIDropDownMenu_SetButtonWidth(dropdown, width)
+        UIDropDownMenu_JustifyText(dropdown, "LEFT")
 
         UIDropDownMenu_Initialize(dropdown, function(self, level)
+            if level ~= 1 then
+                return
+            end
+
+            local selectedValue = UIDropDownMenu_GetSelectedValue(dropdown)
             for _, item in ipairs(items) do
                 local info = UIDropDownMenu_CreateInfo()
+                wipe(info)
+
                 local text = type(item) == "table" and item.text or item
                 local value = type(item) == "table" and item.value or item
-                info.text = text
+                local isSelected = (selectedValue == value)
+                local marker = isSelected
+                    and "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:0:16:16:32|t "
+                    or "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:16:32:16:32|t "
+
+                info.text = marker .. text
                 info.value = value
+                info.checked = false
+                info.notCheckable = true
+                info.keepShownOnClick = true
+                info.justifyH = "LEFT"
                 info.func = function()
                     UIDropDownMenu_SetSelectedValue(dropdown, value)
                     UIDropDownMenu_SetText(dropdown, text)
                     onSelect(value, text)
+                    CloseDropDownMenus(1)
                 end
-                UIDropDownMenu_AddButton(info)
+
+                UIDropDownMenu_AddButton(info, level)
             end
         end)
 
@@ -1732,18 +1766,28 @@ end
             return tostring(a):lower() < tostring(b):lower()
         end)
 
-        UIDropDownMenu_Initialize(profileDropdown, function(_, _)
+        UIDropDownMenu_Initialize(profileDropdown, function(_, level)
+            if level ~= 1 then
+                return
+            end
             for _, name in ipairs(names) do
                 local info = UIDropDownMenu_CreateInfo()
-                info.text = name
+                local isSelected = (selectedProfileName == name)
+                local marker = isSelected
+                    and "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:0:16:16:32|t "
+                    or "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:16:32:16:32|t "
+                info.text = marker .. name
+                info.value = name
+                info.notCheckable = true
                 info.func = function()
                     selectedProfileName = name
                     UIDropDownMenu_SetSelectedName(profileDropdown, name)
                     UIDropDownMenu_SetText(profileDropdown, name)
                     profileNameBox:SetText(name)
                     RefreshProfileOverview()
+                    CloseDropDownMenus(1)
                 end
-                UIDropDownMenu_AddButton(info)
+                UIDropDownMenu_AddButton(info, level)
             end
         end)
 
