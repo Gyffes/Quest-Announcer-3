@@ -283,7 +283,7 @@ end
 
 function QuestAnnounce:CreateCustomTooltip()
     if not self.customTooltip then
-        self.customTooltip = CreateFrame("GameTooltip", nil, UIParent, "GameTooltipTemplate")
+        self.customTooltip = CreateFrame("GameTooltip", "QuestAnnounceTooltip", UIParent, "GameTooltipTemplate")
         self.customTooltip:SetFrameStrata("TOOLTIP")
         self.customTooltip:SetClampedToScreen(true)
 

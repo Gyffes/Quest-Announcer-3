@@ -53,8 +53,8 @@ The addon has been significantly modernized in the current development phase:
 - Additional 9.3.0.5 hotfix: tooltip fonts are internally mapped to valid WoW asset paths to prevent `SetFont(): Invalid font file asset`.
 - 9.3.0.6 update: quest turn-in sound now plays only in manual quest dialog context by default; auto turn-in sound can be enabled separately.
 - 9.3.0.6 refinement: in manual context, turn-in sound now requires an explicit turn-in action (turn-in/complete quest button click).
-- 9.3.0.6 Taint-Härtung: QA3-Tooltips wurden von global benannten `GameTooltip`-Frames entkoppelt; fragiles Template-Region-Stripping wurde entfernt.
-- 9.3.0.6 taint-hardening: QuestAnnounce tooltips were decoupled from globally named `GameTooltip` frames and fragile template-region stripping was removed.
+- 9.3.0.6 Taint-Härtung: QA3-Tooltips wurden intern gehärtet; fragiles Template-Region-Stripping wurde entfernt.
+- 9.3.0.6 taint-hardening: QuestAnnounce tooltips were internally hardened and fragile template-region stripping was removed.
 
 ## Hauptfunktionen (DE)
 
@@ -76,7 +76,7 @@ The addon has been significantly modernized in the current development phase:
 - Tooltip-Styling (Schriftart, Größe, Farben)
 - Robuste Font-Auflösung für Tooltips (Label/Pfad + Fallback auf `STANDARD_TEXT_FONT`)
 - Tooltip-Styling wirkt auf QuestAnnounce-eigene Tooltips (z. B. Optionen + Minimap), ohne globale Beeinflussung fremder Addon-/Blizzard-Tooltips
-- Tooltip-Interna sind entkoppelt (keine global benannten QA3-Tooltip-Frames), wodurch das Risiko von Taint-Weitergabe in Blizzard-Map/Widget-Hoverpfaden reduziert wird.
+- Tooltip-Interna sind gehärtet (addon-eigene Frames, kein fragiles Region-Stripping), wodurch das Risiko von Taint/Nebeneffekten in Blizzard-Map/Widget-Hoverpfaden reduziert wird.
 - Questlinks in Ankündigungen (taint-sicher):
   - Linksklick: Quest im Questlog öffnen
   - Rechtsklick: Wowhead-URL im Copy-Dialog öffnen
@@ -104,7 +104,7 @@ The addon has been significantly modernized in the current development phase:
 - Tooltip styling (font, size, colors)
 - Robust tooltip font resolution (label/path + `STANDARD_TEXT_FONT` fallback)
 - Tooltip styling applies to QuestAnnounce-owned tooltips (e.g. options + minimap) without globally impacting third-party/Blizzard tooltips
-- Tooltip internals are isolated (no globally named QA3 tooltip frames), reducing taint propagation risk in Blizzard map/widget hover paths.
+- Tooltip internals are hardened (addon-owned frames, no fragile region stripping), reducing taint/side-effect risk in Blizzard map/widget hover paths.
 - Quest links in announcements (taint-safe):
   - Left click: open quest in quest log
   - Right click: open Wowhead URL in copy dialog

@@ -1,6 +1,8 @@
 v9.3.0.6 Multi - 25-04-2026
-	         - [DE] Tooltip-Implementierung entkoppelt: interne QA3-Tooltips verwenden keine global benannten `GameTooltip`-Frames mehr (geringeres Taint-Risiko bei Blizzard-Map-Widgets)
-	         - [EN] Tooltip implementation decoupled: internal QA3 tooltips no longer use globally named `GameTooltip` frames (reduced taint risk with Blizzard map widgets)
+	         - [DE] Tooltip-Rendering-Fix: QA3 nutzt wieder stabil benannte eigene Tooltip-Frames (`QuestAnnounceTooltip` / `QuestAnnounceConfigTooltip`), damit alle Tooltip-Zeilen zuverlässig angezeigt werden
+	         - [EN] Tooltip rendering fix: QA3 now again uses stable named addon-owned tooltip frames (`QuestAnnounceTooltip` / `QuestAnnounceConfigTooltip`) so all tooltip lines render reliably
+	         - [DE] Tooltip-Implementierung gehärtet: QA3-Tooltips bleiben addon-eigen, und fragiles Template-Region-Stripping wurde entfernt (geringeres Taint-/Nebenwirkungs-Risiko)
+	         - [EN] Tooltip implementation hardened: QA3 tooltips remain addon-owned and fragile template-region stripping was removed (reduced taint/side-effect risk)
 	         - [DE] Fragile Template-Region-Manipulation entfernt: keine pauschale `GetRegions()`-Texture-Löschung mehr im Minimap-Tooltip
 	         - [EN] Removed fragile template region manipulation: no blanket `GetRegions()` texture stripping in the minimap tooltip anymore
 	         - [DE] Questabgabe-Sound (QUEST_TURNED_IN) wird jetzt nur noch im manuellen Questdialog-Kontext abgespielt
