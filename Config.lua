@@ -320,7 +320,10 @@ end
         UIDropDownMenu_JustifyText(dropdown, "LEFT")
         EnsureDropdownListZOrder()
 
-        UIDropDownMenu_Initialize(dropdown, function(self, level)
+        UIDropDownMenu_Initialize(dropdown, function(self, level, menuList)
+            if level ~= 1 then
+                return
+            end
             local selectedValue = UIDropDownMenu_GetSelectedValue(dropdown)
             for _, item in ipairs(items) do
                 local info = UIDropDownMenu_CreateInfo()
@@ -339,7 +342,7 @@ end
                     UIDropDownMenu_SetText(dropdown, text)
                     onSelect(value, text)
                 end
-                UIDropDownMenu_AddButton(info)
+                UIDropDownMenu_AddButton(info, level)
             end
         end)
 
