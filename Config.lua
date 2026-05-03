@@ -293,55 +293,39 @@ local function CreateButton(parent, text, width, height, x, y, onClick, tooltipT
 end
 
     -- Hilfsfunktion: Erstellt ein Dropdown-Menü mit einer Liste von Einträgen
-    local qaDropdownZOrderPatched = false
-
-    local function EnsureDropdownListZOrder()
-        if qaDropdownZOrderPatched then
-            return
-        end
-        qaDropdownZOrderPatched = true
-
-        hooksecurefunc("ToggleDropDownMenu", function(...)
-            for level = 1, (UIDROPDOWNMENU_MAXLEVELS or 2) do
-                local list = _G["DropDownList" .. level]
-                if list then
-                    list:SetFrameStrata("TOOLTIP")
-                    list:SetToplevel(true)
-                end
-            end
-        end)
-    end
-
     local function CreateDropdown(parent, width, x, y, items, onSelect, tooltipTitle, tooltipText)
         local dropdown = CreateFrame("Frame", nil, parent, "UIDropDownMenuTemplate")
         dropdown:SetPoint("TOPLEFT", x - 16, y + 10)
         UIDropDownMenu_SetWidth(dropdown, width)
         UIDropDownMenu_SetButtonWidth(dropdown, width)
         UIDropDownMenu_JustifyText(dropdown, "LEFT")
-        EnsureDropdownListZOrder()
 
-        UIDropDownMenu_Initialize(dropdown, function(self, level, menuList)
+        UIDropDownMenu_Initialize(dropdown, function(self, level)
             if level ~= 1 then
                 return
             end
+
             local selectedValue = UIDropDownMenu_GetSelectedValue(dropdown)
             for _, item in ipairs(items) do
                 local info = UIDropDownMenu_CreateInfo()
                 wipe(info)
+
                 local text = type(item) == "table" and item.text or item
                 local value = type(item) == "table" and item.value or item
+
                 info.text = text
                 info.value = value
-                info.isTitle = false
-                info.notCheckable = false
                 info.checked = (selectedValue == value)
+                info.isNotRadio = false -- DE: runder Punkt wie Blizzard-Standard / EN: round radio marker like Blizzard defaults
+                info.keepShownOnClick = false
                 info.justifyH = "LEFT"
-                info.padding = 12
                 info.func = function()
                     UIDropDownMenu_SetSelectedValue(dropdown, value)
                     UIDropDownMenu_SetText(dropdown, text)
                     onSelect(value, text)
+                    CloseDropDownMenus()
                 end
+
                 UIDropDownMenu_AddButton(info, level)
             end
         end)
