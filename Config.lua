@@ -330,6 +330,7 @@ end
                 info.value = value
                 info.checked = (selectedValue == value)
                 info.justifyH = "LEFT"
+                info.padding = 12
                 info.func = function()
                     UIDropDownMenu_SetSelectedValue(dropdown, value)
                     UIDropDownMenu_SetText(dropdown, text)
