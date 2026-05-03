@@ -53,7 +53,6 @@ The addon has been significantly modernized in the current development phase:
 - Additional 9.3.0.5 hotfix: tooltip fonts are internally mapped to valid WoW asset paths to prevent `SetFont(): Invalid font file asset`.
 - 9.3.0.6 update: quest turn-in sound now plays only in manual quest dialog context by default; auto turn-in sound can be enabled separately.
 - 9.3.0.6 refinement: in manual context, turn-in sound now requires an explicit turn-in action (turn-in/complete quest button click).
-- 9.3.0.6 Taint-Härtung: QA3-Tooltips wurden intern gehärtet; fragiles Template-Region-Stripping wurde entfernt.
 - 9.3.0.6 taint-hardening: QuestAnnounce tooltips were internally hardened and fragile template-region stripping was removed.
 
 ## Hauptfunktionen (DE)

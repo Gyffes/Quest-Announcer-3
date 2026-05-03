@@ -328,8 +328,8 @@ end
                 local value = type(item) == "table" and item.value or item
                 local isSelected = (selectedValue == value)
                 local marker = isSelected
-                    and "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:16:32:16:32|t "
-                    or "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:0:16:16:32|t "
+                    and "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:0:16:16:32|t "
+                    or "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:16:32:16:32|t "
 
                 info.text = marker .. text
                 info.value = value
@@ -1774,8 +1774,8 @@ end
                 local info = UIDropDownMenu_CreateInfo()
                 local isSelected = (selectedProfileName == name)
                 local marker = isSelected
-                    and "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:16:32:16:32|t "
-                    or "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:0:16:16:32|t "
+                    and "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:0:16:16:32|t "
+                    or "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:16:32:16:32|t "
                 info.text = marker .. name
                 info.value = name
                 info.notCheckable = true
