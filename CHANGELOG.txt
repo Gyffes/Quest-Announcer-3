@@ -1,6 +1,10 @@
 v9.3.0.6 Multi - 25-04-2026
-		         - [DE] Questabgabe-Sound (QUEST_TURNED_IN) wird jetzt nur noch im manuellen Questdialog-Kontext abgespielt
-		         - [EN] Quest turn-in sound (QUEST_TURNED_IN) now only plays in manual quest dialog context
+	         - [DE] Tooltip-Implementierung entkoppelt: interne QA3-Tooltips verwenden keine global benannten `GameTooltip`-Frames mehr (geringeres Taint-Risiko bei Blizzard-Map-Widgets)
+	         - [EN] Tooltip implementation decoupled: internal QA3 tooltips no longer use globally named `GameTooltip` frames (reduced taint risk with Blizzard map widgets)
+	         - [DE] Fragile Template-Region-Manipulation entfernt: keine pauschale `GetRegions()`-Texture-Löschung mehr im Minimap-Tooltip
+	         - [EN] Removed fragile template region manipulation: no blanket `GetRegions()` texture stripping in the minimap tooltip anymore
+	         - [DE] Questabgabe-Sound (QUEST_TURNED_IN) wird jetzt nur noch im manuellen Questdialog-Kontext abgespielt
+	         - [EN] Quest turn-in sound (QUEST_TURNED_IN) now only plays in manual quest dialog context
 		         - [DE] Neue Kontextprüfung ergänzt (QuestFrame/QuestGreeting/Gossip oder NPC-Dialoghinweise), inklusive Debug-Grundtexten bei Unterdrückung
 	         - [EN] Added context detection (QuestFrame/QuestGreeting/Gossip or NPC dialog hints), including debug reason text when suppressed
 	         - [DE] Neue optionale Einstellung ergänzt: „Play Turn-In Sound for Auto Turn-In“ (Standard: deaktiviert)

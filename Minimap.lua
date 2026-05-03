@@ -135,8 +135,9 @@ function QuestAnnounce:InitializeMinimapButton()
 
 
         -- Schriftart und -größe setzen
+        local tooltipName = tooltip:GetName()
         for i = 1, tooltip:NumLines() do
-            local leftLine = _G["QuestAnnounceTooltipTextLeft" .. i]
+            local leftLine = tooltipName and _G[tooltipName .. "TextLeft" .. i] or nil
             if leftLine then
                 local _, _, flags = leftLine:GetFont()
                 if i == 1 then  -- Spezifische Anpassungen für die erste Zeile (Überschrift)
@@ -147,7 +148,7 @@ function QuestAnnounce:InitializeMinimapButton()
                     leftLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
                 end
             end
-            local rightLine = _G["QuestAnnounceTooltipTextRight" .. i]
+            local rightLine = tooltipName and _G[tooltipName .. "TextRight" .. i] or nil
             if rightLine then
                 local _, _, flags = rightLine:GetFont()
                 rightLine:SetFont(font, fontSize, flags)
@@ -282,19 +283,9 @@ end
 
 function QuestAnnounce:CreateCustomTooltip()
     if not self.customTooltip then
-        self.customTooltip = CreateFrame("GameTooltip", "QuestAnnounceTooltip", UIParent, "GameTooltipTemplate")
+        self.customTooltip = CreateFrame("GameTooltip", nil, UIParent, "GameTooltipTemplate")
         self.customTooltip:SetFrameStrata("TOOLTIP")
         self.customTooltip:SetClampedToScreen(true)
-
-        -- Entferne alle standardmäßigen Texturen und Regionen, die Teil des Tooltips sein könnten
-        for _, region in ipairs({self.customTooltip:GetRegions()}) do
-            if region:GetObjectType() == "Texture" then
-                region:SetTexture(nil)
-                region:Hide()
-            elseif region:GetObjectType() == "FontString" then
-                -- Lassen Sie die FontStrings sichtbar, wenn benötigt
-            end
-        end
 
         -- Erstelle benutzerdefinierte Hintergrund- und Rahmentexturen
         self.customTooltip.bgTexture = self.customTooltip:CreateTexture(nil, "BACKGROUND")
@@ -323,9 +314,10 @@ function QuestAnnounce:UpdateTooltipBackground()
     self.customTooltip.bgTexture:SetColorTexture(bgColor[1], bgColor[2], bgColor[3], bgColor[4])
 
     -- Schriftart und Farbe aller Tooltip-Zeilen aktualisieren
+    local tooltipName = self.customTooltip:GetName()
     for i = 1, self.customTooltip:NumLines() do
-        local leftLine = _G["QuestAnnounceTooltipTextLeft" .. i]
-        local rightLine = _G["QuestAnnounceTooltipTextRight" .. i]
+        local leftLine = tooltipName and _G[tooltipName .. "TextLeft" .. i] or nil
+        local rightLine = tooltipName and _G[tooltipName .. "TextRight" .. i] or nil
 
         if leftLine then
             local _, _, flags = leftLine:GetFont()

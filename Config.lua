@@ -31,7 +31,7 @@ function QuestAnnounce:SetupOptions()
     -- ---------------------------------------------------------
     -- Tooltip-Helfer
     -- ---------------------------------------------------------
-    local addonTooltip = CreateFrame("GameTooltip", "QuestAnnounceConfigTooltip", UIParent, "GameTooltipTemplate")
+    local addonTooltip = CreateFrame("GameTooltip", nil, UIParent, "GameTooltipTemplate")
     addonTooltip:SetFrameStrata("TOOLTIP")
     addonTooltip:SetClampedToScreen(true)
 
