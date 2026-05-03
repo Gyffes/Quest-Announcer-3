@@ -324,6 +324,7 @@ end
             local selectedValue = UIDropDownMenu_GetSelectedValue(dropdown)
             for _, item in ipairs(items) do
                 local info = UIDropDownMenu_CreateInfo()
+                wipe(info)
                 local text = type(item) == "table" and item.text or item
                 local value = type(item) == "table" and item.value or item
                 info.text = text
