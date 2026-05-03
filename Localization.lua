@@ -234,6 +234,9 @@ QuestAnnounce_L.enUS = {
 	["Only API-reliably distinguishable quest types are filtered. Unknown types stay unaffected."] = "Only API-reliably distinguishable quest types are filtered. Unknown types stay unaffected.",
 	["Cannot open settings in combat."] = "Cannot open settings in combat.",
 	["Wowhead Quest URL"] = "Wowhead Quest URL",
+	["Play Turn-In Sound for Auto Turn-In"] = "Play Turn-In Sound for Auto Turn-In",
+	["If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."] = "If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs.",
+
 }
 
 
@@ -463,6 +466,9 @@ QuestAnnounce_L.deDE = {
 	["Only API-reliably distinguishable quest types are filtered. Unknown types stay unaffected."] = "Es werden nur per API zuverlässig unterscheidbare Questtypen gefiltert. Unbekannte Typen bleiben unverändert.",
 	["Cannot open settings in combat."] = "Einstellungen können im Kampf nicht geöffnet werden.",
 	["Wowhead Quest URL"] = "Wowhead-Quest-URL",
+	["Play Turn-In Sound for Auto Turn-In"] = "Questabgabe-Sound auch bei Auto-Turn-In abspielen",
+	["If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."] = "Wenn aktiviert, spielt QuestAnnounce den Questabgabe-Sound auch bei automatischen Questabgaben außerhalb manueller NPC-Dialoge ab.",
+
 }
 
 QuestAnnounce_L.esMX = {
@@ -632,6 +638,9 @@ QuestAnnounce_L.esMX = {
 	["Ambience"] = "Ambiente",
 	["Dialog"] = "Diálogo",
 	["Music"] = "Música",
+
+	["Play Turn-In Sound for Auto Turn-In"] = "Reproducir sonido de entrega también en autoentrega",
+	["If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."] = "Si está activado, QuestAnnounce también reproduce el sonido de entrega para entregas automáticas fuera de diálogos manuales con NPC.",
 
 }
 
@@ -803,6 +812,9 @@ QuestAnnounce_L.esES = {
 	["Dialog"] = "Diálogo",
 	["Music"] = "Música",
 
+	["Play Turn-In Sound for Auto Turn-In"] = "Reproducir sonido de entrega también en autoentrega",
+	["If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."] = "Si está activado, QuestAnnounce también reproduce el sonido de entrega para entregas automáticas fuera de diálogos manuales con NPC.",
+
 }
 
 QuestAnnounce_L.frFR = {
@@ -973,6 +985,9 @@ QuestAnnounce_L.frFR = {
 	["Dialog"] = "Dialogue",
 	["Music"] = "Musique",
 
+	["Play Turn-In Sound for Auto Turn-In"] = "Jouer le son de remise aussi en remise auto",
+	["If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."] = "Si activé, QuestAnnounce joue aussi le son de remise pour les remises automatiques hors des dialogues PNJ manuels.",
+
 }
 
 QuestAnnounce_L.koKR = {
@@ -1142,6 +1157,9 @@ QuestAnnounce_L.koKR = {
 	["Ambience"] = "환경",
 	["Dialog"] = "대화",
 	["Music"] = "음악",
+
+	["Play Turn-In Sound for Auto Turn-In"] = "자동 완료 퀘스트에서도 반납 소리 재생",
+	["If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."] = "활성화하면 수동 NPC 대화 외 자동 퀘스트 완료에서도 QuestAnnounce가 퀘스트 반납 소리를 재생합니다.",
 
 }
 
@@ -1314,6 +1332,9 @@ QuestAnnounce_L.ruRU = {
 	["Dialog"] = "Диалоги",
 	["Music"] = "Музыка",
 
+	["Play Turn-In Sound for Auto Turn-In"] = "Воспроизводить звук сдачи и при авто-сдаче",
+	["If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."] = "Если включено, QuestAnnounce также воспроизводит звук сдачи задания при автоматической сдаче вне ручного диалога с NPC.",
+
 }
 
 QuestAnnounce_L.zhCN = {
@@ -1483,6 +1504,9 @@ QuestAnnounce_L.zhCN = {
 	["Ambience"] = "环境",
 	["Dialog"] = "对话",
 	["Music"] = "音乐",
+
+	["Play Turn-In Sound for Auto Turn-In"] = "自动交任务时也播放交接音效",
+	["If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."] = "启用后，QuestAnnounce 也会在非手动 NPC 对话的自动交任务时播放交接音效。",
 
 }
 
@@ -1654,6 +1678,9 @@ QuestAnnounce_L.zhTW = {
 	["Ambience"] = "環境",
 	["Dialog"] = "對話",
 	["Music"] = "音樂",
+
+	["Play Turn-In Sound for Auto Turn-In"] = "自動交任務時也播放交付音效",
+	["If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."] = "啟用後，QuestAnnounce 也會在非手動 NPC 對話的自動交任務時播放交付音效。",
 
 }
 
@@ -1835,3 +1862,6 @@ do
         end
     end
 end
+	["Play Turn-In Sound for Auto Turn-In"] = "Tocar som de entrega também no auto turn-in",
+	["If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."] = "Se ativado, o QuestAnnounce também toca o som de entrega para entregas automáticas de missão fora de diálogos manuais com NPC.",
+

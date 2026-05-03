@@ -294,6 +294,19 @@ end
 
     -- Hilfsfunktion: Erstellt ein Dropdown-Menü mit einer Liste von Einträgen
     local function CreateDropdown(parent, width, x, y, items, onSelect, tooltipTitle, tooltipText)
+        if not QuestAnnounce._qaDropdownTimerPatch then
+            QuestAnnounce._qaDropdownTimerPatch = true
+            hooksecurefunc("ToggleDropDownMenu", function()
+                for level = 1, (UIDROPDOWNMENU_MAXLEVELS or 2) do
+                    local list = _G["DropDownList" .. level]
+                    if list then
+                        list.showTimer = nil
+                        list.hasTimer = nil
+                    end
+                end
+            end)
+        end
+
         local dropdown = CreateFrame("Frame", nil, parent, "UIDropDownMenuTemplate")
         dropdown:SetPoint("TOPLEFT", x - 16, y + 10)
         UIDropDownMenu_SetWidth(dropdown, width)
@@ -314,7 +327,7 @@ end
                 local value = type(item) == "table" and item.value or item
                 local isSelected = (selectedValue == value)
 
-                info.text = (isSelected and "● " or "○ ") .. text
+                info.text = (isSelected and "(*) " or "( ) ") .. text
                 info.value = value
                 info.checked = false
                 info.notCheckable = true
