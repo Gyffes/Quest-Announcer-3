@@ -1851,6 +1851,8 @@ QuestAnnounce_L.ptBR = {
 	["Only API-reliably distinguishable quest types are filtered. Unknown types stay unaffected."] = "Somente tipos de missão distinguíveis com segurança pela API são filtrados. Tipos desconhecidos não são afetados.",
 	["Cannot open settings in combat."] = "Não é possível abrir as configurações em combate.",
 	["Wowhead Quest URL"] = "URL da missão no Wowhead",
+	["Play Turn-In Sound for Auto Turn-In"] = "Tocar som de entrega também no auto turn-in",
+	["If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."] = "Se ativado, o QuestAnnounce também toca o som de entrega para entregas automáticas de missão fora de diálogos manuais com NPC.",
 		}
 
 -- Fallback: fehlende Schlüssel in anderen Locales automatisch aus enUS beziehen.
@@ -1862,6 +1864,3 @@ do
         end
     end
 end
-	["Play Turn-In Sound for Auto Turn-In"] = "Tocar som de entrega também no auto turn-in",
-	["If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."] = "Se ativado, o QuestAnnounce também toca o som de entrega para entregas automáticas de missão fora de diálogos manuais com NPC.",
-
