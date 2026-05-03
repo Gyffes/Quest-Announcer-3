@@ -294,7 +294,6 @@ end
 
     -- Hilfsfunktion: Erstellt ein Dropdown-Menü mit einer Liste von Einträgen
     local qaDropdownZOrderPatched = false
-    local qaDropdownFrames = {}
 
     local function EnsureDropdownListZOrder()
         if qaDropdownZOrderPatched then
@@ -303,28 +302,11 @@ end
         qaDropdownZOrderPatched = true
 
         hooksecurefunc("ToggleDropDownMenu", function(...)
-            local openMenu = UIDROPDOWNMENU_OPEN_MENU
-            for _, dd in ipairs(qaDropdownFrames) do
-                if dd and dd.Text then
-                    dd.Text:SetAlpha(dd == openMenu and 0 or 1)
-                end
-            end
-
             for level = 1, (UIDROPDOWNMENU_MAXLEVELS or 2) do
                 local list = _G["DropDownList" .. level]
                 if list then
                     list:SetFrameStrata("TOOLTIP")
                     list:SetToplevel(true)
-                    if not list.qaRestoreHooked then
-                        list:HookScript("OnHide", function()
-                            for _, dd in ipairs(qaDropdownFrames) do
-                                if dd and dd.Text then
-                                    dd.Text:SetAlpha(1)
-                                end
-                            end
-                        end)
-                        list.qaRestoreHooked = true
-                    end
                 end
             end
         end)
@@ -337,15 +319,17 @@ end
         UIDropDownMenu_SetButtonWidth(dropdown, width)
         UIDropDownMenu_JustifyText(dropdown, "LEFT")
         EnsureDropdownListZOrder()
-        table.insert(qaDropdownFrames, dropdown)
 
         UIDropDownMenu_Initialize(dropdown, function(self, level)
+            local selectedValue = UIDropDownMenu_GetSelectedValue(dropdown)
             for _, item in ipairs(items) do
                 local info = UIDropDownMenu_CreateInfo()
                 local text = type(item) == "table" and item.text or item
                 local value = type(item) == "table" and item.value or item
                 info.text = text
                 info.value = value
+                info.checked = (selectedValue == value)
+                info.justifyH = "LEFT"
                 info.func = function()
                     UIDropDownMenu_SetSelectedValue(dropdown, value)
                     UIDropDownMenu_SetText(dropdown, text)
