@@ -297,6 +297,8 @@ end
         local dropdown = CreateFrame("Frame", nil, parent, "UIDropDownMenuTemplate")
         dropdown:SetPoint("TOPLEFT", x - 16, y + 10)
         UIDropDownMenu_SetWidth(dropdown, width)
+        UIDropDownMenu_SetButtonWidth(dropdown, width)
+        UIDropDownMenu_JustifyText(dropdown, "LEFT")
 
         UIDropDownMenu_Initialize(dropdown, function(self, level)
             for _, item in ipairs(items) do
