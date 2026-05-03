@@ -302,6 +302,7 @@ end
                     if list then
                         list.showTimer = nil
                         list.hasTimer = nil
+                        list:SetScript("OnUpdate", nil)
                     end
                 end
             end)
@@ -326,8 +327,11 @@ end
                 local text = type(item) == "table" and item.text or item
                 local value = type(item) == "table" and item.value or item
                 local isSelected = (selectedValue == value)
+                local marker = isSelected
+                    and "|TInterface\\Buttons\\UI-RadioButton:14:14:0:0:64:64:16:32:0:16|t "
+                    or "|TInterface\\Buttons\\UI-RadioButton:14:14:0:0:64:64:0:16:0:16|t "
 
-                info.text = (isSelected and "(*) " or "( ) ") .. text
+                info.text = marker .. text
                 info.value = value
                 info.checked = false
                 info.notCheckable = true
@@ -1762,18 +1766,28 @@ end
             return tostring(a):lower() < tostring(b):lower()
         end)
 
-        UIDropDownMenu_Initialize(profileDropdown, function(_, _)
+        UIDropDownMenu_Initialize(profileDropdown, function(_, level)
+            if level ~= 1 then
+                return
+            end
             for _, name in ipairs(names) do
                 local info = UIDropDownMenu_CreateInfo()
-                info.text = name
+                local isSelected = (selectedProfileName == name)
+                local marker = isSelected
+                    and "|TInterface\\Buttons\\UI-RadioButton:14:14:0:0:64:64:16:32:0:16|t "
+                    or "|TInterface\\Buttons\\UI-RadioButton:14:14:0:0:64:64:0:16:0:16|t "
+                info.text = marker .. name
+                info.value = name
+                info.notCheckable = true
                 info.func = function()
                     selectedProfileName = name
                     UIDropDownMenu_SetSelectedName(profileDropdown, name)
                     UIDropDownMenu_SetText(profileDropdown, name)
                     profileNameBox:SetText(name)
                     RefreshProfileOverview()
+                    CloseDropDownMenus(1)
                 end
-                UIDropDownMenu_AddButton(info)
+                UIDropDownMenu_AddButton(info, level)
             end
         end)
 
