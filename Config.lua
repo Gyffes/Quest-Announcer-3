@@ -292,59 +292,148 @@ local function CreateButton(parent, text, width, height, x, y, onClick, tooltipT
     return button
 end
 
-    -- Hilfsfunktion: Erstellt ein Dropdown-Menü mit einer Liste von Einträgen
+    -- QA3-eigenes Auswahlfeld ohne globale Blizzard-Menue-Implementierung.
     local function CreateDropdown(parent, width, x, y, items, onSelect, tooltipTitle, tooltipText)
-        if not QuestAnnounce._qaDropdownTimerPatch then
-            QuestAnnounce._qaDropdownTimerPatch = true
-            hooksecurefunc("ToggleDropDownMenu", function()
-                for level = 1, (UIDROPDOWNMENU_MAXLEVELS or 2) do
-                    local list = _G["DropDownList" .. level]
-                    if list then
-                        list.showTimer = nil
-                        list.hasTimer = nil
-                        list:SetScript("OnUpdate", nil)
-                    end
-                end
-            end)
+        local dropdown = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+        dropdown:SetSize(width, 24)
+        dropdown:SetPoint("TOPLEFT", x, y)
+        dropdown.items = items or {}
+        dropdown.onSelect = onSelect
+        dropdown.selectedValue = nil
+        dropdown.selectedText = ""
+
+        local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+        menu:SetFrameStrata("TOOLTIP")
+        menu:SetFrameLevel(100)
+        menu:SetBackdrop({
+            bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+            tile = true,
+            tileSize = 16,
+            edgeSize = 12,
+            insets = { left = 3, right = 3, top = 3, bottom = 3 },
+        })
+        menu:SetBackdropColor(0.08, 0.08, 0.08, 0.98)
+        menu:SetClampedToScreen(true)
+        menu:Hide()
+        dropdown.menu = menu
+
+        -- QA3 verwaltet seine Menues lokal, damit immer nur eine Auswahl offen ist.
+        function dropdown:SetSelected(value, text)
+            self.selectedValue = value
+            self.selectedText = text or tostring(value or "")
+            self:SetText(self.selectedText)
         end
 
-        local dropdown = CreateFrame("Frame", nil, parent, "UIDropDownMenuTemplate")
-        dropdown:SetPoint("TOPLEFT", x - 16, y + 10)
-        UIDropDownMenu_SetWidth(dropdown, width)
-        UIDropDownMenu_SetButtonWidth(dropdown, width)
-        UIDropDownMenu_JustifyText(dropdown, "LEFT")
+        function dropdown:SetItems(newItems)
+            self.items = newItems or {}
+        end
 
-        UIDropDownMenu_Initialize(dropdown, function(self, level)
-            if level ~= 1 then
+        menu.rows = {}
+
+        function dropdown:RefreshMenu()
+            local rowHeight = 24
+            local itemCount = #self.items
+            menu:SetSize(width + 12, math.max(rowHeight + 12, itemCount * rowHeight + 12))
+            menu:ClearAllPoints()
+            menu:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -2)
+
+            for index, item in ipairs(self.items) do
+                local text = type(item) == "table" and item.text or item
+                local value = type(item) == "table" and item.value or item
+                local tooltipTitle = type(item) == "table" and item.tooltipTitle or nil
+                local tooltipText = type(item) == "table" and item.tooltipText or nil
+                local isSelected = (self.selectedValue == value)
+                local row = menu.rows[index]
+
+                if not row then
+                    row = CreateFrame("Button", nil, menu)
+                    row:SetSize(width, rowHeight)
+
+                    row.radio = CreateFrame("CheckButton", nil, row, "UIRadioButtonTemplate")
+                    row.radio:SetPoint("LEFT", 2, 0)
+                    row.radio:EnableMouse(false)
+
+                    row.label = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+                    row.label:SetPoint("LEFT", row.radio, "RIGHT", 2, 0)
+                    row.label:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+                    row.label:SetJustifyH("LEFT")
+
+                    row:SetScript("OnEnter", function(self)
+                        self.label:SetTextColor(1, 0.82, 0, 1)
+                    end)
+                    row:SetScript("OnLeave", function(self)
+                        self.label:SetTextColor(1, 1, 1, 1)
+                        addonTooltip:Hide()
+                    end)
+                    menu.rows[index] = row
+                end
+
+                row:ClearAllPoints()
+                row:SetPoint("TOPLEFT", 6, -6 - ((index - 1) * rowHeight))
+                row.value = value
+                row.text = text
+                row.tooltipTitle = tooltipTitle
+                row.tooltipText = tooltipText
+                row.radio:SetChecked(isSelected)
+                row.label:SetText(text)
+                row:SetScript("OnEnter", function(self)
+                    self.label:SetTextColor(1, 0.82, 0, 1)
+                    if self.tooltipText and self.tooltipText ~= "" then
+                        ApplyConfiguredTooltipStyle(addonTooltip)
+                        addonTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                        addonTooltip:ClearLines()
+                        addonTooltip:SetText(self.tooltipTitle or self.text or "", 1, 1, 1)
+                        addonTooltip:AddLine(self.tooltipText, 1, 1, 1, true)
+                        ApplyConfiguredTooltipStyle(addonTooltip)
+                        addonTooltip:Show()
+                    end
+                end)
+                row:SetScript("OnClick", function(self)
+                    dropdown:SetSelected(self.value, self.text)
+                    menu:Hide()
+                    if QuestAnnounce._activeSelectorMenu == menu then
+                        QuestAnnounce._activeSelectorMenu = nil
+                    end
+                    if dropdown.onSelect then
+                        dropdown.onSelect(self.value, self.text)
+                    end
+                end)
+                row:Show()
+            end
+
+            for index = itemCount + 1, #menu.rows do
+                menu.rows[index]:Hide()
+            end
+        end
+
+        dropdown:SetScript("OnClick", function(self)
+            if menu:IsShown() then
+                menu:Hide()
+                if QuestAnnounce._activeSelectorMenu == menu then
+                    QuestAnnounce._activeSelectorMenu = nil
+                end
                 return
             end
 
-            local selectedValue = UIDropDownMenu_GetSelectedValue(dropdown)
-            for _, item in ipairs(items) do
-                local info = UIDropDownMenu_CreateInfo()
-                wipe(info)
+            local activeMenu = QuestAnnounce._activeSelectorMenu
+            if activeMenu and activeMenu ~= menu then
+                activeMenu:Hide()
+            end
+            self:RefreshMenu()
+            menu:Show()
+            QuestAnnounce._activeSelectorMenu = menu
+        end)
 
-                local text = type(item) == "table" and item.text or item
-                local value = type(item) == "table" and item.value or item
-                local isSelected = (selectedValue == value)
-                local marker = isSelected
-                    and "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:0:16:16:32|t "
-                    or "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:16:32:16:32|t "
-
-                info.text = marker .. text
-                info.value = value
-                info.checked = false
-                info.notCheckable = true
-                info.keepShownOnClick = true
-                info.justifyH = "LEFT"
-                info.func = function()
-                    UIDropDownMenu_SetSelectedValue(dropdown, value)
-                    UIDropDownMenu_SetText(dropdown, text)
-                    onSelect(value, text)
-                    CloseDropDownMenus(1)
-                end
-
-                UIDropDownMenu_AddButton(info, level)
+        dropdown:HookScript("OnHide", function()
+            menu:Hide()
+            if QuestAnnounce._activeSelectorMenu == menu then
+                QuestAnnounce._activeSelectorMenu = nil
+            end
+        end)
+        menu:HookScript("OnHide", function()
+            if QuestAnnounce._activeSelectorMenu == menu then
+                QuestAnnounce._activeSelectorMenu = nil
             end
         end)
 
@@ -923,7 +1012,7 @@ end
 
             if value then
                 if QuestAnnounce.db.profile.announceIn.channelName == "" or not QuestAnnounce.db.profile.announceIn.channelName then
-                    StaticPopup_Show("MISSING_CHANNEL_NAME")
+                    StaticPopup_Show("QUESTANNOUNCE_MISSING_CHANNEL_NAME")
                 else
                     QuestAnnounce:JoinChannel(QuestAnnounce.db.profile.announceIn.channelName)
                 end
@@ -1080,7 +1169,12 @@ end
         { text = L["Effects"], value = "SFX" },
         { text = L["Ambience"], value = "Ambience" },
         { text = L["Dialog"], value = "Dialog" },
-        { text = L["Music"], value = "Music" },
+        {
+            text = L["Music"],
+            value = "Music",
+            tooltipTitle = L["Music"],
+            tooltipText = L["Music channel requirement"],
+        },
     }
     local soundChannelDropdown = CreateDropdown(
         soundPanel, 180, 16, -122, channelItems,
@@ -1163,6 +1257,11 @@ end
     end
 
     local progressRow = CreateSoundRow(-164, "Progress Sound ID", "progressSound", 8959, "Reset Progress Sound", "Test Progress Sound", "enableProgressSound", "Enable Progress Sound", "progress")
+    AttachTooltip(
+        progressRow.box,
+        L["Progress Sound ID"],
+        L["Progress sound 8959 master channel note"]
+    )
     local completeRow = CreateSoundRow(-224, "Completion Sound ID", "completeSound", 6197, "Reset Completion Sound", "Test Complete Sound", "enableCompleteSound", "Enable Completion Sound", "complete")
     local acceptRow = CreateSoundRow(-284, "Accepted Sound ID", "acceptSound", 6192, "Reset Accepted Sound", "Test Accepted Sound", "enableAcceptSound", "Enable Accepted Sound", "accept")
     local turnInRow = CreateSoundRow(-344, "Turn-In Sound ID", "turnInSound", 6199, "Reset Turn-In Sound", "Test Turn-In Sound", "enableTurnInSound", "Enable Turn-In Sound", "turnin")
@@ -1236,8 +1335,7 @@ end
             normalizedChannel = "Music"
         end
         settings.soundChannel = normalizedChannel
-        UIDropDownMenu_SetSelectedValue(soundChannelDropdown, normalizedChannel)
-        UIDropDownMenu_SetText(soundChannelDropdown, reverseChannelMap[normalizedChannel] or L["Master"])
+        soundChannelDropdown:SetSelected(normalizedChannel, reverseChannelMap[normalizedChannel] or L["Master"])
 
         SetNumericEditBoxValue(progressRow.box, settings.progressSound, 8959)
         SetNumericEditBoxValue(completeRow.box, settings.completeSound, 6197)
@@ -1409,8 +1507,7 @@ end
 
         -- Gespeicherte Schriftart im Dropdown anzeigen
         local selectedTooltipFont = ResolveTooltipFontLabel(tooltipDB.font)
-        UIDropDownMenu_SetSelectedValue(tooltipFontDropdown, selectedTooltipFont)
-        UIDropDownMenu_SetText(tooltipFontDropdown, selectedTooltipFont)
+        tooltipFontDropdown:SetSelected(selectedTooltipFont, selectedTooltipFont)
 
         -- Gespeicherte Schriftgröße im Slider anzeigen
         tooltipFontSizeSlider:SetValue(tooltipDB.fontSize or 12)
@@ -1637,11 +1734,17 @@ end
     profileSelectLabel:SetPoint("TOPLEFT", profileNameLabel, "TOPLEFT", 300, 0)
     profileSelectLabel:SetText(L["Profile Selection"])
 
-    local profileDropdown = CreateFrame("Frame", nil, profilePanel, "UIDropDownMenuTemplate")
-    profileDropdown:SetPoint("TOPLEFT", profilePanel, "TOPLEFT", 300, -108) -- DE: Gleiche Höhe wie Eingabefeld / EN: Same height as name input
-    UIDropDownMenu_SetWidth(profileDropdown, 240)
-    UIDropDownMenu_SetText(profileDropdown, L["No profile selected."])
-    AttachTooltip(profileDropdown, L["Profile Selection"], L["Select a saved profile to load, copy, delete, overwrite, or inspect."])
+    local profileDropdown = CreateDropdown(
+        profilePanel,
+        240,
+        300,
+        -108,
+        {},
+        nil,
+        L["Profile Selection"],
+        L["Select a saved profile to load, copy, delete, overwrite, or inspect."]
+    )
+    profileDropdown:SetSelected(nil, L["No profile selected."])
 
     local profileOverviewHeader = profilePanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     profileOverviewHeader:SetPoint("TOPLEFT", profilePanel, "TOPLEFT", 16, -286) -- DE: Tiefer nach Buttons / EN: Moved lower below buttons
@@ -1766,37 +1869,23 @@ end
             return tostring(a):lower() < tostring(b):lower()
         end)
 
-        UIDropDownMenu_Initialize(profileDropdown, function(_, level)
-            if level ~= 1 then
-                return
-            end
-            for _, name in ipairs(names) do
-                local info = UIDropDownMenu_CreateInfo()
-                local isSelected = (selectedProfileName == name)
-                local marker = isSelected
-                    and "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:0:16:16:32|t "
-                    or "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:16:32:16:32|t "
-                info.text = marker .. name
-                info.value = name
-                info.notCheckable = true
-                info.func = function()
-                    selectedProfileName = name
-                    UIDropDownMenu_SetSelectedName(profileDropdown, name)
-                    UIDropDownMenu_SetText(profileDropdown, name)
-                    profileNameBox:SetText(name)
-                    RefreshProfileOverview()
-                    CloseDropDownMenus(1)
-                end
-                UIDropDownMenu_AddButton(info, level)
-            end
-        end)
+        local profileItems = {}
+        for _, name in ipairs(names) do
+            table.insert(profileItems, { text = name, value = name })
+        end
+        profileDropdown:SetItems(profileItems)
+        profileDropdown.onSelect = function(name)
+            selectedProfileName = name
+            profileDropdown:SetSelected(name, name)
+            profileNameBox:SetText(name)
+            RefreshProfileOverview()
+        end
 
         if selectedProfileName and profiles[selectedProfileName] then
-            UIDropDownMenu_SetSelectedName(profileDropdown, selectedProfileName)
-            UIDropDownMenu_SetText(profileDropdown, selectedProfileName)
+            profileDropdown:SetSelected(selectedProfileName, selectedProfileName)
         else
             selectedProfileName = nil
-            UIDropDownMenu_SetText(profileDropdown, L["No profile selected."])
+            profileDropdown:SetSelected(nil, L["No profile selected."])
         end
     end
 
@@ -2165,7 +2254,7 @@ end
 
 -- Popup-Dialog, der angezeigt wird, wenn ein benutzerdefinierter Kanal aktiviert wird,
 -- aber noch kein Kanalname eingetragen wurde.
-StaticPopupDialogs["MISSING_CHANNEL_NAME"] = {
+StaticPopupDialogs["QUESTANNOUNCE_MISSING_CHANNEL_NAME"] = {
     text = L["Please enter a channel name."],
     button1 = OKAY,
     timeout = 0,

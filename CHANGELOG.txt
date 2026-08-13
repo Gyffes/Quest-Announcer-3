@@ -1,3 +1,21 @@
+v9.3.0.7 Multi - 13-08-2026
+         - [DE] SoundFix: Der Standard-Fortschrittston 8959 (Raid Warning) wird jetzt als zugehoerige Datei 567397 abgespielt, damit er dem ausgewaehlten Kanal folgt statt von WoW immer ueber Master ausgegeben zu werden; ein SoundKit-Fallback erfolgt nur bei explizit gewaehltem Master
+         - [EN] Sound fix: the default progress sound 8959 (Raid Warning) now plays through its matching file 567397 so it follows the selected channel instead of WoW always using Master; a SoundKit fallback is used only when Master was explicitly selected
+         - [DE] WoW-12.1-Taint-Fix: alle QA3-Dropdowns vollständig von Blizzards globaler UIDropDownMenu-API entkoppelt; dadurch werden UIDROPDOWNMENU_MENU_LEVEL und gemeinsam genutzte Dropdown-Frames nicht mehr durch QA3 tainted
+         - [EN] WoW 12.1 taint fix: fully detached all QA3 dropdowns from Blizzard's global UIDropDownMenu API; QA3 no longer taints UIDROPDOWNMENU_MENU_LEVEL or shared dropdown frames
+         - [DE] Neue QA3-eigene Auswahlmenüs mit klarer Radio-Optik: ausgewählte Einträge sind gefüllt, nicht ausgewählte leer
+         - [EN] New QA3-owned selector menus with clear radio styling: selected entries are filled and unselected entries are hollow
+         - [DE] PR-Isolation weiter gehärtet: CI blockiert künftig die alte UIDropDownMenu-API, globale Dropdown-Schließer und gemeinsam genutzte Blizzard-Dropdownlisten
+         - [EN] Further hardened PR isolation: CI now blocks the legacy UIDropDownMenu API, global dropdown closers, and shared Blizzard dropdown lists
+         - [DE] Alle unterstützten Locales für Profilverwaltung, Pausenstatus und lokale Fortschrittsmeldungen vervollständigt
+         - [EN] Completed all supported locales for profile management, pause status, and local progress messages
+         - [DE] README, Versionsdateien und automatische Lokalisierungsprüfung für den Release aktualisiert
+         - [EN] Updated README, version files, and automated localization validation for this release
+         - [DE] Soundkanal-Hinweise ergänzt: Der Musik-Eintrag erklärt die notwendige Aktivierung des WoW-Musikkanals; die Fortschritts-Sound-ID 8959 weist auf ihre clientseitige Master-Bindung hin
+         - [EN] Added sound-channel hints: the Music entry explains that the WoW Music channel must be enabled; progress sound ID 8959 notes its client-side Master binding
+         - [DE] Multi-Kompatibilität abgesichert: automatischer Test prüft alle zehn WoW-Client-TOCs, identische Version und gemeinsame Kern-Dateien
+         - [EN] Multi-client compatibility safeguarded: automated test validates all ten WoW client TOCs, the matching version, and shared core files
+
 v9.3.0.6 Multi - 25-04-2026
 	         - [DE] Dropdown-Radio-Markierungen korrigiert: ausgewählte Einträge sind jetzt gefüllt, nicht ausgewählte leer (Blizzard-ähnliche Darstellung)
 	         - [EN] Corrected dropdown radio markers: selected entries are now filled, unselected entries are hollow (Blizzard-like appearance)
