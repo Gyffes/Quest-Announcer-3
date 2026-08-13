@@ -605,15 +605,17 @@ function QuestAnnounce:PlaySoundOnSelectedChannel(soundID, channel)
     local id = tonumber(soundID)
     local playbackChannel = self:GetPlaybackChannelForSound(id, channel)
 
-    if id == RAID_WARNING_SOUNDKIT_ID then
+    -- DE: 8959 ist die SoundKit-ID, 567397 die passende FileDataID.
+    -- EN: 8959 is the SoundKit ID, 567397 is the matching FileDataID.
+    if id == RAID_WARNING_SOUNDKIT_ID or id == RAID_WARNING_FILE_DATA_ID then
         if PlaySoundFile then
             local willPlay, handle = PlaySoundFile(RAID_WARNING_FILE_DATA_ID, playbackChannel)
             return willPlay, handle, playbackChannel, "file"
         end
 
-        -- DE: Ein Master-Fallback ist nur sicher, wenn Master auch gewaehlt wurde.
-        -- EN: A Master fallback is only safe when Master was selected.
-        if playbackChannel ~= "Master" then
+        -- DE: Ein Master-Fallback ist nur fuer die SoundKit-ID sicher.
+        -- EN: A Master fallback is only safe for the SoundKit ID.
+        if id == RAID_WARNING_FILE_DATA_ID or playbackChannel ~= "Master" then
             return false, nil, playbackChannel, "unavailable"
         end
     end
