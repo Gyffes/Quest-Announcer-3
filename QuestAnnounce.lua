@@ -21,9 +21,7 @@ local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L["enUS"]
 local NativeQuestLog = C_QuestLog
 local QA_QuestLog = {}
 if NativeQuestLog then
-    for key, value in pairs(NativeQuestLog) do
-        QA_QuestLog[key] = value
-    end
+    setmetatable(QA_QuestLog, { __index = NativeQuestLog })
 end
 
 local function GetQuestIDFromLink(link)
