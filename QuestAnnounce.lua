@@ -610,7 +610,9 @@ function QuestAnnounce:PlaySoundOnSelectedChannel(soundID, channel)
     if id == RAID_WARNING_SOUNDKIT_ID or id == RAID_WARNING_FILE_DATA_ID then
         if PlaySoundFile then
             local willPlay, handle = PlaySoundFile(RAID_WARNING_FILE_DATA_ID, playbackChannel)
-            return willPlay, handle, playbackChannel, "file"
+            if willPlay then
+                return willPlay, handle, playbackChannel, "file"
+            end
         end
 
         -- DE: Ein Master-Fallback ist nur fuer die SoundKit-ID sicher.
@@ -618,6 +620,8 @@ function QuestAnnounce:PlaySoundOnSelectedChannel(soundID, channel)
         if id == RAID_WARNING_FILE_DATA_ID or playbackChannel ~= "Master" then
             return false, nil, playbackChannel, "unavailable"
         end
+
+        self:SendDebugMsg("Raid warning file playback unavailable; falling back to SoundKit :: " .. tostring(id))
     end
 
     local willPlay, handle = PlaySound(id, playbackChannel)
