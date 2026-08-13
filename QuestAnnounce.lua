@@ -588,13 +588,41 @@ function QuestAnnounce:ShouldSuppressSoundByChannel(soundID, channel)
     return false
 end
 
--- DE: Die explizite Kanalwahl des Spielers wird unverändert an PlaySound weitergegeben.
--- EN: The player's explicit channel choice is passed through to PlaySound unchanged.
+-- DE: Die explizite Kanalwahl des Spielers wird unverändert an die Sound-API weitergegeben.
+-- EN: The player's explicit channel choice is passed through to the sound API unchanged.
 function QuestAnnounce:GetPlaybackChannelForSound(_, channel)
     return channel or "Master"
 end
 
--- DE: Direkter Sound-Test ohne Queue/Priorität, damit der Testbutton den gewählten Kanal sofort nutzt.
+-- DE: Raid Warning ist als SoundKit immer an Master gebunden. Die zugehoerige
+-- Datei folgt dagegen dem explizit gewaehlten Kanal.
+-- EN: Raid Warning is Master-bound as a SoundKit. Its underlying file follows
+-- the explicitly selected channel instead.
+local RAID_WARNING_SOUNDKIT_ID = 8959
+local RAID_WARNING_FILE_DATA_ID = 567397
+
+function QuestAnnounce:PlaySoundOnSelectedChannel(soundID, channel)
+    local id = tonumber(soundID)
+    local playbackChannel = self:GetPlaybackChannelForSound(id, channel)
+
+    if id == RAID_WARNING_SOUNDKIT_ID then
+        if PlaySoundFile then
+            local willPlay, handle = PlaySoundFile(RAID_WARNING_FILE_DATA_ID, playbackChannel)
+            return willPlay, handle, playbackChannel, "file"
+        end
+
+        -- DE: Ein Master-Fallback ist nur sicher, wenn Master auch gewaehlt wurde.
+        -- EN: A Master fallback is only safe when Master was selected.
+        if playbackChannel ~= "Master" then
+            return false, nil, playbackChannel, "unavailable"
+        end
+    end
+
+    local willPlay, handle = PlaySound(id, playbackChannel)
+    return willPlay, handle, playbackChannel, "soundkit"
+end
+
+-- DE: Direkter Sound-Test ohne Queue/Prioritaet, damit der Testbutton den gewaehlten Kanal sofort nutzt.
 -- EN: Direct sound preview without queue/priority so the test button immediately uses the selected channel.
 function QuestAnnounce:PlayTestSound(eventKey, explicitSoundID)
     local settings = self.db and self.db.profile and self.db.profile.settings
@@ -612,12 +640,11 @@ function QuestAnnounce:PlayTestSound(eventKey, explicitSoundID)
         return
     end
 
-    local playbackChannel = self:GetPlaybackChannelForSound(soundID, channel)
-    local willPlay = PlaySound(soundID, playbackChannel)
+    local willPlay, _, playbackChannel, playbackMethod = self:PlaySoundOnSelectedChannel(soundID, channel)
     if not willPlay then
         self:SendDebugMsg("Test sound failed :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ " .. tostring(playbackChannel))
     else
-        self:SendDebugMsg("Test sound played :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ req:" .. tostring(channel) .. " play:" .. tostring(playbackChannel))
+        self:SendDebugMsg("Test sound played :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ req:" .. tostring(channel) .. " play:" .. tostring(playbackChannel) .. " via:" .. tostring(playbackMethod))
     end
 end
 
@@ -654,8 +681,7 @@ function QuestAnnounce:PlayConfiguredSound(eventKey)
     local state = self.soundState
 
     local function PlayNow()
-        local playbackChannel = self:GetPlaybackChannelForSound(soundID, channel)
-        local willPlay, handle = PlaySound(soundID, playbackChannel)
+        local willPlay, handle, playbackChannel, playbackMethod = self:PlaySoundOnSelectedChannel(soundID, channel)
         if not willPlay then
             self:SendDebugMsg("Sound failed (no fallback) :: " .. tostring(soundID) .. " @ " .. tostring(playbackChannel))
             return
@@ -664,7 +690,7 @@ function QuestAnnounce:PlayConfiguredSound(eventKey)
         state.activeHandle = handle
         state.activePriority = config.priority or 0
         state.activeUntil = GetTime() + lockSeconds
-        self:SendDebugMsg("Play sound :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ req:" .. tostring(channel) .. " play:" .. tostring(playbackChannel))
+        self:SendDebugMsg("Play sound :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ req:" .. tostring(channel) .. " play:" .. tostring(playbackChannel) .. " via:" .. tostring(playbackMethod))
     end
 
     if now < (state.activeUntil or 0) then

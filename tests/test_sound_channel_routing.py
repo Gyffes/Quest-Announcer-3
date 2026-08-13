@@ -25,6 +25,18 @@ master_override = re.compile(
 if master_override.search(text):
     errors.append("sound ID 8959 still forces playback through Master")
 
+if "local RAID_WARNING_FILE_DATA_ID = 567397" not in text:
+    errors.append("raid warning FileDataID mapping is missing")
+
+if "PlaySoundFile(RAID_WARNING_FILE_DATA_ID, playbackChannel)" not in text:
+    errors.append("raid warning does not use channel-aware file playback")
+
+if 'if playbackChannel ~= "Master"' not in text:
+    errors.append("raid warning may fall back to Master on a non-Master channel")
+
+if "QuestAnnounce:PlaySoundOnSelectedChannel(soundID, channel)" not in text:
+    errors.append("sound playback is not centralised through the channel-aware helper")
+
 for channel in ("SFX", "Ambience", "Dialog", "Music"):
     if f'["{channel}"]' not in text:
         errors.append(f"sound channel mapping missing: {channel}")

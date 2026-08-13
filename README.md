@@ -23,7 +23,7 @@ Das Addon wurde in der aktuellen Entwicklungsphase grundlegend modernisiert:
 - Neues Sound-Untermenü mit Sound-IDs, Test-/Reset-Buttons, Aktivierungs-Checkboxen und Soundkanal-Auswahl (Master/Effekt/Umgebung/Dialog/Musik).
 - Neue Sound-Events für Quest angenommen (ID 6197) und Questabgabe (Standard-Questabgabe), inkl. geordneter Wiedergabelogik ohne Sound-Überlagerung.
 - Nachfolgende UI-Feinarbeiten: dynamische Reflow-Layouts für Sound- und Questtyp-Optionen bei UI-Skalierung/Panelbreite.
-- Spezialbehandlung für Sound-ID 8959: stummer Zielkanal bleibt stumm, hörbarer Zielkanal wird konsistent berücksichtigt.
+- Der Standard-Fortschrittston 8959 (Raid Warning) folgt jetzt auch in WoW 12.1 dem gewählten Ausgabekanal: QA3 spielt dafür die passende Audiodatei direkt ab Ein Fallback auf das alte SoundKit erfolgt nur bei explizit gewähltem Master.
 - Neue Allgemein-Optionen: Minimap-Button sichtbar/unsichtbar sowie „Eigene Meldungen“ (Addon-Status-/Warnmeldungen für den eigenen Client an/aus).
 - Lokalisierungen für die neuen Optionen in allen unterstützten Sprachen ergänzt.
 - TBC-2.5.5-Kompatibilitätsfix: Legacy-Questlog-APIs werden abgefangen, damit kein `GetNumQuestLogEntries`-Lua-Fehler mehr auftritt.
