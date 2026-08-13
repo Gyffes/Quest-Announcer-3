@@ -906,7 +906,7 @@ end
 
             if value then
                 if QuestAnnounce.db.profile.announceIn.channelName == "" or not QuestAnnounce.db.profile.announceIn.channelName then
-                    StaticPopup_Show("MISSING_CHANNEL_NAME")
+                    StaticPopup_Show("QUESTANNOUNCE_MISSING_CHANNEL_NAME")
                 else
                     QuestAnnounce:JoinChannel(QuestAnnounce.db.profile.announceIn.channelName)
                 end
@@ -2138,7 +2138,7 @@ end
 
 -- Popup-Dialog, der angezeigt wird, wenn ein benutzerdefinierter Kanal aktiviert wird,
 -- aber noch kein Kanalname eingetragen wurde.
-StaticPopupDialogs["MISSING_CHANNEL_NAME"] = {
+StaticPopupDialogs["QUESTANNOUNCE_MISSING_CHANNEL_NAME"] = {
     text = L["Please enter a channel name."],
     button1 = OKAY,
     timeout = 0,

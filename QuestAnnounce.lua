@@ -18,7 +18,13 @@ local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L["enUS"]
 -- ---------------------------------------------------------
 -- DE: Manche Clients (z. B. TBC 2.5.5) haben kein C_QuestLog.
 -- EN: Some clients (e.g. TBC 2.5.5) do not provide C_QuestLog.
-local QA_QuestLog = C_QuestLog or {}
+local NativeQuestLog = C_QuestLog
+local QA_QuestLog = {}
+if NativeQuestLog then
+    for key, value in pairs(NativeQuestLog) do
+        QA_QuestLog[key] = value
+    end
+end
 
 local function GetQuestIDFromLink(link)
     if type(link) ~= "string" then
@@ -232,7 +238,7 @@ end
 -- Zeigt beim Deaktivieren eines benutzerdefinierten Kanals einen Bestätigungsdialog an
 function QuestAnnounce:ToggleChannelLeave(enable, channelName)
     if not enable then
-        local dialog = StaticPopup_Show("CONFIRM_LEAVE_CHANNEL", channelName)
+        local dialog = StaticPopup_Show("QUESTANNOUNCE_CONFIRM_LEAVE_CHANNEL", channelName)
         if dialog then
             dialog.data = channelName
         end
@@ -240,7 +246,7 @@ function QuestAnnounce:ToggleChannelLeave(enable, channelName)
 end
 
 -- Bestätigungsdialog zum Verlassen eines benutzerdefinierten Kanals
-StaticPopupDialogs["CONFIRM_LEAVE_CHANNEL"] = {
+StaticPopupDialogs["QUESTANNOUNCE_CONFIRM_LEAVE_CHANNEL"] = {
     text = L["Leave channel confirmation"],
     button1 = L["Yes"],
     button2 = L["No"],
