@@ -1,0 +1,70 @@
+name: Apply QA3 Taint Hardening
+
+on:
+  push:
+    branches:
+      - agent/taint-isolation-12-1
+
+permissions:
+  contents: write
+
+jobs:
+  apply-hardening:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/taint-isolation-12-1
+          fetch-depth: 0
+
+      - name: Apply surgical source changes
+        shell: python
+        run: |
+          from pathlib import Path
+
+          quest = Path('QuestAnnounce.lua')
+          text = quest.read_text(encoding='utf-8')
+
+          old = 'local QA_QuestLog = C_QuestLog or {}'
+          new = '''local NativeQuestLog = C_QuestLog
+          local QA_QuestLog = {}
+          if NativeQuestLog then
+              for key, value in pairs(NativeQuestLog) do
+                  QA_QuestLog[key] = value
+              end
+          end'''
+          if text.count(old) != 1:
+              raise SystemExit(f'Expected exactly one QA_QuestLog alias, found {text.count(old)}')
+          text = text.replace(old, new, 1)
+
+          text = text.replace('StaticPopup_Show("CONFIRM_LEAVE_CHANNEL", channelName)', 'StaticPopup_Show("QUESTANNOUNCE_CONFIRM_LEAVE_CHANNEL", channelName)')
+          text = text.replace('StaticPopupDialogs["CONFIRM_LEAVE_CHANNEL"]', 'StaticPopupDialogs["QUESTANNOUNCE_CONFIRM_LEAVE_CHANNEL"]')
+
+          if 'StaticPopupDialogs["CONFIRM_LEAVE_CHANNEL"]' in text or 'StaticPopup_Show("CONFIRM_LEAVE_CHANNEL"' in text:
+              raise SystemExit('Unnamespaced confirm popup remains')
+          quest.write_text(text, encoding='utf-8')
+
+          config = Path('Config.lua')
+          text = config.read_text(encoding='utf-8')
+          text = text.replace('StaticPopup_Show("MISSING_CHANNEL_NAME")', 'StaticPopup_Show("QUESTANNOUNCE_MISSING_CHANNEL_NAME")')
+          text = text.replace('StaticPopupDialogs["MISSING_CHANNEL_NAME"]', 'StaticPopupDialogs["QUESTANNOUNCE_MISSING_CHANNEL_NAME"]')
+          if 'StaticPopupDialogs["MISSING_CHANNEL_NAME"]' in text or 'StaticPopup_Show("MISSING_CHANNEL_NAME"' in text:
+              raise SystemExit('Unnamespaced missing-channel popup remains')
+          config.write_text(text, encoding='utf-8')
+
+      - name: Validate isolation guard
+        run: python3 tests/test_taint_isolation.py
+
+      - name: Commit surgical changes
+        run: |
+          if git diff --quiet; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add QuestAnnounce.lua Config.lua
+          git commit -m "Isolate QuestLog compatibility and namespace popups"
+          git push origin HEAD:agent/taint-isolation-12-1
