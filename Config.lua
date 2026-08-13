@@ -294,20 +294,6 @@ end
 
     -- Hilfsfunktion: Erstellt ein Dropdown-Menü mit einer Liste von Einträgen
     local function CreateDropdown(parent, width, x, y, items, onSelect, tooltipTitle, tooltipText)
-        if not QuestAnnounce._qaDropdownTimerPatch then
-            QuestAnnounce._qaDropdownTimerPatch = true
-            hooksecurefunc("ToggleDropDownMenu", function()
-                for level = 1, (UIDROPDOWNMENU_MAXLEVELS or 2) do
-                    local list = _G["DropDownList" .. level]
-                    if list then
-                        list.showTimer = nil
-                        list.hasTimer = nil
-                        list:SetScript("OnUpdate", nil)
-                    end
-                end
-            end)
-        end
-
         local dropdown = CreateFrame("Frame", nil, parent, "UIDropDownMenuTemplate")
         dropdown:SetPoint("TOPLEFT", x - 16, y + 10)
         UIDropDownMenu_SetWidth(dropdown, width)
@@ -327,11 +313,8 @@ end
                 local text = type(item) == "table" and item.text or item
                 local value = type(item) == "table" and item.value or item
                 local isSelected = (selectedValue == value)
-                local marker = isSelected
-                    and "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:0:16:16:32|t "
-                    or "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:16:32:16:32|t "
 
-                info.text = marker .. text
+                info.text = (isSelected and "● " or "○ ") .. text
                 info.value = value
                 info.checked = false
                 info.notCheckable = true
@@ -1766,28 +1749,18 @@ end
             return tostring(a):lower() < tostring(b):lower()
         end)
 
-        UIDropDownMenu_Initialize(profileDropdown, function(_, level)
-            if level ~= 1 then
-                return
-            end
+        UIDropDownMenu_Initialize(profileDropdown, function(_, _)
             for _, name in ipairs(names) do
                 local info = UIDropDownMenu_CreateInfo()
-                local isSelected = (selectedProfileName == name)
-                local marker = isSelected
-                    and "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:0:16:16:32|t "
-                    or "|TInterface\\Common\\UI-DropDownRadioChecks:14:14:0:0:32:32:16:32:16:32|t "
-                info.text = marker .. name
-                info.value = name
-                info.notCheckable = true
+                info.text = name
                 info.func = function()
                     selectedProfileName = name
                     UIDropDownMenu_SetSelectedName(profileDropdown, name)
                     UIDropDownMenu_SetText(profileDropdown, name)
                     profileNameBox:SetText(name)
                     RefreshProfileOverview()
-                    CloseDropDownMenus(1)
                 end
-                UIDropDownMenu_AddButton(info, level)
+                UIDropDownMenu_AddButton(info)
             end
         end)
 
