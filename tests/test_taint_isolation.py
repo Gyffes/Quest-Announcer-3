@@ -17,6 +17,9 @@ LUA_FILES = sorted(ROOT.glob("*.lua"))
 FORBIDDEN = {
     "shared DropDownList access": re.compile(r'_G\s*\[\s*["\']DropDownList'),
     "global ToggleDropDownMenu hook": re.compile(r'hooksecurefunc\s*\(\s*["\']ToggleDropDownMenu["\']'),
+    "legacy UIDropDownMenu API": re.compile(r'\bUIDropDownMenu_[A-Za-z0-9_]+\b'),
+    "legacy UIDropDownMenu template": re.compile(r'["\']UIDropDownMenuTemplate["\']'),
+    "global dropdown close helper": re.compile(r'\bCloseDropDownMenus\s*\('),
     "direct GameTooltip mutation": re.compile(r'\bGameTooltip\s*:\s*(?:Set|HookScript|Hide|Show|Clear)'),
     "direct WorldMapFrame mutation": re.compile(r'\bWorldMapFrame\s*:\s*(?:Set|HookScript|Hide|Show|Clear)'),
     "direct QuestFrame mutation": re.compile(r'\bQuestFrame\s*:\s*(?:Set|HookScript|Hide|Show|Clear)'),

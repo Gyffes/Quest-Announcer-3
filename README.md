@@ -5,8 +5,8 @@ Quest Announce 3 is a World of Warcraft addon that automatically announces quest
 
 ## Version / Version
 
-Aktueller Stand: **9.3.0.6**
-Current version: **9.3.0.6**
+Aktueller Stand: **9.3.0.7**
+Current version: **9.3.0.7**
 
 ## Projektstatus (DE)
 
@@ -28,8 +28,10 @@ Das Addon wurde in der aktuellen Entwicklungsphase grundlegend modernisiert:
 - Lokalisierungen für die neuen Optionen in allen unterstützten Sprachen ergänzt.
 - TBC-2.5.5-Kompatibilitätsfix: Legacy-Questlog-APIs werden abgefangen, damit kein `GetNumQuestLogEntries`-Lua-Fehler mehr auftritt.
 - Zusätzlicher 9.3.0.5-Hotfix: Tooltip-Schriften werden intern auf gültige WoW-Assetpfade gemappt, damit kein `SetFont(): Invalid font file asset` mehr auftritt.
-- 9.3.0.6-Update: Questabgabe-Sound wird standardmäßig nur noch im manuellen Questdialog-Kontext abgespielt; optional kann Auto-Turn-In-Sound separat aktiviert werden.
-- 9.3.0.6-Feinschliff: Questabgabe-Sound im manuellen Kontext wird nur noch bei expliziter Abgabe-Aktion (Abgeben/Quest beenden Button) ausgelöst.
+- 9.3.0.7-Update: Questabgabe-Sound wird standardmäßig nur noch im manuellen Questdialog-Kontext abgespielt; optional kann Auto-Turn-In-Sound separat aktiviert werden.
+- 9.3.0.7-Feinschliff: Questabgabe-Sound im manuellen Kontext wird nur noch bei expliziter Abgabe-Aktion (Abgeben/Quest beenden Button) ausgelöst.
+- 9.3.0.7: Alle QA3-Auswahlfelder sind jetzt addon-eigene Radio-Menüs; die globale Blizzard-`UIDropDownMenu`-API wird nicht mehr verwendet und kann beim Laden der Optionen keinen UI-Taint mehr setzen.
+- 9.3.0.7: Alle unterstützten Locales sind wieder vollständig; CI prüft künftig Taint-Isolation und Übersetzungsvollständigkeit.
 
 ## Project Status (EN)
 
@@ -51,9 +53,11 @@ The addon has been significantly modernized in the current development phase:
 - Added translations for the new options across all supported locales.
 - TBC 2.5.5 compatibility fix: legacy quest log APIs are now bridged to avoid `GetNumQuestLogEntries` Lua errors.
 - Additional 9.3.0.5 hotfix: tooltip fonts are internally mapped to valid WoW asset paths to prevent `SetFont(): Invalid font file asset`.
-- 9.3.0.6 update: quest turn-in sound now plays only in manual quest dialog context by default; auto turn-in sound can be enabled separately.
-- 9.3.0.6 refinement: in manual context, turn-in sound now requires an explicit turn-in action (turn-in/complete quest button click).
-- 9.3.0.6 taint-hardening: QuestAnnounce tooltips were internally hardened and fragile template-region stripping was removed.
+- 9.3.0.7 update: quest turn-in sound now plays only in manual quest dialog context by default; auto turn-in sound can be enabled separately.
+- 9.3.0.7 refinement: in manual context, turn-in sound now requires an explicit turn-in action (turn-in/complete quest button click).
+- 9.3.0.7 taint-hardening: QuestAnnounce tooltips were internally hardened and fragile template-region stripping was removed.
+- 9.3.0.7: All QA3 selectors now use addon-owned radio menus; the global Blizzard `UIDropDownMenu` API is no longer used, preventing option-load UI taint.
+- 9.3.0.7: All supported locales are complete again; CI now checks both taint isolation and localization completeness.
 
 ## Hauptfunktionen (DE)
 
