@@ -314,9 +314,11 @@ end
             insets = { left = 3, right = 3, top = 3, bottom = 3 },
         })
         menu:SetBackdropColor(0.08, 0.08, 0.08, 0.98)
+        menu:SetClampedToScreen(true)
         menu:Hide()
         dropdown.menu = menu
 
+        -- QA3 verwaltet seine Menues lokal, damit immer nur eine Auswahl offen ist.
         function dropdown:SetSelected(value, text)
             self.selectedValue = value
             self.selectedText = text or tostring(value or "")
@@ -373,6 +375,9 @@ end
                 row:SetScript("OnClick", function(self)
                     dropdown:SetSelected(self.value, self.text)
                     menu:Hide()
+                    if QuestAnnounce._activeSelectorMenu == menu then
+                        QuestAnnounce._activeSelectorMenu = nil
+                    end
                     if dropdown.onSelect then
                         dropdown.onSelect(self.value, self.text)
                     end
@@ -388,10 +393,31 @@ end
         dropdown:SetScript("OnClick", function(self)
             if menu:IsShown() then
                 menu:Hide()
+                if QuestAnnounce._activeSelectorMenu == menu then
+                    QuestAnnounce._activeSelectorMenu = nil
+                end
                 return
+            end
+
+            local activeMenu = QuestAnnounce._activeSelectorMenu
+            if activeMenu and activeMenu ~= menu then
+                activeMenu:Hide()
             end
             self:RefreshMenu()
             menu:Show()
+            QuestAnnounce._activeSelectorMenu = menu
+        end)
+
+        dropdown:HookScript("OnHide", function()
+            menu:Hide()
+            if QuestAnnounce._activeSelectorMenu == menu then
+                QuestAnnounce._activeSelectorMenu = nil
+            end
+        end)
+        menu:HookScript("OnHide", function()
+            if QuestAnnounce._activeSelectorMenu == menu then
+                QuestAnnounce._activeSelectorMenu = nil
+            end
         end)
 
         AttachTooltip(dropdown, tooltipTitle, tooltipText)

@@ -32,6 +32,12 @@ FORBIDDEN = {
 # Named addon-owned tooltip frames are allowed and expected.
 OWNED_TOOLTIP_NAMES = {"QuestAnnounceTooltip", "QuestAnnounceConfigTooltip"}
 
+# The selector UI must stay local to QA3 and never reuse Blizzard dropdown state.
+SELECTOR_REQUIRED = (
+    "QuestAnnounce._activeSelectorMenu",
+    "UIRadioButtonTemplate",
+)
+
 errors = []
 for path in LUA_FILES:
     text = path.read_text(encoding="utf-8")
@@ -51,6 +57,10 @@ for path in LUA_FILES:
             errors.append(
                 f"{path.name}:{line}: non-QA3 named tooltip frame {name!r}"
             )
+
+for required in SELECTOR_REQUIRED:
+    if required not in "\n".join(path.read_text(encoding="utf-8") for path in LUA_FILES):
+        errors.append(f"missing QA3 selector safeguard: {required!r}")
 
 if errors:
     print("QA3 taint/isolation regression check FAILED:\n")
