@@ -34,7 +34,7 @@ if "PlaySoundFile(RAID_WARNING_FILE_DATA_ID, playbackChannel)" not in text:
 if "id == RAID_WARNING_SOUNDKIT_ID or id == RAID_WARNING_FILE_DATA_ID" not in text:
     errors.append("direct Raid Warning FileDataID input is not supported")
 
-if 'if playbackChannel ~= "Master"' not in text:
+if 'id == RAID_WARNING_FILE_DATA_ID or playbackChannel ~= "Master"' not in text:
     errors.append("raid warning may fall back to Master on a non-Master channel")
 
 if "QuestAnnounce:PlaySoundOnSelectedChannel(soundID, channel)" not in text:
