@@ -686,6 +686,19 @@ function QuestAnnounce:PlayConfiguredSound(eventKey)
     self.soundState = self.soundState or { activeUntil = 0, activePriority = 0, activeHandle = nil, pending = nil }
     local state = self.soundState
 
+    -- DE: Beim letzten Zielschritt kann derselbe Abschluss-Sound kurz danach
+    -- nochmals durch die bestätigte Quest-Abschlussmeldung angefordert werden.
+    -- EN: The final objective step can request the same completion sound again
+    -- shortly before the confirmed quest-completion message.
+    if eventKey == "complete"
+        and state.lastEventKey == "complete"
+        and state.lastSoundID == soundID
+        and state.lastChannel == channel
+        and now < (state.activeUntil or 0) then
+        self:SendDebugMsg("Sound skipped duplicate completion :: " .. tostring(soundID) .. " @ " .. tostring(channel))
+        return
+    end
+
     local function PlayNow()
         local willPlay, handle, playbackChannel, playbackMethod = self:PlaySoundOnSelectedChannel(soundID, channel)
         if not willPlay then
@@ -696,6 +709,9 @@ function QuestAnnounce:PlayConfiguredSound(eventKey)
         state.activeHandle = handle
         state.activePriority = config.priority or 0
         state.activeUntil = GetTime() + lockSeconds
+        state.lastEventKey = eventKey
+        state.lastSoundID = soundID
+        state.lastChannel = channel
         self:SendDebugMsg("Play sound :: " .. tostring(eventKey) .. " :: " .. tostring(soundID) .. " @ req:" .. tostring(channel) .. " play:" .. tostring(playbackChannel) .. " via:" .. tostring(playbackMethod))
     end
 

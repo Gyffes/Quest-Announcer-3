@@ -1,4 +1,6 @@
 v9.3.0.7 Multi - 13-08-2026
+         - [DE] SoundFix: Doppelte unmittelbare Abschluss-Sounds werden unterdrueckt, wenn das letzte Questziel und die anschliessende bestaetigte Questabschlussmeldung denselben Sound auf demselben Kanal ausloesen
+         - [EN] Sound fix: suppresses immediate duplicate completion sounds when the final quest objective and the following confirmed quest-completion message trigger the same sound on the same channel
          - [DE] SoundFix: Der Standard-Fortschrittston 8959 (Raid Warning) wird jetzt als zugehoerige Datei 567397 abgespielt, damit er dem ausgewaehlten Kanal folgt statt von WoW immer ueber Master ausgegeben zu werden; ein SoundKit-Fallback erfolgt nur bei explizit gewaehltem Master
          - [EN] Sound fix: the default progress sound 8959 (Raid Warning) now plays through its matching file 567397 so it follows the selected channel instead of WoW always using Master; a SoundKit fallback is used only when Master was explicitly selected
          - [DE] WoW-12.1-Taint-Fix: alle QA3-Dropdowns vollständig von Blizzards globaler UIDropDownMenu-API entkoppelt; dadurch werden UIDROPDOWNMENU_MENU_LEVEL und gemeinsam genutzte Dropdown-Frames nicht mehr durch QA3 tainted
