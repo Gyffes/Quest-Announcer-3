@@ -33,7 +33,7 @@ Das Addon wurde in der aktuellen Entwicklungsphase grundlegend modernisiert:
 - 9.3.0.7: Alle QA3-Auswahlfelder sind jetzt addon-eigene Radio-Menüs; die globale Blizzard-`UIDropDownMenu`-API wird nicht mehr verwendet und kann beim Laden der Optionen keinen UI-Taint mehr setzen.
 - 9.3.0.7: Alle unterstützten Locales sind wieder vollständig; CI prüft künftig Taint-Isolation und Übersetzungsvollständigkeit.
 - 9.3.0.7: Multi-Kompatibilität bleibt erhalten: Retail, Classic Era, Hardcore, Anniversary, Season of Discovery, TBC, Wrath, Cataclysm und MoP nutzen weiterhin dieselbe getestete Codebasis.
-- 9.3.0.7: Sound-ID 8959 respektiert jetzt den ausgewählten WoW-Soundkanal auch für Effekte und Musik.
+- 9.3.0.7: Die Soundausgabe respektiert den ausgewählten WoW-Soundkanal. Hinweis: Der Blizzard-SoundKit 8959 ist auf manchen Clients an Master gebunden; für getrennte Kanäle kann eine andere Fortschritts-Sound-ID gewählt werden.
 
 ## Project Status (EN)
 
@@ -61,7 +61,7 @@ The addon has been significantly modernized in the current development phase:
 - 9.3.0.7: All QA3 selectors now use addon-owned radio menus; the global Blizzard `UIDropDownMenu` API is no longer used, preventing option-load UI taint.
 - 9.3.0.7: All supported locales are complete again; CI now checks both taint isolation and localization completeness.
 - 9.3.0.7: Multi-client compatibility remains intact: Retail, Classic Era, Hardcore, Anniversary, Season of Discovery, TBC, Wrath, Cataclysm, and MoP continue to use the same tested codebase.
-- 9.3.0.7: Sound ID 8959 now respects the selected WoW sound channel for Effects and Music as well.
+- 9.3.0.7: Sound output respects the selected WoW sound channel. Note: Blizzard SoundKit 8959 is Master-bound on some clients; choose another progress sound ID for separate channel routing.
 
 ## Hauptfunktionen (DE)
 

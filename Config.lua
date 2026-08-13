@@ -341,6 +341,8 @@ end
             for index, item in ipairs(self.items) do
                 local text = type(item) == "table" and item.text or item
                 local value = type(item) == "table" and item.value or item
+                local tooltipTitle = type(item) == "table" and item.tooltipTitle or nil
+                local tooltipText = type(item) == "table" and item.tooltipText or nil
                 local isSelected = (self.selectedValue == value)
                 local row = menu.rows[index]
 
@@ -362,6 +364,7 @@ end
                     end)
                     row:SetScript("OnLeave", function(self)
                         self.label:SetTextColor(1, 1, 1, 1)
+                        addonTooltip:Hide()
                     end)
                     menu.rows[index] = row
                 end
@@ -370,8 +373,22 @@ end
                 row:SetPoint("TOPLEFT", 6, -6 - ((index - 1) * rowHeight))
                 row.value = value
                 row.text = text
+                row.tooltipTitle = tooltipTitle
+                row.tooltipText = tooltipText
                 row.radio:SetChecked(isSelected)
                 row.label:SetText(text)
+                row:SetScript("OnEnter", function(self)
+                    self.label:SetTextColor(1, 0.82, 0, 1)
+                    if self.tooltipText and self.tooltipText ~= "" then
+                        ApplyConfiguredTooltipStyle(addonTooltip)
+                        addonTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                        addonTooltip:ClearLines()
+                        addonTooltip:SetText(self.tooltipTitle or self.text or "", 1, 1, 1)
+                        addonTooltip:AddLine(self.tooltipText, 1, 1, 1, true)
+                        ApplyConfiguredTooltipStyle(addonTooltip)
+                        addonTooltip:Show()
+                    end
+                end)
                 row:SetScript("OnClick", function(self)
                     dropdown:SetSelected(self.value, self.text)
                     menu:Hide()
@@ -1152,7 +1169,12 @@ end
         { text = L["Effects"], value = "SFX" },
         { text = L["Ambience"], value = "Ambience" },
         { text = L["Dialog"], value = "Dialog" },
-        { text = L["Music"], value = "Music" },
+        {
+            text = L["Music"],
+            value = "Music",
+            tooltipTitle = L["Music"],
+            tooltipText = L["Music channel requirement"],
+        },
     }
     local soundChannelDropdown = CreateDropdown(
         soundPanel, 180, 16, -122, channelItems,
@@ -1235,6 +1257,11 @@ end
     end
 
     local progressRow = CreateSoundRow(-164, "Progress Sound ID", "progressSound", 8959, "Reset Progress Sound", "Test Progress Sound", "enableProgressSound", "Enable Progress Sound", "progress")
+    AttachTooltip(
+        progressRow.box,
+        L["Progress Sound ID"],
+        L["Progress sound 8959 master channel note"]
+    )
     local completeRow = CreateSoundRow(-224, "Completion Sound ID", "completeSound", 6197, "Reset Completion Sound", "Test Complete Sound", "enableCompleteSound", "Enable Completion Sound", "complete")
     local acceptRow = CreateSoundRow(-284, "Accepted Sound ID", "acceptSound", 6192, "Reset Accepted Sound", "Test Accepted Sound", "enableAcceptSound", "Enable Accepted Sound", "accept")
     local turnInRow = CreateSoundRow(-344, "Turn-In Sound ID", "turnInSound", 6199, "Reset Turn-In Sound", "Test Turn-In Sound", "enableTurnInSound", "Enable Turn-In Sound", "turnin")

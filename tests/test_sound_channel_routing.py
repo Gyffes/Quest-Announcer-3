@@ -7,7 +7,11 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 CORE_FILE = ROOT / "QuestAnnounce.lua"
+CONFIG_FILE = ROOT / "Config.lua"
+LOCALIZATION_FILE = ROOT / "Localization.lua"
 text = CORE_FILE.read_text(encoding="utf-8")
+config_text = CONFIG_FILE.read_text(encoding="utf-8")
+localization_text = LOCALIZATION_FILE.read_text(encoding="utf-8-sig")
 
 errors = []
 if 'function QuestAnnounce:GetPlaybackChannelForSound(_, channel)' not in text:
@@ -24,6 +28,21 @@ if master_override.search(text):
 for channel in ("SFX", "Ambience", "Dialog", "Music"):
     if f'["{channel}"]' not in text:
         errors.append(f"sound channel mapping missing: {channel}")
+
+for key in (
+    "Music channel requirement",
+    "Progress sound 8959 master channel note",
+):
+    if f'L["{key}"]' not in config_text:
+        errors.append(f"sound UI hint is not used: {key}")
+    for locale in ("enUS", "deDE", "esMX", "esES", "frFR", "koKR", "ruRU", "zhCN", "zhTW", "ptBR"):
+        locale_start = localization_text.find(f"QuestAnnounce_L.{locale} = {{")
+        locale_end = localization_text.find("\nQuestAnnounce_L.", locale_start + 1)
+        if locale_end < 0:
+            locale_end = localization_text.find("\n-- Fallback", locale_start + 1)
+        locale_block = localization_text[locale_start:locale_end]
+        if f'["{key}"]' not in locale_block:
+            errors.append(f"{locale}: missing sound UI hint {key!r}")
 
 if errors:
     print("QA3 sound-channel routing check FAILED:")

@@ -237,7 +237,9 @@ QuestAnnounce_L.enUS = {
 	["Play Turn-In Sound for Auto Turn-In"] = "Play Turn-In Sound for Auto Turn-In",
 	["If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."] = "If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs.",
 
-}
+
+	["Music channel requirement"] = "Music output requires the WoW Music channel to be enabled. Raising its volume alone is not enough when music is disabled in the game sound settings.",
+	["Progress sound 8959 master channel note"] = "WoW routes the default progress sound ID 8959 through Master on this client even when another output channel is selected. Choose a different sound ID if the progress sound must follow SFX, Music, or another channel.",}
 
 
 QuestAnnounce_L.deDE = {
@@ -469,7 +471,9 @@ QuestAnnounce_L.deDE = {
 	["Play Turn-In Sound for Auto Turn-In"] = "Questabgabe-Sound auch bei Auto-Turn-In abspielen",
 	["If enabled, QuestAnnounce also plays the turn-in sound for automatic quest turn-ins outside manual NPC dialogs."] = "Wenn aktiviert, spielt QuestAnnounce den Questabgabe-Sound auch bei automatischen Questabgaben außerhalb manueller NPC-Dialoge ab.",
 
-}
+
+	["Music channel requirement"] = "Die Musikausgabe erfordert, dass der WoW-Musikkanal aktiviert ist. Eine hohe Lautstärke allein reicht nicht, wenn Musik in den Spiel-Soundeinstellungen deaktiviert ist.",
+	["Progress sound 8959 master channel note"] = "WoW gibt die Standard-Fortschritts-Sound-ID 8959 auf diesem Client über Master aus, auch wenn ein anderer Ausgabekanal gewählt ist. Wähle eine andere Sound-ID, wenn der Fortschrittssound SFX, Musik oder einem anderen Kanal folgen soll.",}
 
 QuestAnnounce_L.esMX = {
 	["Test Frame Messages"] = "Test Frame Message",
@@ -700,7 +704,9 @@ QuestAnnounce_L.esMX = {
 	["Middle-click detected on QuestAnnounce MinimapButton Toggle Pause"] = "Clic central detectado en el botón del minimapa de QuestAnnounce: alternar pausa",
 	["QuestAnnounce temporarily paused!"] = "¡QuestAnnounce se ha pausado temporalmente!",
 	["QuestAnnounce pause ended."] = "La pausa de QuestAnnounce ha terminado.",
-	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "Muestra u oculta los mensajes locales de progreso/finalización de QuestAnnounce en tu propio chat.",}
+	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "Muestra u oculta los mensajes locales de progreso/finalización de QuestAnnounce en tu propio chat.",
+	["Music channel requirement"] = "La salida de música requiere que el canal Música de WoW esté activado. Subir el volumen no basta si la música está desactivada en los ajustes de sonido del juego.",
+	["Progress sound 8959 master channel note"] = "WoW reproduce el sonido de progreso predeterminado con ID 8959 por Maestro en este cliente, incluso si se selecciona otro canal. Elige otra ID de sonido si debe seguir Efectos, Música u otro canal.",}
 
 QuestAnnounce_L.esES = {
 	["Test Frame Messages"] = "Test Frame Message",
@@ -931,7 +937,9 @@ QuestAnnounce_L.esES = {
 	["Middle-click detected on QuestAnnounce MinimapButton Toggle Pause"] = "Clic central detectado en el botón del minimapa de QuestAnnounce: alternar pausa",
 	["QuestAnnounce temporarily paused!"] = "¡QuestAnnounce se ha pausado temporalmente!",
 	["QuestAnnounce pause ended."] = "La pausa de QuestAnnounce ha terminado.",
-	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "Muestra u oculta los mensajes locales de progreso/finalización de QuestAnnounce en tu propio chat.",}
+	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "Muestra u oculta los mensajes locales de progreso/finalización de QuestAnnounce en tu propio chat.",
+	["Music channel requirement"] = "La salida de música requiere que el canal Música de WoW esté activado. Subir el volumen no basta si la música está desactivada en los ajustes de sonido del juego.",
+	["Progress sound 8959 master channel note"] = "WoW reproduce el sonido de progreso predeterminado con ID 8959 por Maestro en este cliente, incluso si se selecciona otro canal. Elige otra ID de sonido si debe seguir Efectos, Música u otro canal.",}
 
 QuestAnnounce_L.frFR = {
 	["Test Frame Messages"] = "Test Frame Message",
@@ -1162,7 +1170,9 @@ QuestAnnounce_L.frFR = {
 	["Middle-click detected on QuestAnnounce MinimapButton Toggle Pause"] = "Clic central détecté sur le bouton de minicarte QuestAnnounce : basculer la pause",
 	["QuestAnnounce temporarily paused!"] = "QuestAnnounce est temporairement en pause !",
 	["QuestAnnounce pause ended."] = "La pause de QuestAnnounce est terminée.",
-	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "Affiche ou masque les messages locaux de progression/fin de QuestAnnounce dans votre propre fenêtre de discussion.",}
+	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "Affiche ou masque les messages locaux de progression/fin de QuestAnnounce dans votre propre fenêtre de discussion.",
+	["Music channel requirement"] = "La sortie Musique nécessite que le canal Musique de WoW soit activé. Augmenter le volume ne suffit pas si la musique est désactivée dans les paramètres audio du jeu.",
+	["Progress sound 8959 master channel note"] = "WoW joue le son de progression par défaut ID 8959 sur le canal Principal de ce client, même si un autre canal est sélectionné. Choisissez un autre ID de son si le son doit suivre Effets, Musique ou un autre canal.",}
 
 QuestAnnounce_L.koKR = {
 	["Test Frame Messages"] = "Test Frame Message",
@@ -1393,7 +1403,9 @@ QuestAnnounce_L.koKR = {
 	["Middle-click detected on QuestAnnounce MinimapButton Toggle Pause"] = "QuestAnnounce 미니맵 버튼에서 가운데 클릭 감지: 일시 정지 전환",
 	["QuestAnnounce temporarily paused!"] = "QuestAnnounce가 일시적으로 정지되었습니다!",
 	["QuestAnnounce pause ended."] = "QuestAnnounce 일시 정지가 끝났습니다.",
-	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "자신의 채팅 창에 표시되는 QuestAnnounce 로컬 진행/완료 메시지를 표시하거나 숨깁니다.",}
+	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "자신의 채팅 창에 표시되는 QuestAnnounce 로컬 진행/완료 메시지를 표시하거나 숨깁니다.",
+	["Music channel requirement"] = "음악 출력은 WoW 음악 채널이 활성화되어 있어야 합니다. 게임 소리 설정에서 음악이 비활성화되어 있으면 볼륨만 높여도 재생되지 않습니다.",
+	["Progress sound 8959 master channel note"] = "이 클라이언트에서 WoW는 다른 출력 채널을 선택해도 기본 진행 소리 ID 8959를 마스터로 재생합니다. 진행 소리가 효과, 음악 또는 다른 채널을 따라야 하면 다른 소리 ID를 선택하세요.",}
 
 
 QuestAnnounce_L.ruRU = {
@@ -1625,7 +1637,9 @@ QuestAnnounce_L.ruRU = {
 	["Middle-click detected on QuestAnnounce MinimapButton Toggle Pause"] = "Обнаружен средний клик по кнопке миникарты QuestAnnounce: переключение паузы",
 	["QuestAnnounce temporarily paused!"] = "QuestAnnounce временно приостановлен!",
 	["QuestAnnounce pause ended."] = "Пауза QuestAnnounce завершена.",
-	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "Показывает или скрывает локальные сообщения QuestAnnounce о прогрессе/завершении в вашем окне чата.",}
+	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "Показывает или скрывает локальные сообщения QuestAnnounce о прогрессе/завершении в вашем окне чата.",
+	["Music channel requirement"] = "Для вывода музыки канал «Музыка» в WoW должен быть включён. Одного увеличения громкости недостаточно, если музыка отключена в настройках звука игры.",
+	["Progress sound 8959 master channel note"] = "На этом клиенте WoW воспроизводит стандартный звук прогресса с ID 8959 через Главный канал, даже если выбран другой канал. Выберите другой ID звука, если он должен следовать Эффектам, Музыке или другому каналу.",}
 
 QuestAnnounce_L.zhCN = {
 	["Test Frame Messages"] = "Test Frame Message",
@@ -1856,7 +1870,9 @@ QuestAnnounce_L.zhCN = {
 	["Middle-click detected on QuestAnnounce MinimapButton Toggle Pause"] = "检测到 QuestAnnounce 小地图按钮中键点击：切换暂停",
 	["QuestAnnounce temporarily paused!"] = "QuestAnnounce 已临时暂停！",
 	["QuestAnnounce pause ended."] = "QuestAnnounce 暂停已结束。",
-	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "在你自己的聊天窗口中显示或隐藏 QuestAnnounce 本地进度/完成消息。",}
+	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "在你自己的聊天窗口中显示或隐藏 QuestAnnounce 本地进度/完成消息。",
+	["Music channel requirement"] = "音乐输出要求 WoW 音乐频道已启用。如果游戏声音设置中关闭了音乐，仅提高音量不会播放。",
+	["Progress sound 8959 master channel note"] = "在此客户端中，即使选择了其他输出频道，WoW 也会通过主音量播放默认进度音效 ID 8959。如果进度音效必须遵循效果、音乐或其他频道，请选择其他音效 ID。",}
 
 QuestAnnounce_L.zhTW = {
 	["Test Frame Messages"] = "Test Frame Message",
@@ -2088,7 +2104,9 @@ QuestAnnounce_L.zhTW = {
 	["Middle-click detected on QuestAnnounce MinimapButton Toggle Pause"] = "偵測到 QuestAnnounce 小地圖按鈕中鍵點擊：切換暫停",
 	["QuestAnnounce temporarily paused!"] = "QuestAnnounce 已暫停！",
 	["QuestAnnounce pause ended."] = "QuestAnnounce 暫停已結束。",
-	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "在自己的聊天視窗中顯示或隱藏 QuestAnnounce 本機進度/完成訊息。",}
+	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "在自己的聊天視窗中顯示或隱藏 QuestAnnounce 本機進度/完成訊息。",
+	["Music channel requirement"] = "音樂輸出需要啟用 WoW 音樂頻道。若在遊戲音效設定中關閉音樂，只提高音量不會播放。",
+	["Progress sound 8959 master channel note"] = "在此用戶端中，即使選擇其他輸出頻道，WoW 仍會透過主音量播放預設進度音效 ID 8959。若進度音效必須跟隨效果、音樂或其他頻道，請選擇其他音效 ID。",}
 
 QuestAnnounce_L.ptBR = {
 	["Test Frame Messages"] = "Test Frame Message",
@@ -2317,7 +2335,9 @@ QuestAnnounce_L.ptBR = {
 	["Middle-click detected on QuestAnnounce MinimapButton Toggle Pause"] = "Clique do meio detectado no botão do minimapa do QuestAnnounce: alternar pausa",
 	["QuestAnnounce temporarily paused!"] = "QuestAnnounce foi pausado temporariamente!",
 	["QuestAnnounce pause ended."] = "A pausa do QuestAnnounce terminou.",
-	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "Mostra ou oculta mensagens locais de progresso/conclusão do QuestAnnounce no seu próprio chat.",}
+	["Show or hide local QuestAnnounce progress/completion messages in your own chat frame."] = "Mostra ou oculta mensagens locais de progresso/conclusão do QuestAnnounce no seu próprio chat.",
+	["Music channel requirement"] = "A saída de música exige que o canal de Música do WoW esteja ativado. Apenas aumentar o volume não basta se a música estiver desativada nas configurações de som do jogo.",
+	["Progress sound 8959 master channel note"] = "Neste cliente, o WoW reproduz o som de progresso padrão ID 8959 pelo canal Principal mesmo quando outro canal é selecionado. Escolha outra ID de som se o progresso precisar seguir Efeitos, Música ou outro canal.",}
 
 -- Fallback: fehlende Schlüssel in anderen Locales automatisch aus enUS beziehen.
 do
