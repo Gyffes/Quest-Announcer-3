@@ -1,0 +1,22 @@
+name: QA3 Taint Isolation
+
+on:
+  push:
+    branches:
+      - main
+      - 'agent/**'
+      - 'codex/**'
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  taint-isolation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check shared Blizzard UI isolation
+        run: python3 tests/test_taint_isolation.py
