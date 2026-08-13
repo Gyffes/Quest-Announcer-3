@@ -23,3 +23,6 @@ jobs:
 
       - name: Check localization completeness
         run: python3 tests/test_localization_completeness.py
+
+      - name: Check multi-client package compatibility
+        run: python3 tests/test_multi_client_release.py

@@ -9,6 +9,8 @@ v9.3.0.7 Multi - 13-08-2026
          - [EN] Completed all supported locales for profile management, pause status, and local progress messages
          - [DE] README, Versionsdateien und automatische Lokalisierungsprüfung für den Release aktualisiert
          - [EN] Updated README, version files, and automated localization validation for this release
+         - [DE] Multi-Kompatibilität abgesichert: automatischer Test prüft alle zehn WoW-Client-TOCs, identische Version und gemeinsame Kern-Dateien
+         - [EN] Multi-client compatibility safeguarded: automated test validates all ten WoW client TOCs, the matching version, and shared core files
 
 v9.3.0.6 Multi - 25-04-2026
 	         - [DE] Dropdown-Radio-Markierungen korrigiert: ausgewählte Einträge sind jetzt gefüllt, nicht ausgewählte leer (Blizzard-ähnliche Darstellung)

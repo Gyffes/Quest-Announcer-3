@@ -327,12 +327,9 @@ end
             self.items = newItems or {}
         end
 
-        function dropdown:RefreshMenu()
-            for _, child in ipairs({ menu:GetChildren() }) do
-                child:Hide()
-                child:SetParent(nil)
-            end
+        menu.rows = {}
 
+        function dropdown:RefreshMenu()
             local rowHeight = 24
             local itemCount = #self.items
             menu:SetSize(width + 12, math.max(rowHeight + 12, itemCount * rowHeight + 12))
@@ -343,35 +340,48 @@ end
                 local text = type(item) == "table" and item.text or item
                 local value = type(item) == "table" and item.value or item
                 local isSelected = (self.selectedValue == value)
+                local row = menu.rows[index]
 
-                local row = CreateFrame("Button", nil, menu)
+                if not row then
+                    row = CreateFrame("Button", nil, menu)
+                    row:SetSize(width, rowHeight)
+
+                    row.radio = CreateFrame("CheckButton", nil, row, "UIRadioButtonTemplate")
+                    row.radio:SetPoint("LEFT", 2, 0)
+                    row.radio:EnableMouse(false)
+
+                    row.label = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+                    row.label:SetPoint("LEFT", row.radio, "RIGHT", 2, 0)
+                    row.label:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+                    row.label:SetJustifyH("LEFT")
+
+                    row:SetScript("OnEnter", function(self)
+                        self.label:SetTextColor(1, 0.82, 0, 1)
+                    end)
+                    row:SetScript("OnLeave", function(self)
+                        self.label:SetTextColor(1, 1, 1, 1)
+                    end)
+                    menu.rows[index] = row
+                end
+
+                row:ClearAllPoints()
                 row:SetPoint("TOPLEFT", 6, -6 - ((index - 1) * rowHeight))
-                row:SetSize(width, rowHeight)
-
-                local radio = CreateFrame("CheckButton", nil, row, "UIRadioButtonTemplate")
-                radio:SetPoint("LEFT", 2, 0)
-                radio:SetChecked(isSelected)
-                radio:EnableMouse(false)
-
-                local label = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-                label:SetPoint("LEFT", radio, "RIGHT", 2, 0)
-                label:SetPoint("RIGHT", row, "RIGHT", -4, 0)
-                label:SetJustifyH("LEFT")
-                label:SetText(text)
-
-                row:SetScript("OnEnter", function()
-                    label:SetTextColor(1, 0.82, 0, 1)
-                end)
-                row:SetScript("OnLeave", function()
-                    label:SetTextColor(1, 1, 1, 1)
-                end)
-                row:SetScript("OnClick", function()
-                    dropdown:SetSelected(value, text)
+                row.value = value
+                row.text = text
+                row.radio:SetChecked(isSelected)
+                row.label:SetText(text)
+                row:SetScript("OnClick", function(self)
+                    dropdown:SetSelected(self.value, self.text)
                     menu:Hide()
                     if dropdown.onSelect then
-                        dropdown.onSelect(value, text)
+                        dropdown.onSelect(self.value, self.text)
                     end
                 end)
+                row:Show()
+            end
+
+            for index = itemCount + 1, #menu.rows do
+                menu.rows[index]:Hide()
             end
         end
 
