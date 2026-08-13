@@ -9,6 +9,8 @@ v9.3.0.7 Multi - 13-08-2026
          - [EN] Completed all supported locales for profile management, pause status, and local progress messages
          - [DE] README, Versionsdateien und automatische Lokalisierungsprüfung für den Release aktualisiert
          - [EN] Updated README, version files, and automated localization validation for this release
+         - [DE] Soundkanal-Fix: Sound-ID 8959 respektiert jetzt die gewählte Ausgabe (Master, Effekte, Umgebung, Dialog, Musik) und wird nicht mehr still auf Master umgeleitet
+         - [EN] Sound-channel fix: sound ID 8959 now respects the selected output (Master, Effects, Ambience, Dialog, Music) instead of being silently redirected to Master
          - [DE] Multi-Kompatibilität abgesichert: automatischer Test prüft alle zehn WoW-Client-TOCs, identische Version und gemeinsame Kern-Dateien
          - [EN] Multi-client compatibility safeguarded: automated test validates all ten WoW client TOCs, the matching version, and shared core files
 

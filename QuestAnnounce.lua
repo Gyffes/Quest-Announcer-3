@@ -588,14 +588,10 @@ function QuestAnnounce:ShouldSuppressSoundByChannel(soundID, channel)
     return false
 end
 
--- DE: Manche IDs (z. B. 8959) sind intern an Master gebunden.
--- EN: Some IDs (e.g. 8959) are internally tied to Master.
-function QuestAnnounce:GetPlaybackChannelForSound(soundID, channel)
-    local id = tonumber(soundID)
-    if id == 8959 and channel ~= "Master" then
-        return "Master"
-    end
-    return channel
+-- DE: Die explizite Kanalwahl des Spielers wird unverändert an PlaySound weitergegeben.
+-- EN: The player's explicit channel choice is passed through to PlaySound unchanged.
+function QuestAnnounce:GetPlaybackChannelForSound(_, channel)
+    return channel or "Master"
 end
 
 -- DE: Direkter Sound-Test ohne Queue/Priorität, damit der Testbutton den gewählten Kanal sofort nutzt.
