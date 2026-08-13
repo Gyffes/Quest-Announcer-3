@@ -21,6 +21,9 @@ FORBIDDEN = {
     "direct WorldMapFrame mutation": re.compile(r'\bWorldMapFrame\s*:\s*(?:Set|HookScript|Hide|Show|Clear)'),
     "direct QuestFrame mutation": re.compile(r'\bQuestFrame\s*:\s*(?:Set|HookScript|Hide|Show|Clear)'),
     "C_QuestLog table write": re.compile(r'\bC_QuestLog\s*\.\s*[A-Za-z_][A-Za-z0-9_]*\s*='),
+    "C_QuestLog compatibility alias": re.compile(r'local\s+QA_QuestLog\s*=\s*C_QuestLog\s+or\s+\{\}'),
+    "unnamespaced leave-channel popup": re.compile(r'["\']CONFIRM_LEAVE_CHANNEL["\']'),
+    "unnamespaced missing-channel popup": re.compile(r'["\']MISSING_CHANNEL_NAME["\']'),
 }
 
 # Named addon-owned tooltip frames are allowed and expected.
