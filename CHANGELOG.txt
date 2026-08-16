@@ -1,3 +1,17 @@
+v9.3.0.8 Multi - 16-08-2026
+         - [DE] WoW-12.x-Chat-Lockdown-Schutz ergänzt: automatische Chat-Ausgaben werden vor dem Senden auf Blizzard-Chat-/Encounter-Restriktionen geprüft
+         - [EN] Added WoW 12.x chat-lockdown protection: automatic chat output now checks Blizzard chat/encounter restrictions before sending
+         - [DE] Oeffentliche automatische Chat-Typen (SAY/YELL/EMOTE/CHANNEL) werden kanalgenau vor dem Blizzard-Aufruf geprueft; bei geschuetztem Client-Kontext ueberspringt QuestAnnounce nur diesen Kanal
+         - [EN] Public automated chat types (SAY/YELL/EMOTE/CHANNEL) are checked per channel before calling Blizzard chat APIs; QuestAnnounce skips only that channel when the client context is protected
+         - [DE] Tooltips und Aktivierungs-Popup fuer oeffentliche Chatkanaele erklaeren die Blizzard-Einschraenkungen in allen unterstuetzten Sprachen
+         - [EN] Tooltips and an enable-warning popup for public chat channels explain Blizzard restrictions in all supported languages
+         - [DE] Chatversand, Fokus-Flüstern und benutzerdefinierte Channel-Ausgabe laufen jetzt über sichere Wrapper; lokale Meldungen, RaidWarning-/UIErrorsFrame-Ausgabe und Sounds bleiben erhalten
+         - [EN] Chat output, focus whispers, and custom channel output now use safe wrappers; local messages, RaidWarning/UIErrorsFrame output, and sounds remain intact
+         - [DE] Ausgabe aus Quest-Fortschritts-Events wird zeitlich entkoppelt, damit geschützte WoW-UI-Pfade nicht direkt aus UI_INFO_MESSAGE heraus berührt werden
+         - [EN] Output from quest-progress events is deferred so protected WoW UI paths are not touched directly from UI_INFO_MESSAGE
+         - [DE] Version fuer alle unterstuetzten WoW-Varianten auf 9.3.0.8 Multi angehoben
+         - [EN] Bumped all supported WoW variants to 9.3.0.8 Multi
+
 v9.3.0.7 Multi - 13-08-2026
          - [DE] SoundFix: Doppelte unmittelbare Abschluss-Sounds werden unterdrueckt, wenn das letzte Questziel und die anschliessende bestaetigte Questabschlussmeldung denselben Sound auf demselben Kanal ausloesen
          - [EN] Sound fix: suppresses immediate duplicate completion sounds when the final quest objective and the following confirmed quest-completion message trigger the same sound on the same channel

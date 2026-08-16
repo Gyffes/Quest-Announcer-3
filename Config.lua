@@ -11,8 +11,21 @@ local function openConfig()
         return
     end
 
+    -- DE: Blizzard-Settings duerfen im Kampf nicht sicher geoeffnet werden.
+    -- EN: Blizzard settings cannot be safely opened while in combat lockdown.
+    if InCombatLockdown and InCombatLockdown() then
+        QuestAnnounce:NotifySelf(L["Cannot open settings in combat."], true)
+        return
+    end
+
     Settings.OpenToCategory(category:GetID())
     Settings.OpenToCategory(category:GetID())
+end
+
+local function ShowPublicChatRestrictionWarning(channelName)
+    if StaticPopup_Show then
+        StaticPopup_Show("QUESTANNOUNCE_PUBLIC_CHAT_RESTRICTION", channelName or L["Public Chat"])
+    end
 end
 
 -- Erstellt und registriert die Blizzard-Optionsfenster für QuestAnnounce.
@@ -883,9 +896,12 @@ end
         function(self)
             QuestAnnounce.db.profile.announceIn.say = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceIn: say :: " .. tostring(QuestAnnounce.db.profile.announceIn.say))
+            if QuestAnnounce.db.profile.announceIn.say then
+                ShowPublicChatRestrictionWarning(L["Say"])
+            end
         end,
         L["Say"],
-        L["Send announcements to the /say channel."]
+        L["Send announcements to the /say channel."] .. "\n\n" .. L["Public chat restriction tooltip"]
     )
 
     local partyCheckbox = CreateCheckbox(
@@ -1011,6 +1027,7 @@ end
             QuestAnnounce:SendDebugMsg("setAnnounceIn: channel :: " .. tostring(value))
 
             if value then
+                ShowPublicChatRestrictionWarning(L["Channel"])
                 if QuestAnnounce.db.profile.announceIn.channelName == "" or not QuestAnnounce.db.profile.announceIn.channelName then
                     StaticPopup_Show("QUESTANNOUNCE_MISSING_CHANNEL_NAME")
                 else
@@ -1023,7 +1040,7 @@ end
             end
         end,
         L["Channel"],
-        L["Send announcements to a custom chat channel."]
+        L["Send announcements to a custom chat channel."] .. "\n\n" .. L["Public chat restriction tooltip"]
     )
 
     local channelNameLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
@@ -2260,4 +2277,13 @@ StaticPopupDialogs["QUESTANNOUNCE_MISSING_CHANNEL_NAME"] = {
     timeout = 0,
     whileDead = true,
     hideOnEscape = true,
+}
+
+StaticPopupDialogs["QUESTANNOUNCE_PUBLIC_CHAT_RESTRICTION"] = {
+    text = L["Public chat restriction warning"],
+    button1 = OKAY,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
 }

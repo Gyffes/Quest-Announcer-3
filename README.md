@@ -5,8 +5,8 @@ Quest Announce 3 is a World of Warcraft addon that automatically announces quest
 
 ## Version / Version
 
-Aktueller Stand: **9.3.0.7**
-Current version: **9.3.0.7**
+Aktueller Stand: **9.3.0.8**
+Current version: **9.3.0.8**
 
 ## Projektstatus (DE)
 
@@ -34,6 +34,7 @@ Das Addon wurde in der aktuellen Entwicklungsphase grundlegend modernisiert:
 - 9.3.0.7: Alle unterstützten Locales sind wieder vollständig; CI prüft künftig Taint-Isolation und Übersetzungsvollständigkeit.
 - 9.3.0.7: Multi-Kompatibilität bleibt erhalten: Retail, Classic Era, Hardcore, Anniversary, Season of Discovery, TBC, Wrath, Cataclysm und MoP nutzen weiterhin dieselbe getestete Codebasis.
 - 9.3.0.7: Die Soundausgabe respektiert den ausgewählten WoW-Soundkanal. Hinweis: Der Blizzard-SoundKit 8959 ist auf manchen Clients an Master gebunden; für getrennte Kanäle kann eine andere Fortschritts-Sound-ID gewählt werden.
+- 9.3.0.8: Chat-Ausgaben werden gegen WoW-Chat-/Encounter-Lockdowns abgesichert. Öffentliche automatische Chat-Typen (SAY/YELL/EMOTE/CHANNEL) werden vor dem Blizzard-Aufruf geprüft und bei geschütztem Client-Kontext übersprungen; Tooltip und Popup erklären die Einschränkung.
 
 ## Project Status (EN)
 
@@ -62,6 +63,7 @@ The addon has been significantly modernized in the current development phase:
 - 9.3.0.7: All supported locales are complete again; CI now checks both taint isolation and localization completeness.
 - 9.3.0.7: Multi-client compatibility remains intact: Retail, Classic Era, Hardcore, Anniversary, Season of Discovery, TBC, Wrath, Cataclysm, and MoP continue to use the same tested codebase.
 - 9.3.0.7: Sound output respects the selected WoW sound channel. Note: Blizzard SoundKit 8959 is Master-bound on some clients; choose another progress sound ID for separate channel routing.
+- 9.3.0.8: Chat output is protected against WoW chat/encounter lockdowns. Public automated chat types (SAY/YELL/EMOTE/CHANNEL) are checked before calling Blizzard APIs and skipped when the client context is protected; tooltip and popup explain the limitation.
 
 ## Hauptfunktionen (DE)
 

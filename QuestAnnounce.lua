@@ -214,10 +214,11 @@ local defaults = {
 }
 -- Chanel betreten
 function QuestAnnounce:JoinChannel(channelName)
-    local id, name = GetChannelName(channelName)
+    local id = self:GetChannelNameSafe(channelName)
     if not id or id == 0 then
-        JoinTemporaryChannel(channelName)
-        QuestAnnounce:Print(L["Joined Channel: "] .. channelName)
+        if self:JoinTemporaryChannelSafe(channelName) then
+            QuestAnnounce:Print(L["Joined Channel: "] .. channelName)
+        end
     else
         QuestAnnounce:Print(L["Already on the Channel: "] .. channelName)
     end
@@ -225,10 +226,16 @@ end
 
 -- Chanel verlassen 
 function QuestAnnounce:LeaveChannel(channelName)
-    local id, name = GetChannelName(channelName)
+    local id = self:GetChannelNameSafe(channelName)
     if id and id > 0 then
-        LeaveChannelByName(channelName)
-        QuestAnnounce:Print(L["Exiting the Channel: "] .. channelName)
+        if type(LeaveChannelByName) == "function" then
+            local ok, result = pcall(LeaveChannelByName, channelName)
+            if ok then
+                QuestAnnounce:Print(L["Exiting the Channel: "] .. channelName)
+            else
+                self:SendDebugMsg("LeaveChannelByName failed safely :: " .. tostring(channelName) .. " :: " .. tostring(result))
+            end
+        end
     end
 end
 
@@ -249,8 +256,7 @@ StaticPopupDialogs["QUESTANNOUNCE_CONFIRM_LEAVE_CHANNEL"] = {
     button1 = L["Yes"],
     button2 = L["No"],
     OnAccept = function(_, channelName)
-        LeaveChannelByName(channelName)
-        QuestAnnounce:Print(L["Leaving Channel: "] .. channelName)
+        QuestAnnounce:LeaveChannel(channelName)
     end,
     timeout = 0,
     whileDead = true,
@@ -1456,8 +1462,8 @@ function QuestAnnounce:NotifySelf(msg, showUIError)
 
     self:Print(msg)
 
-    if showUIError and UIErrorsFrame and UIErrorsFrame.AddMessage then
-        UIErrorsFrame:AddMessage(msg)
+    if showUIError then
+        self:AddUIErrorMessageSafe(msg)
     end
 end
 
@@ -1470,10 +1476,178 @@ function QuestAnnounce:ShouldShowLocalProgressMessages()
     return true
 end
 
+-- DE: Neuere WoW-Clients koennen addon-initiierten Chat in Begegnungs-/Chat-Lockdowns blockieren.
+-- EN: Newer WoW clients can block addon-initiated chat during encounter/chat lockdowns.
+function QuestAnnounce:IsPublicChatType(chatType)
+    return chatType == "SAY"
+        or chatType == "YELL"
+        or chatType == "EMOTE"
+        or chatType == "CHANNEL"
+    end
+
+function QuestAnnounce:IsPublicChatAllowed(chatType)
+    if chatType == "SAY" or chatType == "YELL" or chatType == "EMOTE" or chatType == "CHANNEL" then
+        if type(IsInInstance) == "function" then
+            local ok, inInstance, instanceType = pcall(IsInInstance)
+            if ok and inInstance and instanceType ~= "pvp" and instanceType ~= "arena" then
+                return true
+            end
+        end
+
+        return false, "automatic world public chat restriction"
+    end
+
+    return true
+end
+
+function QuestAnnounce:IsChatSendRestricted(chatType)
+    if C_ChatInfo and type(C_ChatInfo.InChatMessagingLockdown) == "function" then
+        local ok, locked = pcall(C_ChatInfo.InChatMessagingLockdown)
+        if ok and locked then
+            return true, "chat messaging lockdown"
+        end
+    end
+
+    if type(IsEncounterInProgress) == "function" then
+        local ok, inEncounter = pcall(IsEncounterInProgress)
+        if ok and inEncounter then
+            return true, "encounter in progress"
+        end
+    end
+
+    -- DE: Quest-Fortschritt wird automatisch aus Events gesendet. Oeffentliche
+    -- Chat-Typen sind nur in einigen Client-Kontexten zulaessig und werden sonst
+    -- vor dem Blizzard-Aufruf uebersprungen.
+    -- EN: Quest progress is sent automatically from events. Public chat types are
+    -- only allowed in some client contexts and are skipped before Blizzard APIs otherwise.
+    if self:IsPublicChatType(chatType) then
+        local allowed, reason = self:IsPublicChatAllowed(chatType)
+        if not allowed then
+            return true, reason or "automatic public chat restriction"
+        end
+    end
+
+    return false, nil
+end
+
+function QuestAnnounce:GetChannelNameSafe(channelName)
+    if type(GetChannelName) ~= "function" then
+        return nil
+    end
+
+    local ok, id = pcall(GetChannelName, channelName)
+    if ok then
+        return id
+    end
+
+    self:SendDebugMsg("GetChannelName failed safely :: " .. tostring(channelName) .. " :: " .. tostring(id))
+    return nil
+end
+
+function QuestAnnounce:JoinTemporaryChannelSafe(channelName)
+    if type(channelName) ~= "string" or channelName == "" then
+        return false, "no channel"
+    end
+
+    if C_ChatInfo and type(C_ChatInfo.InChatMessagingLockdown) == "function" then
+        local ok, locked = pcall(C_ChatInfo.InChatMessagingLockdown)
+        if ok and locked then
+            self:SendDebugMsg("JoinTemporaryChannel skipped by chat messaging lockdown :: " .. tostring(channelName))
+            return false, "chat messaging lockdown"
+        end
+    end
+
+    if type(IsEncounterInProgress) == "function" then
+        local ok, inEncounter = pcall(IsEncounterInProgress)
+        if ok and inEncounter then
+            self:SendDebugMsg("JoinTemporaryChannel skipped during encounter :: " .. tostring(channelName))
+            return false, "encounter in progress"
+        end
+    end
+
+    if type(JoinTemporaryChannel) ~= "function" then
+        return false, "JoinTemporaryChannel unavailable"
+    end
+
+    local ok, result = pcall(JoinTemporaryChannel, channelName)
+    if not ok then
+        self:SendDebugMsg("JoinTemporaryChannel failed safely :: " .. tostring(channelName) .. " :: " .. tostring(result))
+        return false, result
+    end
+
+    return true, result
+end
+
+function QuestAnnounce:SendChatMessageSafe(msg, chatType, languageID, target)
+    if not msg or msg == "" or not chatType or chatType == "" then
+        return false, "missing message or chat type"
+    end
+
+    local restricted, reason = self:IsChatSendRestricted(chatType)
+    if restricted then
+        self:SendDebugMsg("Chat send skipped by WoW restriction :: " .. tostring(chatType) .. " :: " .. tostring(reason) .. " :: " .. tostring(msg))
+        return false, reason
+    end
+
+    local sender = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage
+    if type(sender) ~= "function" then
+        return false, "SendChatMessage unavailable"
+    end
+
+    local ok, result = pcall(sender, msg, chatType, languageID, target)
+    if not ok then
+        self:SendDebugMsg("Chat send failed safely :: " .. tostring(chatType) .. " :: " .. tostring(result))
+        return false, result
+    end
+
+    return true, result
+end
+
+function QuestAnnounce:AddUIErrorMessageSafe(msg, r, g, b, holdTime)
+    if not msg or msg == "" or not UIErrorsFrame or type(UIErrorsFrame.AddMessage) ~= "function" then
+        return false
+    end
+
+    local ok, result = pcall(UIErrorsFrame.AddMessage, UIErrorsFrame, msg, r, g, b, holdTime)
+    if not ok then
+        self:SendDebugMsg("UIErrorsFrame:AddMessage failed safely :: " .. tostring(result))
+        return false
+    end
+
+    return true
+end
+
+function QuestAnnounce:AddRaidNoticeMessageSafe(msg)
+    if not msg or msg == "" or type(RaidNotice_AddMessage) ~= "function" or not RaidWarningFrame then
+        return false
+    end
+
+    local ok, result = pcall(RaidNotice_AddMessage, RaidWarningFrame, msg, ChatTypeInfo and ChatTypeInfo["RAID_WARNING"] or nil)
+    if not ok then
+        self:SendDebugMsg("RaidNotice_AddMessage failed safely :: " .. tostring(result))
+        return false
+    end
+
+    return true
+end
+
 --[[ Sends a chat message to the selected chat channels and frames where applicable,
     if we have a message to send; will also send a debugging message if debug is enabled ]]--
--- Sendet die Nachricht an die aktivierten Ausgabekanäle und Ausgabefenster
+-- Sendet die Nachricht an die aktivierten Ausgabekanaele und Ausgabefenster.
 function QuestAnnounce:SendMsg(msg, isComplete, soundOverrideEvent)
+    if C_Timer and C_Timer.After then
+        C_Timer.After(0, function()
+            if QuestAnnounce and QuestAnnounce.DispatchMsg then
+                QuestAnnounce:DispatchMsg(msg, isComplete, soundOverrideEvent)
+            end
+        end)
+        return
+    end
+
+    self:DispatchMsg(msg, isComplete, soundOverrideEvent)
+end
+
+function QuestAnnounce:DispatchMsg(msg, isComplete, soundOverrideEvent)
     -- Sicherheitsabbruch, wenn keine Nachricht vorhanden ist
     if not msg then
         return
@@ -1502,39 +1676,44 @@ function QuestAnnounce:SendMsg(msg, isComplete, soundOverrideEvent)
     if announceTo.chatFrame then
         -- SAY
         if announceIn.say then
-            SendChatMessage(msg, "SAY")
-            QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(SAY) :: " .. msg)
+            if self:SendChatMessageSafe(msg, "SAY") then
+                QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(SAY) :: " .. msg)
+            end
         end
 
         -- PARTY
         if announceIn.party then
             if IsInGroup(LE_PARTY_CATEGORY_HOME) then
-                SendChatMessage(msg, "PARTY")
-                QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(PARTY) :: " .. msg)
+                if self:SendChatMessageSafe(msg, "PARTY") then
+                    QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(PARTY) :: " .. msg)
+                end
             end
         end
 
         -- INSTANCE_CHAT
         if announceIn.instance then
             if IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
-                SendChatMessage(msg, "INSTANCE_CHAT")
-                QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(INSTANCE) :: " .. msg)
+                if self:SendChatMessageSafe(msg, "INSTANCE_CHAT") then
+                    QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(INSTANCE) :: " .. msg)
+                end
             end
         end
 
         -- GUILD
         if announceIn.guild then
             if IsInGuild() then
-                SendChatMessage(msg, "GUILD")
-                QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(GUILD) :: " .. msg)
+                if self:SendChatMessageSafe(msg, "GUILD") then
+                    QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(GUILD) :: " .. msg)
+                end
             end
         end
 
         -- OFFICER
         if announceIn.officer then
             if IsInGuild() then
-                SendChatMessage(msg, "OFFICER")
-                QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(OFFICER) :: " .. msg)
+                if self:SendChatMessageSafe(msg, "OFFICER") then
+                    QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(OFFICER) :: " .. msg)
+                end
             end
         end
 
@@ -1543,8 +1722,9 @@ function QuestAnnounce:SendMsg(msg, isComplete, soundOverrideEvent)
             if UnitExists("focus") then
                 local name = UnitName("focus")
                 if name then
-                    SendChatMessage(msg, "WHISPER", nil, name)
-                    QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(FOCUS->WHISPER) :: " .. msg)
+                    if self:SendChatMessageSafe(msg, "WHISPER", nil, name) then
+                        QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(FOCUS->WHISPER) :: " .. msg)
+                    end
                 end
             else
                 self:NotifySelf(L["No focus set, message not sent."], false)
@@ -1555,24 +1735,26 @@ function QuestAnnounce:SendMsg(msg, isComplete, soundOverrideEvent)
         if announceIn.whisper then
             local who = announceIn.whisperWho
             if who ~= nil and who ~= "" then
-                SendChatMessage(msg, "WHISPER", nil, who)
-                QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(WHISPER) :: " .. who .. "-" .. msg)
+                if self:SendChatMessageSafe(msg, "WHISPER", nil, who) then
+                    QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(WHISPER) :: " .. who .. "-" .. msg)
+                end
             end
         end
 
         -- Benutzerdefinierter CHANNEL
         if announceIn.channel then
             if announceIn.channelName and announceIn.channelName ~= "" then
-                local id = GetChannelName(announceIn.channelName)
+                local id = self:GetChannelNameSafe(announceIn.channelName)
 
                 if not id or id == 0 then
-                    JoinTemporaryChannel(announceIn.channelName)
-                    id = GetChannelName(announceIn.channelName)
+                    self:JoinTemporaryChannelSafe(announceIn.channelName)
+                    id = self:GetChannelNameSafe(announceIn.channelName)
                 end
 
                 if id and id > 0 then
-                    SendChatMessage(msg, "CHANNEL", nil, id)
-                    QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(CHANNEL) :: " .. msg)
+                    if self:SendChatMessageSafe(msg, "CHANNEL", nil, id) then
+                        QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(CHANNEL) :: " .. msg)
+                    end
                 end
             else
                 self:NotifySelf(L["No channel set."], false)
@@ -1582,12 +1764,12 @@ function QuestAnnounce:SendMsg(msg, isComplete, soundOverrideEvent)
 
     -- Nachricht zusätzlich im RaidWarningFrame anzeigen
     if allowSelfOutput and announceTo.raidWarningFrame then
-        RaidNotice_AddMessage(RaidWarningFrame, msg, ChatTypeInfo["RAID_WARNING"])
+        self:AddRaidNoticeMessageSafe(msg)
     end
 
     -- Nachricht zusätzlich im UIErrorsFrame anzeigen
     if allowSelfOutput and announceTo.uiErrorsFrame then
-        UIErrorsFrame:AddMessage(msg, 1.0, 1.0, 0.0, 7)
+        self:AddUIErrorMessageSafe(msg, 1.0, 1.0, 0.0, 7)
     end
 
     -- DE: Geordnete Sound-Ausgabe ohne Sound-Flut / EN: Ordered sound output without sound spam.
