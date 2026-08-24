@@ -1,3 +1,37 @@
+v9.3.0.9 Multi (RC1) - 24-08-2026
+         - [DE] Release-Candidate-Bereinigung: alle temporaeren A/B- und Taint-Diagnoseschalter aus der Produktionslogik entfernt
+         - [EN] Release-candidate cleanup: removed all temporary A/B and taint diagnostic switches from production code
+         - [DE] Abschlusspruefung korrigiert: C_QuestLog.IsComplete erhaelt immer die Quest-ID; 1/1-Fallbacks pruefen jetzt den gesamten Queststatus
+         - [EN] Fixed completion validation: C_QuestLog.IsComplete always receives the quest ID, and 1/1 fallbacks now verify the whole quest state
+         - [DE] Abgabe-Intent wird nach passender Verwendung verbraucht; Abschluss-/Retry-Zustand wird bei jeder echten Abgabe bereinigt
+         - [EN] Matching turn-in intent is consumed after use; completion and retry state is cleared on every real turn-in
+         - [DE] Profilmigration vervollstaendigt: geladene Altprofile erhalten alle aktuellen Defaults und aktualisieren Questtyp-Anzeige sowie Minimap sofort
+         - [EN] Completed profile migration: loaded legacy profiles receive all current defaults and immediately refresh quest filters and minimap visibility
+         - [DE] Kommentare, doppelten Tooltip-Helfercode und ungenutzte Lokalisierungsreste bereinigt; automatischer Test prueft zehn Locales, Schluessel und Platzhalter
+         - [EN] Cleaned comments, duplicate tooltip helper code, and unused localization remnants; automated validation now checks ten locales, keys, and placeholders
+         - [DE] Cinematic-Taint-Fix: Questabgabe-Erkennung von Blizzards Questabschluss-Funktionen und -Buttons entkoppelt; Manual-Intent wird nur noch ueber QUEST_PROGRESS/QUEST_COMPLETE erfasst
+         - [EN] Cinematic taint fix: detached turn-in detection from Blizzard quest completion functions and buttons; manual intent is now captured only through QUEST_PROGRESS/QUEST_COMPLETE
+         - [DE] Verhindert, dass QuestAnnounce den anschliessenden Cinematic-/LowHealthFrame-Pfad markiert, in dem WoW 12 mit geheimen Gesundheitswerten rechnet
+         - [EN] Prevents QuestAnnounce from tainting the following cinematic/LowHealthFrame path where WoW 12 performs arithmetic on secret health values
+         - [DE] Die lokale Raidwarnungs-Ausgabe verwendet jetzt ein anonymes QuestAnnounce-Hinweisfenster statt Blizzards gemeinsamem RaidWarningFrame; UIErrorsFrame und alle anderen Funktionen bleiben aktiv
+         - [EN] Local raid-warning output now uses an anonymous QuestAnnounce notice frame instead of Blizzard's shared RaidWarningFrame; UIErrorsFrame and all other features remain active
+         - [DE] QUEST_TURNED_IN-Verarbeitung wird auf den naechsten Timer-Zyklus verschoben; Intent-, QuestID-, Auto-Turn-In-, Duplicate- und Soundlogik bleiben unveraendert
+         - [EN] QUEST_TURNED_IN processing is deferred to the next timer cycle while intent, quest-ID, auto-turn-in, duplicate, and sound behavior remain unchanged
+         - [DE] Questlinks nutzen auf Retail und Classic einen sicheren SetItemRef-Nachhook, ohne Blizzards gemeinsam genutztes EventRegistry zu veraendern; alle drei Klickaktionen bleiben erhalten
+         - [EN] Quest links use a secure SetItemRef post-hook on Retail and Classic without mutating Blizzard's shared EventRegistry; all three click actions remain available
+         - [DE] Kanalwarnungen und Bestaetigungen verwenden ein anonymes QuestAnnounce-Dialogfenster statt Eintraegen in Blizzards globaler StaticPopupDialogs-Tabelle
+         - [EN] Channel warnings and confirmations use an anonymous QuestAnnounce dialog instead of entries in Blizzard's global StaticPopupDialogs table
+         - [DE] WoW-12.x-Kampfschutz erweitert: normaler Kampf wird jetzt ueber InCombatLockdown erkannt, auch wenn kein Blizzard-Encounter aktiv ist
+         - [EN] Extended WoW 12.x combat protection: ordinary combat is now detected through InCombatLockdown even when no Blizzard encounter is active
+         - [DE] Die neueste nur wegen Kampf blockierte Chatmeldung wird bis zu 10 Sekunden gespeichert und nach Kampfende einmalig erneut geprueft
+         - [EN] The latest chat message blocked by combat is retained for up to 10 seconds and checked once more when combat ends
+         - [DE] Nachgesendet werden ausschliesslich externe Chatkanaele; lokale Frames und Sounds werden nicht doppelt ausgegeben
+         - [EN] Only external chat destinations are replayed; local frames and sounds are not duplicated
+         - [DE] Temporaerer Channel-Beitritt nutzt dieselbe zentrale Chat-Sperrpruefung wie der Nachrichtenversand
+         - [EN] Temporary channel joining now uses the same central chat restriction check as message sending
+         - [DE] Version fuer alle unterstuetzten WoW-Varianten auf 9.3.0.9 Multi angehoben
+         - [EN] Bumped all supported WoW variants to 9.3.0.9 Multi
+
 v9.3.0.8 Multi - 16-08-2026
          - [DE] WoW-12.x-Chat-Lockdown-Schutz ergänzt: automatische Chat-Ausgaben werden vor dem Senden auf Blizzard-Chat-/Encounter-Restriktionen geprüft
          - [EN] Added WoW 12.x chat-lockdown protection: automatic chat output now checks Blizzard chat/encounter restrictions before sending

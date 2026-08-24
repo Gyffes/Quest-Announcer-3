@@ -1,7 +1,7 @@
-﻿## Interface: 100207, 110000, 110002, 120000, 120001
+## Interface: 100207, 110000, 110002, 120000, 120001
 ## X-Interface: 120001
 ## Title: Quest Announce 3
-## Version: 9.3.0.8
+## Version: 9.3.0.9
 ## Author: Michael Irving (original), Sommy aka Gyffes(Gilneas) (WoW 2.4), Kotenuki aka Cinnabuns(Doomhammer) (WoW 4.0+)
 ## Notes: QuestAnnounce sends a message as you advance in a quest.
 ## SavedVariables: QuestAnnounceDB

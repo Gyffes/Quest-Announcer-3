@@ -1,17 +1,19 @@
 -- Minimap.lua
--- Referenz auf das Haupt-Addon und die Lokalisierung
+-- DE: Referenzen auf Haupt-Addon und Lokalisierung.
+-- EN: References to the core addon and localization table.
 local QuestAnnounce = _G["QuestAnnounce"]
 local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L["enUS"]
 
 
--- Funktion zur Erstellung des Minimap-Buttons
+-- DE: Erstellt den verschiebbaren Minimap-Button genau einmal.
+-- EN: Creates the movable minimap button exactly once.
 function QuestAnnounce:InitializeMinimapButton()
     -- Verhindert, dass der Minimap-Button mehrfach erstellt wird
     if self.minimapButton then
         return
     end
 
-    QuestAnnounce:SendDebugMsg("Initialisiere Minimap-Button...") -- Debugging-Ausgabe
+    QuestAnnounce:SendDebugMsg("Initialisiere Minimap-Button...")
 
 	local MinimapButton = CreateFrame("Button", "QuestAnnounceMinimapButton", Minimap)
 	self.minimapButton = MinimapButton
@@ -168,30 +170,12 @@ function QuestAnnounce:InitializeMinimapButton()
 
 MinimapButton:RegisterForClicks("AnyUp")
 
--- Öffnet das Hauptfenster von QuestAnnounce in den Blizzard-Einstellungen
-local function openConfig()
-    local category = QuestAnnounce.optionsCategory
-    if not category then
-        return
-    end
-
-    -- DE: Blizzard-Settings dürfen im Kampf nicht sicher geöffnet werden.
-    -- EN: Blizzard settings cannot be safely opened while in combat lockdown.
-    if InCombatLockdown and InCombatLockdown() then
-        QuestAnnounce:NotifySelf(L["Cannot open settings in combat."], true)
-        return
-    end
-
-    Settings.OpenToCategory(category:GetID())
-    Settings.OpenToCategory(category:GetID())
-end
-
     -- Reaktion auf Klicks auf den Minimap-Button
     MinimapButton:SetScript("OnClick", function(self, button)
         if button == "RightButton" then
             -- Rechtsklick öffnet das Einstellungsfenster
             QuestAnnounce:SendDebugMsg(L["Right-click detected on QuestAnnounce MinimapButton Open Menu"])
-            openConfig()
+            QuestAnnounce:OpenConfig()
         elseif button == "MiddleButton" then
             QuestAnnounce:SendDebugMsg(L["Middle-click detected on QuestAnnounce MinimapButton Toggle Pause"])
             QuestAnnounce.db.profile.settings.paused = not QuestAnnounce.db.profile.settings.paused
@@ -216,8 +200,7 @@ end
         end
     end)
 
---    MinimapButton:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
-QuestAnnounce:SendDebugMsg("Minimap button successfully created and positioned.")  -- Debugging-Ausgabe
+    QuestAnnounce:SendDebugMsg("Minimap button successfully created and positioned.")
 
     self:UpdateMinimapButtonVisibility()
 end
@@ -287,15 +270,10 @@ function QuestAnnounce:CreateCustomTooltip()
         self.customTooltip:SetFrameStrata("TOOLTIP")
         self.customTooltip:SetClampedToScreen(true)
 
-        -- Erstelle benutzerdefinierte Hintergrund- und Rahmentexturen
+        -- DE: Eigener Hintergrund; der Template-Rahmen bleibt unverändert.
+        -- EN: Addon-owned background; the template border remains untouched.
         self.customTooltip.bgTexture = self.customTooltip:CreateTexture(nil, "BACKGROUND")
         self.customTooltip.bgTexture:SetAllPoints(self.customTooltip)
-      --  self.customTooltip.bgTexture:SetColorTexture(0, 0, 0, 0) -- Standard: komplett transparent
-
-     --   self.customTooltip.borderTexture = self.customTooltip:CreateTexture(nil, "BORDER")
-     --   self.customTooltip.borderTexture:SetPoint("TOPLEFT", self.customTooltip, "TOPLEFT", -2, 2)
-     --   self.customTooltip.borderTexture:SetPoint("BOTTOMRIGHT", self.customTooltip, "BOTTOMRIGHT", 2, -2)
-     --   self.customTooltip.borderTexture:SetColorTexture(0, 0, 0, 0) -- Standard: komplett transparent
     end
 end
 
@@ -336,11 +314,3 @@ function QuestAnnounce:UpdateTooltipBackground()
         end
     end
 end
-
-
---function QuestAnnounce:GetTooltipColors()
---    local bgColor = QuestAnnounce.db.profile.tooltip.bgColor or {0, 0, 0, 0.8}
---    local borderColor = QuestAnnounce.db.profile.tooltip.borderColor or {1, 1, 1}
---    
---    return bgColor, borderColor
---end

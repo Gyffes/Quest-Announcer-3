@@ -2,11 +2,12 @@
 local QuestAnnounce = _G["QuestAnnounce"]
 local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L["enUS"]
 
-
--- Öffnet das Hauptfenster von QuestAnnounce in den Blizzard-Einstellungen.
--- Der doppelte Aufruf ist ein bekannter Workaround, damit das Panel zuverlässig angezeigt wird.
-local function openConfig()
-    local category = QuestAnnounce.optionsCategory
+-- DE: Öffnet die Addon-Kategorie außerhalb des Kampfes. Der doppelte Aufruf ist
+-- für Blizzard-Settings nötig, damit die Kategorie zuverlässig fokussiert wird.
+-- EN: Opens the addon category outside combat. Blizzard Settings needs the
+-- repeated call to focus the category reliably.
+function QuestAnnounce:OpenConfig()
+    local category = self.optionsCategory
     if not category then
         return
     end
@@ -14,7 +15,7 @@ local function openConfig()
     -- DE: Blizzard-Settings duerfen im Kampf nicht sicher geoeffnet werden.
     -- EN: Blizzard settings cannot be safely opened while in combat lockdown.
     if InCombatLockdown and InCombatLockdown() then
-        QuestAnnounce:NotifySelf(L["Cannot open settings in combat."], true)
+        self:NotifySelf(L["Cannot open settings in combat."], true)
         return
     end
 
@@ -22,16 +23,24 @@ local function openConfig()
     Settings.OpenToCategory(category:GetID())
 end
 
-local function ShowPublicChatRestrictionWarning(channelName)
-    if StaticPopup_Show then
-        StaticPopup_Show("QUESTANNOUNCE_PUBLIC_CHAT_RESTRICTION", channelName or L["Public Chat"])
-    end
+local function openConfig()
+    QuestAnnounce:OpenConfig()
 end
 
--- Erstellt und registriert die Blizzard-Optionsfenster für QuestAnnounce.
--- Die Funktion wird nur einmal ausgeführt und baut:
--- 1. das Hauptfenster "QuestAnnounce"
--- 2. das Unterfenster "Tooltip Settings"
+local function ShowPublicChatRestrictionWarning(channelName)
+    local message = string.format(
+        L["Public chat restriction warning"],
+        channelName or L["Public Chat"]
+    )
+    QuestAnnounce:ShowAddonDialog(message, {
+        acceptText = OKAY or "OK",
+    })
+end
+
+-- DE: Erstellt einmalig das Hauptfenster sowie die Unterfenster für Sound,
+-- Questtypen, Tooltip und Profile und registriert sie in Blizzard Settings.
+-- EN: Creates the main panel plus the sound, quest-type, tooltip, and profile
+-- subpanels once and registers them with Blizzard Settings.
 function QuestAnnounce:SetupOptions()
     -- Abbruch, wenn die Optionsfenster bereits erstellt wurden
     if self.optionsCategory then
@@ -47,43 +56,6 @@ function QuestAnnounce:SetupOptions()
     local addonTooltip = CreateFrame("GameTooltip", "QuestAnnounceConfigTooltip", UIParent, "GameTooltipTemplate")
     addonTooltip:SetFrameStrata("TOOLTIP")
     addonTooltip:SetClampedToScreen(true)
-
-    local tooltipFontPaths = {
-        ["Friz Quadrata TT"] = "Fonts\\FRIZQT__.TTF",
-        ["Arial Narrow"] = "Fonts\\ARIALN.TTF",
-        ["Morpheus"] = "Fonts\\MORPHEUS.TTF",
-        ["Skurri"] = "Fonts\\skurri.ttf",
-    }
-
-    local function ResolveTooltipFontPath(fontValue)
-        if type(fontValue) ~= "string" or fontValue == "" then
-            return STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
-        end
-
-        if tooltipFontPaths[fontValue] then
-            return tooltipFontPaths[fontValue]
-        end
-
-        if fontValue:find("\\") or fontValue:find("/") then
-            return fontValue
-        end
-
-        return STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
-    end
-
-    local function ResolveTooltipFontLabel(fontValue)
-        if tooltipFontPaths[fontValue] then
-            return fontValue
-        end
-
-        for label, path in pairs(tooltipFontPaths) do
-            if fontValue == path then
-                return label
-            end
-        end
-
-        return "Friz Quadrata TT"
-    end
 
     local tooltipFontPaths = {
         ["Friz Quadrata TT"] = "Fonts\\FRIZQT__.TTF",
@@ -293,7 +265,7 @@ local function CreateButton(parent, text, width, height, x, y, onClick, tooltipT
     button:SetText(text)
     button:SetScript("OnClick", onClick)
 
-    -- 🔥 AUTO WIDTH
+    -- DE/EN: Breite an den Textinhalt anpassen / size to text content.
     local padding = 20
     local textWidth = button.Text:GetStringWidth()
     local finalWidth = math.max(width or 80, textWidth + padding)
@@ -817,7 +789,6 @@ end
 	separator2:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -288)
 
     -- Überschrift für die Ziele der Ausgabe
-        -- Überschrift für die Ziele der Ausgabe
     local announceToHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     announceToHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -310)
     announceToHeader:SetText(L["Where do you want to make the announcements?"])
@@ -1029,7 +1000,9 @@ end
             if value then
                 ShowPublicChatRestrictionWarning(L["Channel"])
                 if QuestAnnounce.db.profile.announceIn.channelName == "" or not QuestAnnounce.db.profile.announceIn.channelName then
-                    StaticPopup_Show("QUESTANNOUNCE_MISSING_CHANNEL_NAME")
+                    QuestAnnounce:ShowAddonDialog(L["Please enter a channel name."], {
+                        acceptText = OKAY or "OK",
+                    })
                 else
                     QuestAnnounce:JoinChannel(QuestAnnounce.db.profile.announceIn.channelName)
                 end
@@ -1089,8 +1062,7 @@ end
         L["Send a test message using the currently selected output settings."]
     )
 
-    -- Aktualisiert alle Werte im Hauptpanel beim Öffnen
--- Aktualisiert alle Werte im Hauptfenster beim Öffnen
+    -- Aktualisiert alle Werte im Hauptpanel beim Öffnen.
 local function RefreshGeneralPanel()
 	if not QuestAnnounce.db or not QuestAnnounce.db.profile then
 		return
@@ -1607,6 +1579,7 @@ end
     -- UNTERPANEL: Profilverwaltung
     -- =========================================================
     local profilePanel = CreateFrame("Frame")
+    local RefreshQuestTypePanel
 
     local function Trim(value)
         if not value then
@@ -1627,25 +1600,9 @@ end
     end
 
     local function EnsureProfileShape(profile)
-        profile = type(profile) == "table" and profile or {}
-        profile.settings = type(profile.settings) == "table" and profile.settings or {}
-        profile.announceTo = type(profile.announceTo) == "table" and profile.announceTo or {}
-        profile.announceIn = type(profile.announceIn) == "table" and profile.announceIn or {}
-        profile.tooltip = type(profile.tooltip) == "table" and profile.tooltip or {}
-        profile.questTypeFilters = type(profile.questTypeFilters) == "table" and profile.questTypeFilters or {}
-
-        -- DE: Fehlende Sound-Standardwerte pro Profil ergänzen / EN: Fill missing per-profile sound defaults.
-        if profile.settings.progressSound == nil then profile.settings.progressSound = 8959 end
-        if profile.settings.completeSound == nil then profile.settings.completeSound = 6197 end
-        if profile.settings.acceptSound == nil then profile.settings.acceptSound = 6192 end
-        if profile.settings.turnInSound == nil then profile.settings.turnInSound = 6199 end
-        if profile.settings.soundChannel == nil then profile.settings.soundChannel = "Master" end
-        if profile.settings.enableProgressSound == nil then profile.settings.enableProgressSound = true end
-        if profile.settings.enableCompleteSound == nil then profile.settings.enableCompleteSound = true end
-        if profile.settings.enableAcceptSound == nil then profile.settings.enableAcceptSound = true end
-        if profile.settings.enableTurnInSound == nil then profile.settings.enableTurnInSound = true end
-        if profile.settings.playTurnInOnAutoTurnIn == nil then profile.settings.playTurnInOnAutoTurnIn = false end
-        return profile
+        -- DE: Dieselbe vollständige Migration wie beim Addon-Start verwenden.
+        -- EN: Use the same complete profile migration as addon startup.
+        return QuestAnnounce:ApplyProfileDefaults(type(profile) == "table" and profile or {})
     end
 
     local function GetSuggestedProfileName()
@@ -1940,6 +1897,12 @@ end
         RefreshGeneralPanel()
         RefreshSoundPanel()
         RefreshTooltipPanel()
+        if RefreshQuestTypePanel then
+            RefreshQuestTypePanel()
+        end
+        if QuestAnnounce.UpdateMinimapButtonVisibility then
+            QuestAnnounce:UpdateMinimapButtonVisibility()
+        end
         if QuestAnnounce.UpdateTooltipBackground then
             QuestAnnounce:UpdateTooltipBackground()
         end
@@ -2215,7 +2178,7 @@ end
         end
     end
 
-    local function RefreshQuestTypePanel()
+    RefreshQuestTypePanel = function()
         local filters = EnsureQuestTypeFilters()
         for key, checkbox in pairs(questTypeCheckboxes) do
             checkbox:SetChecked(filters[key] and true or false)
@@ -2248,12 +2211,16 @@ end
     self.profileOptionsCategory = profileCategory
     self.questTypeOptionsCategory = questTypeCategory
 
-    -- Slash-Befehl /qa registrieren, um die Einstellungen zu öffnen
+
+
+    -- DE: /qa öffnet dieselbe kampfgeschützte Einstellungsfunktion wie der Minimap-Button.
+    -- EN: /qa uses the same combat-guarded settings function as the minimap button.
     SLASH_QUESTANNOUNCE1 = "/qa"
     SlashCmdList["QUESTANNOUNCE"] = openConfig
 	
-	-- Conten-Höhe
-	content:SetHeight(1080) -- ggf. anpassen!
+	-- DE: Feste Inhaltshöhe des scrollbaren Hauptbereichs.
+	-- EN: Fixed content height for the scrollable main panel.
+	content:SetHeight(1080)
 	
 	-- Scrollbar etwas nach innen:
 	scrollFrame.ScrollBar:SetPoint("TOPLEFT", scrollFrame, "TOPRIGHT", -16, -16)
@@ -2267,23 +2234,3 @@ end
         RefreshQuestTypePanel()
     end
 end
-
-
--- Popup-Dialog, der angezeigt wird, wenn ein benutzerdefinierter Kanal aktiviert wird,
--- aber noch kein Kanalname eingetragen wurde.
-StaticPopupDialogs["QUESTANNOUNCE_MISSING_CHANNEL_NAME"] = {
-    text = L["Please enter a channel name."],
-    button1 = OKAY,
-    timeout = 0,
-    whileDead = true,
-    hideOnEscape = true,
-}
-
-StaticPopupDialogs["QUESTANNOUNCE_PUBLIC_CHAT_RESTRICTION"] = {
-    text = L["Public chat restriction warning"],
-    button1 = OKAY,
-    timeout = 0,
-    whileDead = true,
-    hideOnEscape = true,
-    preferredIndex = 3,
-}

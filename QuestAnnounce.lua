@@ -7,9 +7,11 @@ QuestAnnounce.questCompletionAnnounced = {}
 QuestAnnounce.questCompletionAnnouncedAt = {}
 QuestAnnounce.turnInSoundHistory = {}
 QuestAnnounce.pendingCompletionRecheck = {}
+QuestAnnounce.pendingCombatChatMessage = nil
 QuestAnnounce.lastMessage = nil
 QuestAnnounce.lastManualTurnInIntent = nil
-QuestAnnounce.manualTurnInHooksInstalled = false
+
+local COMBAT_CHAT_REPLAY_WINDOW_SECONDS = 10
 
 local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L["enUS"]
 
@@ -212,7 +214,7 @@ local defaults = {
         },
     }
 }
--- Chanel betreten
+-- DE: Benutzerdefinierten Chatkanal betreten. / EN: Join a custom chat channel.
 function QuestAnnounce:JoinChannel(channelName)
     local id = self:GetChannelNameSafe(channelName)
     if not id or id == 0 then
@@ -224,7 +226,7 @@ function QuestAnnounce:JoinChannel(channelName)
     end
 end
 
--- Chanel verlassen 
+-- DE: Benutzerdefinierten Chatkanal verlassen. / EN: Leave a custom chat channel.
 function QuestAnnounce:LeaveChannel(channelName)
     local id = self:GetChannelNameSafe(channelName)
     if id and id > 0 then
@@ -239,30 +241,120 @@ function QuestAnnounce:LeaveChannel(channelName)
     end
 end
 
+-- DE: Addon-eigener Dialog statt Eintraegen in Blizzards globaler
+-- StaticPopupDialogs-Tabelle. So bleiben Cinematic-/UIParent-Pfade von den
+-- QuestAnnounce-Dialogdefinitionen getrennt.
+-- EN: Addon-owned dialog instead of entries in Blizzard's shared popup table.
+-- This keeps cinematic/UIParent paths isolated from QuestAnnounce definitions.
+function QuestAnnounce:ShowAddonDialog(message, options)
+    options = options or {}
+
+    if not self.addonDialog then
+        local frame = CreateFrame("Frame", nil, UIParent, "BasicFrameTemplateWithInset")
+        frame:SetSize(440, 180)
+        frame:SetPoint("CENTER")
+        frame:SetFrameStrata("DIALOG")
+        frame:SetClampedToScreen(true)
+        frame:Hide()
+
+        local title = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        title:SetPoint("TOP", 0, -11)
+        title:SetText("QuestAnnounce")
+
+        local body = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        body:SetPoint("TOPLEFT", 28, -46)
+        body:SetPoint("TOPRIGHT", -28, -46)
+        body:SetJustifyH("CENTER")
+        body:SetJustifyV("MIDDLE")
+        body:SetWordWrap(true)
+        body:SetHeight(70)
+
+        local acceptButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+        acceptButton:SetSize(110, 24)
+        acceptButton:SetPoint("BOTTOM", -60, 18)
+        acceptButton:SetScript("OnClick", function()
+            local callback = frame.onAccept
+            local data = frame.data
+            frame:Hide()
+            if callback then
+                callback(data)
+            end
+        end)
+
+        local cancelButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+        cancelButton:SetSize(110, 24)
+        cancelButton:SetPoint("BOTTOM", 60, 18)
+        cancelButton:SetScript("OnClick", function()
+            frame:Hide()
+        end)
+
+        frame:SetScript("OnKeyDown", function(dialog, key)
+            if dialog.SetPropagateKeyboardInput then
+                dialog:SetPropagateKeyboardInput(key ~= "ESCAPE")
+            end
+            if key == "ESCAPE" then
+                dialog:Hide()
+            end
+        end)
+        frame:SetScript("OnHide", function(dialog)
+            dialog.onAccept = nil
+            dialog.data = nil
+            if dialog.EnableKeyboard then
+                dialog:EnableKeyboard(false)
+            end
+        end)
+
+        frame.body = body
+        frame.acceptButton = acceptButton
+        frame.cancelButton = cancelButton
+        self.addonDialog = frame
+    end
+
+    local frame = self.addonDialog
+    frame.body:SetText(message or "")
+    frame.onAccept = options.onAccept
+    frame.data = options.data
+    frame.acceptButton:SetText(options.acceptText or OKAY or "OK")
+
+    if options.showCancel then
+        frame.acceptButton:ClearAllPoints()
+        frame.acceptButton:SetPoint("BOTTOM", -60, 18)
+        frame.cancelButton:SetText(options.cancelText or CANCEL or "Cancel")
+        frame.cancelButton:Show()
+    else
+        frame.acceptButton:ClearAllPoints()
+        frame.acceptButton:SetPoint("BOTTOM", 0, 18)
+        frame.cancelButton:Hide()
+    end
+
+    frame:Show()
+    frame:Raise()
+    if frame.EnableKeyboard and frame.SetPropagateKeyboardInput then
+        frame:EnableKeyboard(true)
+        frame:SetPropagateKeyboardInput(true)
+    end
+    return frame
+end
+
 
 -- Zeigt beim Deaktivieren eines benutzerdefinierten Kanals einen Bestätigungsdialog an
 function QuestAnnounce:ToggleChannelLeave(enable, channelName)
     if not enable then
-        local dialog = StaticPopup_Show("QUESTANNOUNCE_CONFIRM_LEAVE_CHANNEL", channelName)
-        if dialog then
-            dialog.data = channelName
+        local message = L["Leave channel confirmation"]
+        if channelName and channelName ~= "" then
+            message = string.format(message, channelName)
         end
+        self:ShowAddonDialog(message, {
+            acceptText = L["Yes"],
+            cancelText = L["No"],
+            showCancel = true,
+            data = channelName,
+            onAccept = function(name)
+                QuestAnnounce:LeaveChannel(name)
+            end,
+        })
     end
 end
-
--- Bestätigungsdialog zum Verlassen eines benutzerdefinierten Kanals
-StaticPopupDialogs["QUESTANNOUNCE_CONFIRM_LEAVE_CHANNEL"] = {
-    text = L["Leave channel confirmation"],
-    button1 = L["Yes"],
-    button2 = L["No"],
-    OnAccept = function(_, channelName)
-        QuestAnnounce:LeaveChannel(channelName)
-    end,
-    timeout = 0,
-    whileDead = true,
-    hideOnEscape = true,
-    preferredIndex = 3,
-}
 
 -- Führt einen rekursiven Merge von Standardwerten in eine vorhandene Tabelle durch.
 -- Bereits vorhandene Werte bleiben erhalten.
@@ -285,76 +377,46 @@ local function DeepMergeDefaults(target, defaults)
     return target
 end
 
+-- DE: Vereinheitlicht aktive und gespeicherte Profile mit allen aktuellen
+-- Standardwerten. Vorhandene Benutzerwerte bleiben dabei unverändert.
+-- EN: Backfills active and saved profiles with all current defaults while
+-- preserving every existing user value.
+function QuestAnnounce:ApplyProfileDefaults(profile)
+    return DeepMergeDefaults(type(profile) == "table" and profile or {}, defaults.profile)
+end
+
 
 --[[ Initialisierung des Addons ]]--
 function QuestAnnounce:Initialize()
-QuestAnnounceDB = QuestAnnounceDB or {} -- Gespeicherte Datenbank initialisieren
-
-    if not QuestAnnounceDB.profile then
-    QuestAnnounceDB.profile = {}
-	end
+    QuestAnnounceDB = QuestAnnounceDB or {} -- Gespeicherte Datenbank initialisieren
+    QuestAnnounceDB.profile = self:ApplyProfileDefaults(QuestAnnounceDB.profile)
     QuestAnnounceDB.profiles = QuestAnnounceDB.profiles or {}
-
-	-- Fehlende Standardwerte rekursiv ergänzen, vorhandene Werte behalten
-	DeepMergeDefaults(QuestAnnounceDB.profile, defaults.profile)
 
     self.db = QuestAnnounceDB
 	
 	self:BuildQuestCache()
-	self:SetupOptions() 																-- Einrichten der Optionen
-	self:InitializeLinkHandler()
-	self:EnsureManualTurnInHooks()
-	
+	if self.db.profile.announceTo and self.db.profile.announceTo.raidWarningFrame then
+		self:InitializeAddonRaidNoticeFrame()
+	end
+	self:SetupOptions() 														-- Einrichten der Optionen
 	if self.InitializeMinimapButton then
 		self:InitializeMinimapButton()
 	end
+
+	self:InitializeLinkHandler()
 	
 	self:SendDebugMsg("Addon Enabled :: " .. tostring(self.db.profile.settings.enable))
     self:NotifySelf(L["QuestAnnounce activated!"], true)
 end
 
 QuestAnnounce:RegisterEvent("ADDON_LOADED")											-- Register Event Addon Laden
-QuestAnnounce:RegisterEvent("UI_INFO_MESSAGE")										-- Register Event Ui Info Message
 QuestAnnounce:RegisterEvent("QUEST_LOG_UPDATE")										-- Register Event Quest Log Update
 QuestAnnounce:RegisterEvent("QUEST_ACCEPTED")                                         -- DE: Quest angenommen / EN: Quest accepted
 QuestAnnounce:RegisterEvent("QUEST_TURNED_IN")                                        -- DE: Quest abgegeben / EN: Quest turned in
 QuestAnnounce:RegisterEvent("QUEST_PROGRESS")                                         -- DE/EN: Questfortschritt im Dialog (Turn-In-Kontext)
 QuestAnnounce:RegisterEvent("QUEST_COMPLETE")                                         -- DE/EN: Questabschlussdialog (Turn-In-Kontext)
-
-function QuestAnnounce:IsManualQuestTurnInContext()
-    local visibleFrameReasons = {}
-
-    local function IsFrameShown(frameName)
-        local frame = _G[frameName]
-        return frame and frame.IsShown and frame:IsShown()
-    end
-
-    local function AddVisibleReason(frameName, reason)
-        if IsFrameShown(frameName) then
-            table.insert(visibleFrameReasons, reason or frameName)
-        end
-    end
-
-    AddVisibleReason("QuestFrame", "QuestFrame visible")
-    AddVisibleReason("QuestGreetingFrame", "QuestGreetingFrame visible")
-    AddVisibleReason("GossipFrame", "GossipFrame visible")
-
-    if #visibleFrameReasons > 0 then
-        return true, table.concat(visibleFrameReasons, ", ")
-    end
-
-    local hasNpcTarget = UnitExists and UnitExists("npc")
-    if hasNpcTarget then
-        local activeQuests = GetNumActiveQuests and (GetNumActiveQuests() or 0) or 0
-        local availableQuests = GetNumAvailableQuests and (GetNumAvailableQuests() or 0) or 0
-        if activeQuests > 0 or availableQuests > 0 then
-            return true, string.format("npc exists with quest dialog entries (%d active / %d available)", activeQuests, availableQuests)
-        end
-        return true, "npc exists without visible quest dialog entries (fallback manual context)"
-    end
-
-    return false, "no visible quest dialog frame and UnitExists(\"npc\") is false"
-end
+QuestAnnounce:RegisterEvent("UI_INFO_MESSAGE")                                        -- Register Event Ui Info Message
+QuestAnnounce:RegisterEvent("PLAYER_REGEN_ENABLED")                                   -- DE/EN: Kampfende / combat ended
 
 function QuestAnnounce:GetCurrentQuestDialogQuestID()
     if GetQuestID then
@@ -401,53 +463,111 @@ function QuestAnnounce:IsRecentManualTurnInIntent(questID)
     return true, "manual intent within " .. string.format("%.2f", age) .. "s via " .. tostring(intent.source)
 end
 
-function QuestAnnounce:EnsureManualTurnInHooks()
-    if self.manualTurnInHooksInstalled then
+-- DE: Entfernt Abschluss- und Wiederholungszustand, sobald eine Quest tatsächlich
+-- abgegeben wurde. Das geschieht unabhängig davon, ob ein Abgabe-Sound erlaubt ist.
+-- EN: Clears completion and retry state once a quest was actually turned in,
+-- regardless of whether turn-in sound playback is allowed.
+function QuestAnnounce:ClearQuestCompletionState(questID)
+    if not questID then
         return
     end
 
-    local installedAnyHook = false
+    self.questCompletionAnnounced[questID] = nil
+    self.questCompletionAnnouncedAt[questID] = nil
+    self.pendingCompletionRecheck[questID] = nil
+end
 
-    local function HookFunction(functionName, sourceName)
-        if type(_G[functionName]) == "function" then
-            hooksecurefunc(functionName, function(...)
-                local qid = select(1, ...)
-                QuestAnnounce:RecordManualTurnInIntent(sourceName or functionName, qid)
-            end)
-            installedAnyHook = true
-        end
+-- DE: Fuehrt die bestehende Abgabeentscheidung ausserhalb des synchronen
+-- QUEST_TURNED_IN-/Cinematic-Aufrufstacks aus.
+-- EN: Runs the existing turn-in decision outside the synchronous
+-- QUEST_TURNED_IN/cinematic call stack.
+function QuestAnnounce:HandleQuestTurnedIn(questID)
+    local hasManualIntent, intentReason = self:IsRecentManualTurnInIntent(questID)
+    if hasManualIntent then
+        -- DE: Ein passender Intent gilt nur einmal und darf eine schnell
+        -- wiederholte Quest mit derselben ID nicht beeinflussen.
+        -- EN: A matching intent is single-use and must not affect a rapidly
+        -- repeated quest with the same ID.
+        self.lastManualTurnInIntent = nil
     end
 
-    local function HookButton(buttonName, sourceName)
-        local button = _G[buttonName]
-        if button and button.HookScript then
-            button:HookScript("OnClick", function()
-                QuestAnnounce:RecordManualTurnInIntent(sourceName or buttonName)
-            end)
-            installedAnyHook = true
+    local allowAutoTurnIn = self.db
+        and self.db.profile
+        and self.db.profile.settings
+        and self.db.profile.settings.playTurnInOnAutoTurnIn
+    local now = GetTime and GetTime() or 0
+    local completionAt = questID and self.questCompletionAnnouncedAt and self.questCompletionAnnouncedAt[questID] or nil
+    local secondsSinceCompletion = completionAt and (now - completionAt) or nil
+
+    local allowByManualIntent = hasManualIntent and true or false
+    local allowByAutoSetting = allowAutoTurnIn and true or false
+    local allowByContextFallback = false
+    local contextReason = "event-only turn-in detection"
+
+    if allowByManualIntent or allowByAutoSetting or allowByContextFallback then
+        if questID and self.turnInSoundHistory and self.turnInSoundHistory[questID] and (now - self.turnInSoundHistory[questID]) < 10 then
+            self:SendDebugMsg("turn-in sound skipped duplicate :: questID=" .. tostring(questID) .. " :: dt=" .. string.format("%.2fs", now - self.turnInSoundHistory[questID]))
+            self:ClearQuestCompletionState(questID)
+            return
         end
-    end
-
-    -- DE: Explizite Abschluss-/Abgabe-Aktionen abfangen.
-    -- EN: Capture explicit completion/turn-in actions.
-    HookFunction("QuestFrameCompleteQuest", "QuestFrameCompleteQuest")
-    HookFunction("QuestRewardCompleteButton_OnClick", "QuestRewardCompleteButton_OnClick")
-    HookFunction("QuestFrameCompleteButton_OnClick", "QuestFrameCompleteButton_OnClick")
-
-    HookButton("QuestFrameCompleteQuestButton", "QuestFrameCompleteQuestButton")
-    HookButton("QuestFrameCompleteButton", "QuestFrameCompleteButton")
-    HookButton("QuestFrameCompleteQuestButtonLeft", "QuestFrameCompleteQuestButtonLeft")
-    HookButton("QuestRewardCompleteButton", "QuestRewardCompleteButton")
-
-    if installedAnyHook then
-        self.manualTurnInHooksInstalled = true
-        self:SendDebugMsg("manual turn-in hooks installed")
+        local decision = string.format(
+            "turn-in sound allowed :: questID=%s :: byIntent=%s :: byAutoSetting=%s :: byContextFallback=%s :: sinceComplete=%s :: context=%s :: intent=%s",
+            tostring(questID),
+            tostring(allowByManualIntent),
+            tostring(allowByAutoSetting),
+            tostring(allowByContextFallback),
+            tostring(secondsSinceCompletion and string.format("%.2f", secondsSinceCompletion) or "nil"),
+            tostring(contextReason),
+            tostring(intentReason)
+        )
+        self:SendDebugMsg(decision)
+        if questID and self.turnInSoundHistory then
+            self.turnInSoundHistory[questID] = now
+        end
+        self:PlayConfiguredSound("turnin")
     else
-        self:SendDebugMsg("manual turn-in hooks not installed yet (UI elements unavailable)")
+        self:SendDebugMsg(
+            "suppressed turn-in sound :: questID="
+                .. tostring(questID)
+                .. " :: byIntent="
+                .. tostring(allowByManualIntent)
+                .. " :: byAutoSetting="
+                .. tostring(allowByAutoSetting)
+                .. " :: byContextFallback="
+                .. tostring(allowByContextFallback)
+                .. " :: sinceComplete="
+                .. tostring(secondsSinceCompletion and string.format("%.2f", secondsSinceCompletion) or "nil")
+                .. " :: context="
+                .. tostring(contextReason)
+                .. " :: intent="
+                .. tostring(intentReason)
+        )
     end
+
+    self:ClearQuestCompletionState(questID)
+end
+
+function QuestAnnounce:DeferQuestTurnedIn(questID)
+    if C_Timer and type(C_Timer.After) == "function" then
+        C_Timer.After(0, function()
+            if QuestAnnounce and QuestAnnounce.HandleQuestTurnedIn then
+                QuestAnnounce:HandleQuestTurnedIn(questID)
+            end
+        end)
+        return
+    end
+
+    -- DE: Kompatibilitäts-Fallback für Clients ohne C_Timer.After.
+    -- EN: Compatibility fallback for clients without C_Timer.After.
+    self:HandleQuestTurnedIn(questID)
 end
 
 QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4, arg5)
+	if event == "PLAYER_REGEN_ENABLED" then
+		self:FlushPendingCombatChatMessage()
+		return
+	end
+
 	-- Quest Log Update Event 
 	if event == "QUEST_LOG_UPDATE" then
 		self:BuildQuestCache()
@@ -468,70 +588,19 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
         self:PlayConfiguredSound("accept")
         return
     end
+    -- DE: Manual-Intent ausschliesslich aus Quest-Events erfassen. Nachhooks auf
+    -- Blizzard-Abgabefunktionen/-buttons koennen den anschliessenden Cinematic-Pfad
+    -- tainten, in dem WoW 12 geheime Gesundheitswerte verarbeitet.
+    -- EN: Capture manual intent exclusively from quest events. Post-hooks on
+    -- Blizzard turn-in functions/buttons can taint the following cinematic path,
+    -- where WoW 12 processes secret health values.
     if event == "QUEST_PROGRESS" or event == "QUEST_COMPLETE" then
         self:RecordManualTurnInIntent(event, self:GetCurrentQuestDialogQuestID())
         return
     end
     if event == "QUEST_TURNED_IN" then
-        self:EnsureManualTurnInHooks()
         local questID = tonumber(arg1)
-        local manualContext, contextReason = self:IsManualQuestTurnInContext()
-        local hasManualIntent, intentReason = self:IsRecentManualTurnInIntent(questID)
-        local allowAutoTurnIn = self.db
-            and self.db.profile
-            and self.db.profile.settings
-            and self.db.profile.settings.playTurnInOnAutoTurnIn
-        local now = GetTime and GetTime() or 0
-        local completionAt = questID and self.questCompletionAnnouncedAt and self.questCompletionAnnouncedAt[questID] or nil
-        local secondsSinceCompletion = completionAt and (now - completionAt) or nil
-
-        local allowByManualIntent = hasManualIntent and true or false
-        local allowByAutoSetting = allowAutoTurnIn and true or false
-        local allowByContextFallback = false
-
-        if allowByManualIntent or allowByAutoSetting or allowByContextFallback then
-            if questID and self.turnInSoundHistory and self.turnInSoundHistory[questID] and (now - self.turnInSoundHistory[questID]) < 10 then
-                self:SendDebugMsg("turn-in sound skipped duplicate :: questID=" .. tostring(questID) .. " :: dt=" .. string.format("%.2fs", now - self.turnInSoundHistory[questID]))
-                return
-            end
-            local decision = string.format(
-                "turn-in sound allowed :: questID=%s :: byIntent=%s :: byAutoSetting=%s :: byContextFallback=%s :: sinceComplete=%s :: context=%s :: intent=%s",
-                tostring(questID),
-                tostring(allowByManualIntent),
-                tostring(allowByAutoSetting),
-                tostring(allowByContextFallback),
-                tostring(secondsSinceCompletion and string.format("%.2f", secondsSinceCompletion) or "nil"),
-                tostring(contextReason),
-                tostring(intentReason)
-            )
-            self:SendDebugMsg(decision)
-            if questID and self.turnInSoundHistory then
-                self.turnInSoundHistory[questID] = now
-            end
-            self:PlayConfiguredSound("turnin")
-            if questID then
-                self.questCompletionAnnounced[questID] = nil
-                self.questCompletionAnnouncedAt[questID] = nil
-                self.pendingCompletionRecheck[questID] = nil
-            end
-        else
-            self:SendDebugMsg(
-                "suppressed turn-in sound :: questID="
-                    .. tostring(questID)
-                    .. " :: byIntent="
-                    .. tostring(allowByManualIntent)
-                    .. " :: byAutoSetting="
-                    .. tostring(allowByAutoSetting)
-                    .. " :: byContextFallback="
-                    .. tostring(allowByContextFallback)
-                    .. " :: sinceComplete="
-                    .. tostring(secondsSinceCompletion and string.format("%.2f", secondsSinceCompletion) or "nil")
-                    .. " :: context="
-                    .. tostring(contextReason)
-                    .. " :: intent="
-                    .. tostring(intentReason)
-            )
-        end
+        self:DeferQuestTurnedIn(questID)
         return
     end
 
@@ -757,7 +826,7 @@ function QuestAnnounce:PlayConfiguredSound(eventKey)
 end
 
 -- ==============================
--- Quest- und Objective-Cache Builder (ROBUST)
+-- Quest- und Ziel-Cache / Quest and objective cache
 -- ==============================
 function QuestAnnounce:BuildQuestCache()
     wipe(self.questCache)
@@ -814,6 +883,17 @@ function QuestAnnounce:BuildQuestCache()
                     self.pendingCompletionRecheck[questID] = nil
                 end
             end
+        end
+    end
+
+    -- DE: Abgelaufene Entprellungswerte entfernen, damit die Verlaufstabelle bei
+    -- langen Spielsitzungen nicht mit jeder abgegebenen Quest weiter wächst.
+    -- EN: Remove expired duplicate-suppression entries so long sessions do not
+    -- retain one history row for every turned-in quest.
+    local now = type(GetTime) == "function" and GetTime() or 0
+    for questID, playedAt in pairs(self.turnInSoundHistory) do
+        if now - (tonumber(playedAt) or 0) >= 10 then
+            self.turnInSoundHistory[questID] = nil
         end
     end
 
@@ -1010,7 +1090,8 @@ function QuestAnnounce:GetWowheadQuestURL(questID)
         return nil
     end
 
-	-- Retail-/deDE-kompatibel genug; bei Bedarf später Region/Locale dynamisch machen
+    -- DE: Wowhead verwendet für Quest-IDs eine sprachunabhängige globale URL.
+    -- EN: Wowhead uses a locale-independent global URL for quest IDs.
     return string.format("https://www.wowhead.com/quest=%d", questID)
 end
 
@@ -1095,52 +1176,68 @@ end
 -- ==============================
 -- Eigener Link-Handler für lokale Addon-Links
 -- ==============================
+function QuestAnnounce:HandleQuestLinkClick(link, text, button, chatFrame)
+    if type(link) ~= "string" then
+        return false
+    end
+
+    local linkType, addonName, kind, questIDText = strsplit(":", link)
+
+    if linkType ~= "addon" or addonName ~= "QuestAnnounce" or kind ~= "quest" then
+        return false
+    end
+
+    local questID = tonumber(questIDText)
+    if not questID then
+        return false
+    end
+
+    -- ==============================
+    -- SHIFT-Klick → in Chat einfügen
+    -- ==============================
+    if IsShiftKeyDown() then
+        local questLink = self:GetOfficialQuestLink(questID)
+        if questLink and questLink ~= "" then
+            ChatEdit_InsertLink(questLink)
+        end
+        return true
+    end
+
+    -- ==============================
+    -- Rechtsklick → Wowhead
+    -- ==============================
+    if button == "RightButton" then
+        local url = self:GetWowheadQuestURL(questID)
+        if url then
+            self:ShowCopyDialog(url, L["Wowhead Quest URL"])
+        end
+        return true
+    end
+
+    -- ==============================
+    -- Linksklick → Quest öffnen
+    -- ==============================
+    if button == "LeftButton" then
+        self:OpenQuestInLog(questID)
+        return true
+    end
+
+    return false
+end
+
 function QuestAnnounce:InitializeLinkHandler()
     if self.linkHandlerInitialized then
         return
     end
     self.linkHandlerInitialized = true
 
+    -- DE: Der von Blizzard bereitgestellte sichere Nachhook gilt fuer Retail und
+    -- Classic und veraendert das gemeinsam genutzte EventRegistry nicht.
+    -- EN: Blizzard's secure post-hook works on Retail and Classic without mutating
+    -- the shared EventRegistry.
     hooksecurefunc("SetItemRef", function(link, text, button, chatFrame)
-        local linkType, addonName, kind, questIDText = strsplit(":", link)
-
-        if linkType ~= "addon" or addonName ~= "QuestAnnounce" or kind ~= "quest" then
-            return
-        end
-
-        local questID = tonumber(questIDText)
-        if not questID then
-            return
-        end
-
-        -- ==============================
-        -- SHIFT-Klick → in Chat einfügen
-        -- ==============================
-        if IsShiftKeyDown() then
-            local questLink = QuestAnnounce:GetOfficialQuestLink(questID)
-            if questLink and questLink ~= "" then
-                ChatEdit_InsertLink(questLink)
-            end
-            return
-        end
-
-        -- ==============================
-        -- Rechtsklick → Wowhead
-        -- ==============================
-        if button == "RightButton" then
-            local url = QuestAnnounce:GetWowheadQuestURL(questID)
-            if url then
-                QuestAnnounce:ShowCopyDialog(url, L["Wowhead Quest URL"])
-            end
-            return
-        end
-
-        -- ==============================
-        -- Linksklick → Quest öffnen
-        -- ==============================
-        if button == "LeftButton" then
-            QuestAnnounce:OpenQuestInLog(questID)
-            return
+        if QuestAnnounce and QuestAnnounce.HandleQuestLinkClick then
+            QuestAnnounce:HandleQuestLinkClick(link, text, button, chatFrame)
         end
     end)
 end
@@ -1226,10 +1323,16 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
 
     -- Send Logic
     if not logIndex then
-        local announceAsComplete = (questID and objectiveLooksComplete) and true or false
+        local announceAsComplete = false
+        local completionReason = "quest unresolved"
+        if questID and objectiveLooksComplete then
+            announceAsComplete, completionReason = self:IsQuestCompleteByObjectives(questID)
+        end
 
         if objectiveLooksComplete and not questID then
             self:SendDebugMsg("objective looks complete but quest unresolved -> fallback to progress :: " .. tostring(questTitle))
+        elseif objectiveLooksComplete and questID and not announceAsComplete then
+            self:SendDebugMsg("objective looks complete but quest is not complete -> fallback to progress :: questID=" .. tostring(questID) .. " :: " .. tostring(completionReason))
         end
 
         if not announceAsComplete and not self:ShouldAnnounceProgressByEvery(currentAmount, requiredAmount) then
@@ -1252,7 +1355,7 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
         return
     end
 
-    local isComplete, completeReason = self:IsQuestCompleteByObjectives(questID, logIndex)
+    local isComplete, completeReason = self:IsQuestCompleteByObjectives(questID)
 
     if isComplete and questID and self.questCompletionAnnounced[questID] then
         self:SendDebugMsg("completion already announced for questID=" .. tostring(questID) .. " :: " .. tostring(completeReason))
@@ -1285,7 +1388,7 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
                         if not QuestAnnounce or not QuestAnnounce.IsQuestCompleteByObjectives then
                             return
                         end
-                        local delayedComplete, delayedReason = QuestAnnounce:IsQuestCompleteByObjectives(questID, logIndex)
+                        local delayedComplete, delayedReason = QuestAnnounce:IsQuestCompleteByObjectives(questID)
                         if delayedComplete and not QuestAnnounce.questCompletionAnnounced[questID] then
                             QuestAnnounce.questCompletionAnnounced[questID] = true
                             QuestAnnounce.questCompletionAnnouncedAt[questID] = GetTime and GetTime() or 0
@@ -1387,7 +1490,7 @@ function QuestAnnounce:FindQuestByTitle(title)
     self:SendDebugMsg("Quest NOT FOUND in title/objective cache :: " .. tostring(title))
 end
 
-function QuestAnnounce:IsQuestCompleteByObjectives(questID, logIndex)
+function QuestAnnounce:IsQuestCompleteByObjectives(questID)
     if not questID then
         return false, "no questID"
     end
@@ -1396,7 +1499,11 @@ function QuestAnnounce:IsQuestCompleteByObjectives(questID, logIndex)
         return true, "IsQuestFlaggedCompleted=true"
     end
 
-    if QA_QuestLog and QA_QuestLog.IsComplete and QA_QuestLog.IsComplete(logIndex or questID) then
+    -- DE: C_QuestLog.IsComplete erwartet immer eine Quest-ID, niemals den
+    -- sichtbaren Questlog-Index. Der lokale Legacy-Wrapper akzeptiert dieselbe ID.
+    -- EN: C_QuestLog.IsComplete always expects a quest ID, never the visible
+    -- quest-log index. The local legacy wrapper accepts the same ID.
+    if QA_QuestLog and QA_QuestLog.IsComplete and QA_QuestLog.IsComplete(questID) then
         return true, "QA_QuestLog.IsComplete=true"
     end
 
@@ -1508,6 +1615,18 @@ function QuestAnnounce:IsChatSendRestricted(chatType)
         end
     end
 
+    -- DE: Ein normaler Questkampf ist kein Blizzard-Encounter. SendChatMessage
+    -- kann trotzdem geschuetzt sein, daher muss der allgemeine Kampf-Lockdown
+    -- separat geprueft werden.
+    -- EN: Ordinary quest combat is not a Blizzard encounter. SendChatMessage may
+    -- still be protected, so the general combat lockdown must be checked separately.
+    if type(InCombatLockdown) == "function" then
+        local ok, inCombat = pcall(InCombatLockdown)
+        if ok and inCombat then
+            return true, "combat lockdown"
+        end
+    end
+
     if type(IsEncounterInProgress) == "function" then
         local ok, inEncounter = pcall(IsEncounterInProgress)
         if ok and inEncounter then
@@ -1549,20 +1668,10 @@ function QuestAnnounce:JoinTemporaryChannelSafe(channelName)
         return false, "no channel"
     end
 
-    if C_ChatInfo and type(C_ChatInfo.InChatMessagingLockdown) == "function" then
-        local ok, locked = pcall(C_ChatInfo.InChatMessagingLockdown)
-        if ok and locked then
-            self:SendDebugMsg("JoinTemporaryChannel skipped by chat messaging lockdown :: " .. tostring(channelName))
-            return false, "chat messaging lockdown"
-        end
-    end
-
-    if type(IsEncounterInProgress) == "function" then
-        local ok, inEncounter = pcall(IsEncounterInProgress)
-        if ok and inEncounter then
-            self:SendDebugMsg("JoinTemporaryChannel skipped during encounter :: " .. tostring(channelName))
-            return false, "encounter in progress"
-        end
+    local restricted, reason = self:IsChatSendRestricted("CHANNEL")
+    if restricted then
+        self:SendDebugMsg("JoinTemporaryChannel skipped by WoW restriction :: " .. tostring(reason) .. " :: " .. tostring(channelName))
+        return false, reason
     end
 
     if type(JoinTemporaryChannel) ~= "function" then
@@ -1617,15 +1726,208 @@ function QuestAnnounce:AddUIErrorMessageSafe(msg, r, g, b, holdTime)
     return true
 end
 
+function QuestAnnounce:InitializeAddonRaidNoticeFrame()
+    if self.addonRaidNoticeFrame then
+        return self.addonRaidNoticeFrame
+    end
+
+    local frame = CreateFrame("ScrollingMessageFrame", nil, UIParent)
+    frame:SetSize(720, 120)
+    frame:SetPoint("TOP", UIParent, "TOP", 0, -180)
+    frame:SetFrameStrata("HIGH")
+    frame:SetFontObject(GameFontNormalHuge or GameFontNormalLarge)
+    frame:SetJustifyH("CENTER")
+    frame:SetJustifyV("MIDDLE")
+    frame:SetFading(true)
+    frame:SetFadeDuration(1)
+    frame:SetTimeVisible(4)
+    frame:SetMaxLines(3)
+    frame:SetInsertMode("TOP")
+    frame:Show()
+
+    self.addonRaidNoticeFrame = frame
+    return frame
+end
+
 function QuestAnnounce:AddRaidNoticeMessageSafe(msg)
-    if not msg or msg == "" or type(RaidNotice_AddMessage) ~= "function" or not RaidWarningFrame then
+    if not msg or msg == "" then
         return false
     end
 
-    local ok, result = pcall(RaidNotice_AddMessage, RaidWarningFrame, msg, ChatTypeInfo and ChatTypeInfo["RAID_WARNING"] or nil)
-    if not ok then
-        self:SendDebugMsg("RaidNotice_AddMessage failed safely :: " .. tostring(result))
+    local frame = self:InitializeAddonRaidNoticeFrame()
+    if not frame or type(frame.AddMessage) ~= "function" then
         return false
+    end
+
+    local ok, result = pcall(frame.AddMessage, frame, msg, 1.0, 0.82, 0.0, 1.0)
+    if not ok then
+        self:SendDebugMsg("Addon raid notice AddMessage failed safely :: " .. tostring(result))
+        return false
+    end
+
+    return true
+end
+
+function QuestAnnounce:HasConfiguredChatDestination(announceIn)
+    return announceIn
+        and (announceIn.say
+            or announceIn.party
+            or announceIn.instance
+            or announceIn.guild
+            or announceIn.officer
+            or announceIn.focus
+            or announceIn.whisper
+            or announceIn.channel)
+end
+
+function QuestAnnounce:QueuePendingCombatChatMessage(msg)
+    if not msg or msg == "" then
+        return
+    end
+
+    local now = type(GetTime) == "function" and GetTime() or 0
+    self.pendingCombatChatMessage = {
+        msg = msg,
+        queuedAt = now,
+    }
+    self:SendDebugMsg("Combat chat message queued :: " .. tostring(msg))
+end
+
+function QuestAnnounce:FlushPendingCombatChatMessage()
+    local pending = self.pendingCombatChatMessage
+    self.pendingCombatChatMessage = nil
+
+    if not pending or not pending.msg or pending.msg == "" then
+        return
+    end
+
+    local now = type(GetTime) == "function" and GetTime() or 0
+    local queuedAt = tonumber(pending.queuedAt) or 0
+    local age = now - queuedAt
+    if age < 0 or age > COMBAT_CHAT_REPLAY_WINDOW_SECONDS then
+        self:SendDebugMsg("Combat chat message expired :: age=" .. tostring(age) .. " :: " .. tostring(pending.msg))
+        return
+    end
+
+    if not self.db or not self.db.profile or not self.db.profile.settings then
+        return
+    end
+    if not self.db.profile.settings.enable or self.db.profile.settings.paused then
+        return
+    end
+
+    local announceTo = self.db.profile.announceTo
+    local announceIn = self.db.profile.announceIn
+    if not announceTo or not announceTo.chatFrame or not self:HasConfiguredChatDestination(announceIn) then
+        return
+    end
+
+    -- DE: Allgemeine Sperren vor der Wiedergabe erneut prüfen; Regeln für
+    -- öffentliche Kanäle werden danach pro Ziel in DispatchChatOutputs geprüft.
+    -- EN: Re-check general restrictions before replay; public-channel rules are
+    -- still evaluated per destination in DispatchChatOutputs.
+    local restricted, reason = self:IsChatSendRestricted("PARTY")
+    if restricted then
+        self:SendDebugMsg("Combat chat message discarded after combat :: " .. tostring(reason) .. " :: " .. tostring(pending.msg))
+        return
+    end
+
+    self:SendDebugMsg("Combat chat message replay attempted :: age=" .. tostring(age) .. " :: " .. tostring(pending.msg))
+    self:DispatchChatOutputs(pending.msg, false)
+end
+
+function QuestAnnounce:DispatchChatOutputs(msg, allowCombatQueue)
+    local announceIn = self.db and self.db.profile and self.db.profile.announceIn
+    local announceTo = self.db and self.db.profile and self.db.profile.announceTo
+    if not announceIn or not announceTo or not announceTo.chatFrame or not self:HasConfiguredChatDestination(announceIn) then
+        return false, "no configured chat destination"
+    end
+
+    if type(InCombatLockdown) == "function" then
+        local ok, inCombat = pcall(InCombatLockdown)
+        if ok and inCombat then
+            if allowCombatQueue ~= false then
+                self:QueuePendingCombatChatMessage(msg)
+            end
+            return false, "combat lockdown"
+        end
+    end
+
+    -- SAY
+    if announceIn.say then
+        if self:SendChatMessageSafe(msg, "SAY") then
+            self:SendDebugMsg("QuestAnnounce:SendMsg(SAY) :: " .. msg)
+        end
+    end
+
+    -- PARTY
+    if announceIn.party and IsInGroup(LE_PARTY_CATEGORY_HOME) then
+        if self:SendChatMessageSafe(msg, "PARTY") then
+            self:SendDebugMsg("QuestAnnounce:SendMsg(PARTY) :: " .. msg)
+        end
+    end
+
+    -- INSTANCE_CHAT
+    if announceIn.instance and IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
+        if self:SendChatMessageSafe(msg, "INSTANCE_CHAT") then
+            self:SendDebugMsg("QuestAnnounce:SendMsg(INSTANCE) :: " .. msg)
+        end
+    end
+
+    -- GUILD
+    if announceIn.guild and IsInGuild() then
+        if self:SendChatMessageSafe(msg, "GUILD") then
+            self:SendDebugMsg("QuestAnnounce:SendMsg(GUILD) :: " .. msg)
+        end
+    end
+
+    -- OFFICER
+    if announceIn.officer and IsInGuild() then
+        if self:SendChatMessageSafe(msg, "OFFICER") then
+            self:SendDebugMsg("QuestAnnounce:SendMsg(OFFICER) :: " .. msg)
+        end
+    end
+
+    -- FOCUS wird als Whisper an das Fokusziel gesendet
+    if announceIn.focus then
+        if UnitExists("focus") then
+            local name = UnitName("focus")
+            if name and self:SendChatMessageSafe(msg, "WHISPER", nil, name) then
+                self:SendDebugMsg("QuestAnnounce:SendMsg(FOCUS->WHISPER) :: " .. msg)
+            end
+        else
+            self:NotifySelf(L["No focus set, message not sent."], false)
+        end
+    end
+
+    -- WHISPER
+    if announceIn.whisper then
+        local who = announceIn.whisperWho
+        if who ~= nil and who ~= "" then
+            if self:SendChatMessageSafe(msg, "WHISPER", nil, who) then
+                self:SendDebugMsg("QuestAnnounce:SendMsg(WHISPER) :: " .. who .. "-" .. msg)
+            end
+        end
+    end
+
+    -- Benutzerdefinierter CHANNEL
+    if announceIn.channel then
+        if announceIn.channelName and announceIn.channelName ~= "" then
+            local id = self:GetChannelNameSafe(announceIn.channelName)
+
+            if not id or id == 0 then
+                self:JoinTemporaryChannelSafe(announceIn.channelName)
+                id = self:GetChannelNameSafe(announceIn.channelName)
+            end
+
+            if id and id > 0 then
+                if self:SendChatMessageSafe(msg, "CHANNEL", nil, id) then
+                    self:SendDebugMsg("QuestAnnounce:SendMsg(CHANNEL) :: " .. msg)
+                end
+            end
+        else
+            self:NotifySelf(L["No channel set."], false)
+        end
     end
 
     return true
@@ -1668,101 +1970,13 @@ function QuestAnnounce:DispatchMsg(msg, isComplete, soundOverrideEvent)
         return
     end
 
-    local announceIn = self.db.profile.announceIn
     local announceTo = self.db.profile.announceTo
     local allowSelfOutput = self:ShouldShowSelfMessages()
 
     -- Nachricht an Chatkanäle senden
-    if announceTo.chatFrame then
-        -- SAY
-        if announceIn.say then
-            if self:SendChatMessageSafe(msg, "SAY") then
-                QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(SAY) :: " .. msg)
-            end
-        end
+    self:DispatchChatOutputs(msg, true)
 
-        -- PARTY
-        if announceIn.party then
-            if IsInGroup(LE_PARTY_CATEGORY_HOME) then
-                if self:SendChatMessageSafe(msg, "PARTY") then
-                    QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(PARTY) :: " .. msg)
-                end
-            end
-        end
-
-        -- INSTANCE_CHAT
-        if announceIn.instance then
-            if IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
-                if self:SendChatMessageSafe(msg, "INSTANCE_CHAT") then
-                    QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(INSTANCE) :: " .. msg)
-                end
-            end
-        end
-
-        -- GUILD
-        if announceIn.guild then
-            if IsInGuild() then
-                if self:SendChatMessageSafe(msg, "GUILD") then
-                    QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(GUILD) :: " .. msg)
-                end
-            end
-        end
-
-        -- OFFICER
-        if announceIn.officer then
-            if IsInGuild() then
-                if self:SendChatMessageSafe(msg, "OFFICER") then
-                    QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(OFFICER) :: " .. msg)
-                end
-            end
-        end
-
-        -- FOCUS wird als Whisper an das Fokusziel gesendet
-        if announceIn.focus then
-            if UnitExists("focus") then
-                local name = UnitName("focus")
-                if name then
-                    if self:SendChatMessageSafe(msg, "WHISPER", nil, name) then
-                        QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(FOCUS->WHISPER) :: " .. msg)
-                    end
-                end
-            else
-                self:NotifySelf(L["No focus set, message not sent."], false)
-            end
-        end
-
-        -- WHISPER
-        if announceIn.whisper then
-            local who = announceIn.whisperWho
-            if who ~= nil and who ~= "" then
-                if self:SendChatMessageSafe(msg, "WHISPER", nil, who) then
-                    QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(WHISPER) :: " .. who .. "-" .. msg)
-                end
-            end
-        end
-
-        -- Benutzerdefinierter CHANNEL
-        if announceIn.channel then
-            if announceIn.channelName and announceIn.channelName ~= "" then
-                local id = self:GetChannelNameSafe(announceIn.channelName)
-
-                if not id or id == 0 then
-                    self:JoinTemporaryChannelSafe(announceIn.channelName)
-                    id = self:GetChannelNameSafe(announceIn.channelName)
-                end
-
-                if id and id > 0 then
-                    if self:SendChatMessageSafe(msg, "CHANNEL", nil, id) then
-                        QuestAnnounce:SendDebugMsg("QuestAnnounce:SendMsg(CHANNEL) :: " .. msg)
-                    end
-                end
-            else
-                self:NotifySelf(L["No channel set."], false)
-            end
-        end
-    end
-
-    -- Nachricht zusätzlich im RaidWarningFrame anzeigen
+    -- Nachricht zusätzlich im addon-eigenen Raid-Hinweisframe anzeigen
     if allowSelfOutput and announceTo.raidWarningFrame then
         self:AddRaidNoticeMessageSafe(msg)
     end
