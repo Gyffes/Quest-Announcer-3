@@ -1,3 +1,9 @@
+v9.3.0.9 Multi - 27-08-2026
+         - [DE] Stable-Freigabe des getesteten V9.3.0.9 RC1 ohne Aenderungen an der Produktionslogik
+         - [EN] Stable release of the tested V9.3.0.9 RC1 without production-logic changes
+         - [DE] GitHub-Release als WowUp-kompatibles Multi-ZIP mit QuestAnnounce-Wurzelordner und SHA256-Pruefsumme
+         - [EN] GitHub release packaged as a WowUp-compatible multi-client ZIP with QuestAnnounce root folder and SHA256 checksum
+
 v9.3.0.9 Multi (RC1) - 24-08-2026
          - [DE] Release-Candidate-Bereinigung: alle temporaeren A/B- und Taint-Diagnoseschalter aus der Produktionslogik entfernt
          - [EN] Release-candidate cleanup: removed all temporary A/B and taint diagnostic switches from production code

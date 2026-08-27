@@ -5,10 +5,10 @@ Quest Announce 3 is a World of Warcraft addon that automatically announces quest
 
 ## Version / Version
 
-Aktueller Stand: **9.3.0.9 RC1**
-Current version: **9.3.0.9 RC1**
+Aktueller Stand: **9.3.0.9**
+Current version: **9.3.0.9**
 
-GitHub-Vorabversion / GitHub prerelease: **V9.3.0.9-RC1-Multi**
+GitHub Release: **V9.3.0.9-Multi**
 
 ## Projektstatus (DE)
 
@@ -38,7 +38,7 @@ Das Addon wurde in der aktuellen Entwicklungsphase grundlegend modernisiert:
 - 9.3.0.7: Die Soundausgabe respektiert den ausgewählten WoW-Soundkanal. Hinweis: Der Blizzard-SoundKit 8959 ist auf manchen Clients an Master gebunden; für getrennte Kanäle kann eine andere Fortschritts-Sound-ID gewählt werden.
 - 9.3.0.8: Chat-Ausgaben werden gegen WoW-Chat-/Encounter-Lockdowns abgesichert. Öffentliche automatische Chat-Typen (SAY/YELL/EMOTE/CHANNEL) werden vor dem Blizzard-Aufruf geprüft und bei geschütztem Client-Kontext übersprungen; Tooltip und Popup erklären die Einschränkung.
 - 9.3.0.9: Normaler Kampf wird zusätzlich über `InCombatLockdown()` erkannt. Die jüngste blockierte Chatmeldung wird höchstens zehn Sekunden gehalten und nach Kampfende einmalig erneut geprüft, ohne lokale Frames oder Sounds zu wiederholen. Die Questabgabe-Erkennung nutzt nur noch Quest-Events und verarbeitet `QUEST_TURNED_IN` zeitlich entkoppelt. Die lokale Raidwarnungs-Ausgabe verwendet ein anonymes QuestAnnounce-Hinweisfenster statt Blizzards gemeinsamem `RaidWarningFrame`, damit anschließende Cinematics keinen markierten `LowHealthFrame`-Pfad übernehmen. Questlinks verwenden einen sicheren `SetItemRef`-Nachhook; Links-, Rechts- und Shift-Klick sowie der Classic-Fallback bleiben erhalten.
-- 9.3.0.9 RC1: Temporäre Taint-Diagnosezweige wurden entfernt. Questabschlussprüfungen verwenden konsequent Quest-IDs, Altprofile werden vollständig migriert, und alle zehn Lokalisierungen werden automatisiert auf Schlüssel und Format-Platzhalter geprüft.
+- 9.3.0.9 Stable: Temporäre Taint-Diagnosezweige wurden entfernt. Questabschlussprüfungen verwenden konsequent Quest-IDs, Altprofile werden vollständig migriert, und alle zehn Lokalisierungen werden automatisiert auf Schlüssel und Format-Platzhalter geprüft.
 
 ## Project Status (EN)
 
@@ -69,7 +69,7 @@ The addon has been significantly modernized in the current development phase:
 - 9.3.0.7: Sound output respects the selected WoW sound channel. Note: Blizzard SoundKit 8959 is Master-bound on some clients; choose another progress sound ID for separate channel routing.
 - 9.3.0.8: Chat output is protected against WoW chat/encounter lockdowns. Public automated chat types (SAY/YELL/EMOTE/CHANNEL) are checked before calling Blizzard APIs and skipped when the client context is protected; tooltip and popup explain the limitation.
 - 9.3.0.9: Ordinary combat is additionally detected through `InCombatLockdown()`. The latest blocked chat message is retained for at most ten seconds and checked once after combat without replaying local frames or sounds. Turn-in detection now relies only on quest events and defers `QUEST_TURNED_IN` processing. Local raid-warning output uses an anonymous QuestAnnounce notice frame instead of Blizzard's shared `RaidWarningFrame`, preventing following cinematics from inheriting a marked `LowHealthFrame` path. Quest links use a secure `SetItemRef` post-hook; left-, right-, and Shift-click plus the Classic fallback remain available.
-- 9.3.0.9 RC1: Temporary taint diagnostic branches were removed. Quest completion checks consistently use quest IDs, legacy profiles receive a complete migration, and automated validation checks keys and format placeholders across all ten localizations.
+- 9.3.0.9 Stable: Temporary taint diagnostic branches were removed. Quest completion checks consistently use quest IDs, legacy profiles receive a complete migration, and automated validation checks keys and format placeholders across all ten localizations.
 
 ## Hauptfunktionen (DE)
 
