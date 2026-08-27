@@ -1,0 +1,100 @@
+name: Release V9.3.0.9 Multi
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/release-9.3.0.9.yml
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tested RC
+        shell: pwsh
+        run: ./verify_release_candidate.ps1
+
+      - name: Promote RC metadata to stable
+        shell: python
+        run: |
+          from pathlib import Path
+
+          readme = Path('README.md')
+          text = readme.read_text(encoding='utf-8-sig')
+          text = text.replace('Aktueller Stand: **9.3.0.9 RC1**', 'Aktueller Stand: **9.3.0.9**')
+          text = text.replace('Current version: **9.3.0.9 RC1**', 'Current version: **9.3.0.9**')
+          text = text.replace('GitHub-Vorabversion / GitHub prerelease: **V9.3.0.9-RC1-Multi**', 'GitHub Release: **V9.3.0.9-Multi**')
+          text = text.replace('- 9.3.0.9 RC1: Temporäre Taint-Diagnosezweige wurden entfernt.', '- 9.3.0.9 Stable: Temporäre Taint-Diagnosezweige wurden entfernt.')
+          text = text.replace('- 9.3.0.9 RC1: Temporary taint diagnostic branches were removed.', '- 9.3.0.9 Stable: Temporary taint diagnostic branches were removed.')
+          readme.write_text(text, encoding='utf-8')
+
+          changelog = Path('CHANGELOG.txt')
+          old = changelog.read_text(encoding='utf-8-sig')
+          stable = '''v9.3.0.9 Multi - 27-08-2026\n         - [DE] Stable-Freigabe des getesteten V9.3.0.9 RC1 ohne Aenderungen an der Produktionslogik\n         - [EN] Stable release of the tested V9.3.0.9 RC1 without production-logic changes\n         - [DE] GitHub-Release als WowUp-kompatibles Multi-ZIP mit QuestAnnounce-Wurzelordner und SHA256-Pruefsumme\n         - [EN] GitHub release packaged as a WowUp-compatible multi-client ZIP with QuestAnnounce root folder and SHA256 checksum\n\n'''
+          if not old.startswith('v9.3.0.9 Multi - 27-08-2026'):
+              changelog.write_text(stable + old, encoding='utf-8')
+
+          notes = Path('RELEASE_NOTES_V9.3.0.9.md')
+          notes.write_text('''# Quest Announce 3 – V9.3.0.9 Multi\n\nStable release of the tested V9.3.0.9 RC1. No production-logic changes were introduced after the confirmed RC tests.\n\n## Highlights\n- WoW 12 cinematic/taint hardening around quest turn-in processing and LowHealthFrame-sensitive paths.\n- Deferred `QUEST_TURNED_IN` processing and quest-ID based completion checks.\n- Addon-owned raid notice and dialog output instead of shared Blizzard output paths.\n- Combat-blocked external chat retry for at most ten seconds without replaying local output or sounds.\n- Complete legacy-profile migration and ten-locale consistency validation.\n- Multi-client package for all supported WoW variants.\n\n## Confirmed tests\n- Normal quest turn-in.\n- Cinematic played to completion.\n- Cinematic cancelled/skipped.\n- Quest turn-in during or immediately after combat.\n- No observed Lua, taint, or `ADDON_ACTION_BLOCKED` errors in the RC test set.\n\n## Package\nThe attached `QuestAnnounce-3-V9.3.0.9-Multi.zip` is the install/update package for WowUp/WowUpHub. It contains a top-level `QuestAnnounce` addon directory with all supported client TOCs.\n''', encoding='utf-8')
+
+      - name: Commit stable metadata
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md CHANGELOG.txt RELEASE_NOTES_V9.3.0.9.md
+          if ! git diff --cached --quiet; then
+            git commit -m "Promote V9.3.0.9 to stable"
+            git push origin HEAD:main
+          fi
+
+      - name: Build WowUp-compatible multi-client package
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="V9.3.0.9-Multi"
+          ZIP="QuestAnnounce-3-${TAG}.zip"
+          rm -rf dist
+          mkdir -p dist/QuestAnnounce
+          cp CHANGELOG.txt Config.lua Localization.lua Minimap.lua QuestAnnounce.lua README.md dist/QuestAnnounce/
+          cp QuestAnnounce*.toc dist/QuestAnnounce/
+          cp -R Media dist/QuestAnnounce/Media
+          (cd dist && zip -r -9 "$ZIP" QuestAnnounce >/dev/null)
+          (cd dist && sha256sum "$ZIP" > "$ZIP.sha256")
+          test "$(unzip -Z1 "dist/$ZIP" | head -n 1)" = "QuestAnnounce/"
+          unzip -Z1 "dist/$ZIP" | grep -q '^QuestAnnounce/QuestAnnounce_Mainline.toc$'
+          unzip -Z1 "dist/$ZIP" | grep -q '^QuestAnnounce/QuestAnnounce.lua$'
+          echo "Package contents verified: dist/$ZIP"
+          cat "dist/$ZIP.sha256"
+
+      - name: Create stable tag and GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="V9.3.0.9-Multi"
+          ZIP="QuestAnnounce-3-${TAG}.zip"
+          git fetch origin main
+          git reset --hard origin/main
+          if git rev-parse "$TAG" >/dev/null 2>&1 || git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists; refusing to overwrite it."
+            exit 1
+          fi
+          git tag -a "$TAG" -m "Quest Announce 3 V9.3.0.9 Multi"
+          git push origin "$TAG"
+          gh release create "$TAG" \
+            "dist/$ZIP#Quest Announce 3 V9.3.0.9 Multi - WowUp package" \
+            "dist/$ZIP.sha256#SHA256 checksum" \
+            --title "Quest Announce 3 V9.3.0.9" \
+            --notes-file RELEASE_NOTES_V9.3.0.9.md \
+            --latest
