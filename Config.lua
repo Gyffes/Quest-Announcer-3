@@ -57,43 +57,6 @@ function QuestAnnounce:SetupOptions()
     addonTooltip:SetFrameStrata("TOOLTIP")
     addonTooltip:SetClampedToScreen(true)
 
-    local tooltipFontPaths = {
-        ["Friz Quadrata TT"] = "Fonts\\FRIZQT__.TTF",
-        ["Arial Narrow"] = "Fonts\\ARIALN.TTF",
-        ["Morpheus"] = "Fonts\\MORPHEUS.TTF",
-        ["Skurri"] = "Fonts\\skurri.ttf",
-    }
-
-    local function ResolveTooltipFontPath(fontValue)
-        if type(fontValue) ~= "string" or fontValue == "" then
-            return STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
-        end
-
-        if tooltipFontPaths[fontValue] then
-            return tooltipFontPaths[fontValue]
-        end
-
-        if fontValue:find("\\") or fontValue:find("/") then
-            return fontValue
-        end
-
-        return STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
-    end
-
-    local function ResolveTooltipFontLabel(fontValue)
-        if tooltipFontPaths[fontValue] then
-            return fontValue
-        end
-
-        for label, path in pairs(tooltipFontPaths) do
-            if fontValue == path then
-                return label
-            end
-        end
-
-        return "Friz Quadrata TT"
-    end
-
     -- Liefert die aktuell konfigurierten Tooltip-Einstellungen mit Fallbacks
     local function GetTooltipSettings()
         local tooltipDB = QuestAnnounce
@@ -103,7 +66,7 @@ function QuestAnnounce:SetupOptions()
 
         if not tooltipDB then
             return {
-                font = "Friz Quadrata TT",
+                font = "AUTO",
                 fontSize = 12,
                 fontColor = {0.11, 1, 0.3},
                 bgColor = {0, 0, 0, 0.8},
@@ -112,7 +75,7 @@ function QuestAnnounce:SetupOptions()
         end
 
         return {
-            font = tooltipDB.font or "Friz Quadrata TT",
+            font = tooltipDB.font or "AUTO",
             fontSize = tooltipDB.fontSize or 12,
             fontColor = tooltipDB.fontColor or {0.11, 1, 0.3},
             bgColor = tooltipDB.bgColor or {0, 0, 0, 0.8},
@@ -128,7 +91,6 @@ function QuestAnnounce:SetupOptions()
 
         local settings = GetTooltipSettings()
 
-        local font = ResolveTooltipFontPath(settings.font)
         local fontSize = settings.fontSize
         local fontColor = settings.fontColor
         local bgColor = settings.bgColor
@@ -153,7 +115,8 @@ function QuestAnnounce:SetupOptions()
             )
         end
 
-        -- FontObject für die Tooltip-Zeilen aktualisieren
+        -- DE: Nur eigene FontStrings ändern, keine globalen Fontobjekte.
+        -- EN: Change owned FontStrings only, never global font objects.
         local name = tooltip:GetName()
         if name then
             for i = 1, 30 do
@@ -161,8 +124,7 @@ function QuestAnnounce:SetupOptions()
                 local right = _G[name .. "TextRight" .. i]
 
                 if left then
-                    local _, _, flags = left:GetFont()
-                    left:SetFont(font, fontSize, flags)
+                    QuestAnnounce:ApplyTooltipLineFont(left, settings.font, fontSize)
                     left:SetTextColor(
                         fontColor[1] or 1,
                         fontColor[2] or 1,
@@ -171,8 +133,7 @@ function QuestAnnounce:SetupOptions()
                 end
 
                 if right then
-                    local _, _, flags = right:GetFont()
-                    right:SetFont(font, fontSize, flags)
+                    QuestAnnounce:ApplyTooltipLineFont(right, settings.font, fontSize)
                     right:SetTextColor(
                         fontColor[1] or 1,
                         fontColor[2] or 1,
@@ -531,12 +492,6 @@ end
 	title:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, -16)
 	title:SetJustifyH("CENTER")
 	title:SetText(L["Quest Announce 3"])
-
-    --[[ Untertitel / Beschreibung
-    local subtitle = generalPanel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-    subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
-    subtitle:SetWidth(700)
-    subtitle:SetJustifyH("LEFT")--]]
 
     -- Überschrift für die allgemeinen Einstellungen
 	local settingsHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
@@ -1386,12 +1341,9 @@ end
     )
 
     -- Liste der auswählbaren Tooltip-Schriften
-    local tooltipFonts = {
-        "Friz Quadrata TT",
-        "Arial Narrow",
-        "Morpheus",
-        "Skurri",
-    }
+    -- DE: Gemeinsamer sprachgerechter Katalog; Profilwerte sind keine Übersetzungen.
+    -- EN: Shared locale-aware catalog; profile values are not translated labels.
+    local tooltipFonts = QuestAnnounce:GetTooltipFontChoices()
 
     -- Dropdown zur Auswahl der Tooltip-Schriftart
     local tooltipFontDropdown = CreateDropdown(
@@ -1407,7 +1359,7 @@ end
             end
         end,
         L["Tooltip Font"],
-        L["Select the font used for QuestAnnounce tooltips."]
+        L["Select the font used for QuestAnnounce tooltips."] .. "\n" .. L["Tooltip font locale help"]
     )
 
     -- Beschriftung für Tooltip-Schriftgröße
@@ -1495,8 +1447,8 @@ end
         local tooltipDB = QuestAnnounce.db.profile.tooltip
 
         -- Gespeicherte Schriftart im Dropdown anzeigen
-        local selectedTooltipFont = ResolveTooltipFontLabel(tooltipDB.font)
-        tooltipFontDropdown:SetSelected(selectedTooltipFont, selectedTooltipFont)
+        local selectedTooltipFont = QuestAnnounce:GetTooltipFontSelection(tooltipDB.font)
+        tooltipFontDropdown:SetSelected(selectedTooltipFont, QuestAnnounce:GetTooltipFontLabel(tooltipDB.font))
 
         -- Gespeicherte Schriftgröße im Slider anzeigen
         tooltipFontSizeSlider:SetValue(tooltipDB.fontSize or 12)
@@ -1537,7 +1489,7 @@ end
         16,
         -220,
         function()
-            QuestAnnounce.db.profile.tooltip.font = "Friz Quadrata TT"
+            QuestAnnounce.db.profile.tooltip.font = "AUTO"
             QuestAnnounce.db.profile.tooltip.fontSize = 12
             QuestAnnounce.db.profile.tooltip.fontColor = {0.11, 1, 0.3}
             QuestAnnounce.db.profile.tooltip.bgColor = {0, 0, 0, 0.8}
@@ -1811,7 +1763,7 @@ end
 	                string.format("%s=%s", L["Campaign Quests"], FormatBoolean((profile.questTypeFilters.campaign ~= false))),
 	                string.format("%s=%s", L["Story Quests"], FormatBoolean((profile.questTypeFilters.story ~= false)))
 	            }, ", ")),
-            string.format("%s %s", L["Tooltip Font Value"], tostring(tooltip.font or L["Not set"])),
+            string.format("%s %s", L["Tooltip Font Value"], QuestAnnounce:GetTooltipFontLabel(tooltip.font)),
             string.format("%s %s", L["Tooltip Font Size Value"], tostring(tooltip.fontSize or L["Not set"])),
             string.format("%s %s", L["Tooltip Font Color Value"], FormatColor(tooltip.fontColor)),
             string.format("%s %s", L["Whisper Target"], tostring(announceIn.whisperWho or L["Not set"])),

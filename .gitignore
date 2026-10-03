@@ -1,2 +1,4 @@
 dist/
+.test-tools/
+__pycache__/
 

@@ -5,10 +5,25 @@ Quest Announce 3 is a World of Warcraft addon that automatically announces quest
 
 ## Version / Version
 
-Aktueller Stand: **9.3.0.9 RC1**
-Current version: **9.3.0.9 RC1**
+Aktueller Stand: **9.3.0.10 RC1**
+Current version: **9.3.0.10 RC1**
 
-GitHub-Vorabversion / GitHub prerelease: **V9.3.0.9-RC1-Multi**
+Vorbereiteter GitHub-RC / Prepared GitHub RC: **V9.3.0.10-RC1-Multi**. Noch nicht veröffentlicht / Not published yet.
+
+## Community-Korrekturen / Community fixes
+
+Stand / Date: 03.10.2026. **Umgesetzt; Ingame-Abnahme offen / Implemented; in-game acceptance pending.** Der bisherige 9.3.0.9 RC1 wurde nicht überschrieben / The previous 9.3.0.9 RC1 has not been overwritten.
+
+- DE: Alle bestehenden Clientvarianten sind in einer expliziten Versionsmatrix erfasst. Aktive TOCs wurden anhand der recherchierten Clientdaten aktualisiert; historische Wrath-/Cataclysm-Kennungen bleiben erhalten. Forever erhält `QuestAnnounce_Camelot.toc` mit Interface `16001`. Canonical-TOCs für Mists/Cata und eine universelle Fallback-TOC ergänzen die vorhandenen Dateien. Anniversary verwendet jetzt den TBC-Zweig, nicht die Era-Kennung.
+- EN: An explicit version matrix covers every existing client variant. Active TOCs were updated against researched client data; historical Wrath/Cataclysm identifiers remain available. Forever gains `QuestAnnounce_Camelot.toc` with interface `16001`. Canonical Mists/Cata TOCs and a universal fallback TOC supplement the existing files. Anniversary now uses the TBC branch rather than the Era identifier.
+- DE: Beide Tooltip-Arten verwenden denselben Schriftkatalog und Helfer. „Automatisch (Client-Schrift)“ liest `GameTooltipText:GetFont()` bzw. `GameFontNormal:GetFont()`. Koreanisch, vereinfachtes/traditionelles Chinesisch und Russisch erhalten eigene native Schriftwahlen. Bekannte ungeeignete Altwerte werden zur Anzeige durch die Client-Schrift ersetzt, ohne den gespeicherten Wert zu löschen. Eigene Pfade bleiben unterstützt; ihre Zeichenabdeckung liegt in der Verantwortung des Nutzers.
+- EN: Both tooltip types share one font catalog and helper. “Automatic (Client Font)” reads `GameTooltipText:GetFont()` or `GameFontNormal:GetFont()`. Korean, simplified/traditional Chinese, and Russian have native font choices. Known incompatible legacy values use the client font for display without deleting the saved preference. Custom paths remain supported; users must ensure their glyph coverage.
+- DE: Globale Blizzard-Schriften bleiben unverändert. Fehlende Fontobjekte und fehlgeschlagene `SetFont`-Aufrufe werden abgefangen; Größe, Farben, Profile und bestehende Quest-/Taint-/Kampfschutzmechanismen bleiben erhalten. Neue sichtbare Texte sind in allen zehn Sprachen übersetzt.
+- EN: Global Blizzard fonts remain unchanged. Missing font objects and failed `SetFont` calls are handled safely; size, colors, profiles, and existing quest/taint/combat protections remain intact. New visible text is translated into all ten languages.
+- DE: Automatische Prüfung: 14 TOCs, zehn Locale-Tabellen mit jeweils 234 Schlüsseln und 70 Lua-5.1-Mock-Kombinationen. Keine Aussage über abgeschlossene Ingame-Prüfung: Ladestatus ohne Outdated-Schalter, echte API-Ausführung, Glyphendarstellung und normale/Videoquest-Abgaben müssen auf den jeweiligen Clients noch bestätigt werden.
+- EN: Automated verification covers 14 TOCs, ten locale tables with 234 keys each, and 70 Lua 5.1 mock combinations. This is not completed in-game validation: loading without the outdated-addon toggle, real API execution, glyph rendering, and normal/cinematic quest turn-ins still need confirmation on the respective clients.
+
+Clientstände und Quellen / Client versions and sources: [CLIENT_VERSIONS.md](CLIENT_VERSIONS.md). Plan und Abnahme / Plan and acceptance: [COMMUNITY_FIX_PLAN.md](COMMUNITY_FIX_PLAN.md). RC-Hinweise / RC notes: [RELEASE_NOTES_V9.3.0.10-RC1.md](RELEASE_NOTES_V9.3.0.10-RC1.md).
 
 ## Projektstatus (DE)
 
@@ -89,7 +104,7 @@ The addon has been significantly modernized in the current development phase:
   - Rechtsklick: Optionen öffnen
   - Drag & Drop mit gespeicherter Position
 - Tooltip-Styling (Schriftart, Größe, Farben)
-- Robuste Font-Auflösung für Tooltips (Label/Pfad + Fallback auf `STANDARD_TEXT_FONT`)
+- Gemeinsame sprachgerechte Font-Auflösung für Tooltips (Client-Fontobjekte, native Auswahl, Altprofil-/Pfadbehandlung und abgesicherte Fallbacks ohne Pflicht auf `STANDARD_TEXT_FONT`)
 - Tooltip-Styling wirkt auf QuestAnnounce-eigene Tooltips (z. B. Optionen + Minimap), ohne globale Beeinflussung fremder Addon-/Blizzard-Tooltips
 - Tooltip-Interna sind gehärtet (addon-eigene Frames, kein fragiles Region-Stripping), wodurch das Risiko von Taint/Nebeneffekten in Blizzard-Map/Widget-Hoverpfaden reduziert wird.
 - Questlinks in Ankündigungen (taint-sicher):
@@ -117,7 +132,7 @@ The addon has been significantly modernized in the current development phase:
   - Right click: open options
   - Drag & drop with saved position
 - Tooltip styling (font, size, colors)
-- Robust tooltip font resolution (label/path + `STANDARD_TEXT_FONT` fallback)
+- Shared locale-aware tooltip font resolution (client font objects, native choices, legacy profile/path handling, and safe fallbacks without requiring `STANDARD_TEXT_FONT`)
 - Tooltip styling applies to QuestAnnounce-owned tooltips (e.g. options + minimap) without globally impacting third-party/Blizzard tooltips
 - Tooltip internals are hardened (addon-owned frames, no fragile region stripping), reducing taint/side-effect risk in Blizzard map/widget hover paths.
 - Quest links in announcements (taint-safe):
@@ -137,12 +152,16 @@ The addon has been significantly modernized in the current development phase:
 
 ## Hinweise für Entwicklung (DE)
 
+- Lua-Laufzeittests: Python 3.12 und `python -m pip install -r tests/requirements.txt`; danach `./verify_release_candidate.ps1`. Alternativer Interpreter: `-PythonPath <Pfad>`. Lupa/Lua ist ausschließlich eine Testabhängigkeit, keine Addon-Abhängigkeit.
+- RC-Paket: `./build_release_candidate.ps1` führt zuerst alle Prüfungen aus und erstellt ZIP plus SHA256 in `dist/`. Vorhandene RC-Ausgaben werden nicht überschrieben. GitHub Actions prüft und archiviert das Paket, veröffentlicht aber kein Release.
 - Die UI arbeitet auf `QuestAnnounceDB.profile`.
 - Fehlende Übersetzungen werden per Metatable auf `enUS` zurückgeführt.
 - Für Änderungen an sichtbaren Texten immer `Localization.lua` mitpflegen.
 
 ## Development Notes (EN)
 
+- Lua runtime tests: Python 3.12 and `python -m pip install -r tests/requirements.txt`, then `./verify_release_candidate.ps1`. Use `-PythonPath <path>` for another interpreter. Lupa/Lua is a test dependency only, not an addon dependency.
+- RC package: `./build_release_candidate.ps1` runs verification first, then creates a ZIP and SHA256 in `dist/`. Existing RC outputs are never overwritten. GitHub Actions verifies and uploads the artifact but does not publish a release.
 - The UI works with `QuestAnnounceDB.profile`.
 - Missing translations fall back to `enUS` via metatable behavior.
 - When changing visible text, always update `Localization.lua`.

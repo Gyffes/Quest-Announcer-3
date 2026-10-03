@@ -74,13 +74,6 @@ foreach ($case in @(
     }
 }
 
-$tocFiles = @(Get-ChildItem -LiteralPath $repoRoot -Filter '*.toc')
-if ($tocFiles.Count -ne 10) {
-    throw "Expected 10 TOC files, found $($tocFiles.Count)."
-}
-foreach ($tocFile in $tocFiles) {
-    $toc = Get-Content -LiteralPath $tocFile.FullName -Raw
-    Assert-Match $toc '(?m)^## Version: 9\.3\.0\.9$' "Unexpected version in $($tocFile.Name)."
-}
+& (Join-Path $repoRoot 'verify_client_metadata.ps1')
 
-Write-Output 'Chat-lockdown verification passed: queue, replay boundary, chat-only replay, and 10 TOCs.'
+Write-Output 'Chat-lockdown source contract passed: queue, replay boundary, chat-only replay, and complete TOC matrix.'

@@ -96,8 +96,6 @@ function QuestAnnounce:InitializeMinimapButton()
 		-- Eigenen Tooltip erzeugen oder wiederverwenden
         QuestAnnounce:CreateCustomTooltip()
 
-        local font = QuestAnnounce:GetTooltipFontPath(QuestAnnounce.db.profile.tooltip.font)
-        local fontSize = QuestAnnounce.db.profile.tooltip.fontSize
         local fontColor = QuestAnnounce.db.profile.tooltip.fontColor
         local tooltip = QuestAnnounce.customTooltip
 
@@ -125,7 +123,7 @@ function QuestAnnounce:InitializeMinimapButton()
         local soundEnabled = QuestAnnounce.db.profile.settings.sound and L["On"] or L["Off"]
         tooltip:AddLine(L["Sound"] .. ": " .. soundEnabled, fontColor[1], fontColor[2], fontColor[3])
 
-        local tooltipFont = QuestAnnounce.db.profile.tooltip.font or "Friz Quadrata TT"
+        local tooltipFont = QuestAnnounce:GetTooltipFontLabel(QuestAnnounce.db.profile.tooltip.font)
         tooltip:AddLine(L["Tooltip Font"] .. ": " .. tooltipFont, fontColor[1], fontColor[2], fontColor[3])
 
         local tooltipFontSize = QuestAnnounce.db.profile.tooltip.fontSize or 12
@@ -136,27 +134,8 @@ function QuestAnnounce:InitializeMinimapButton()
         tooltip:AddLine(L["Tooltip Right-click: Open options"])
 
 
-        -- Schriftart und -größe setzen
-        local tooltipName = tooltip:GetName()
-        for i = 1, tooltip:NumLines() do
-            local leftLine = tooltipName and _G[tooltipName .. "TextLeft" .. i] or nil
-            if leftLine then
-                local _, _, flags = leftLine:GetFont()
-                if i == 1 then  -- Spezifische Anpassungen für die erste Zeile (Überschrift)
-                    leftLine:SetFont(font, fontSize + 4, flags)  -- Feste Schriftgröße: 2 Punkte größer
-                    leftLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
-                else
-                    leftLine:SetFont(font, fontSize, flags)
-                    leftLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
-                end
-            end
-            local rightLine = tooltipName and _G[tooltipName .. "TextRight" .. i] or nil
-            if rightLine then
-                local _, _, flags = rightLine:GetFont()
-                rightLine:SetFont(font, fontSize, flags)
-					rightLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
-            end
-        end
+		-- DE/EN: Ein gemeinsamer Stilpfad für Hover und Aktualisierung.
+		-- One shared styling path for hover and live updates.
 		QuestAnnounce:UpdateTooltipBackground()
 		tooltip:Show()
     end)
@@ -240,30 +219,6 @@ function QuestAnnounce:ResetMinimapButtonPosition()
     end
 end
 
--- Liefert passend zum gespeicherten Schriftnamen den Font-Pfad zurück
-function QuestAnnounce:GetTooltipFontPath(fontName)
-    local fonts = {
-        ["Friz Quadrata TT"] = "Fonts\\FRIZQT__.TTF",
-        ["Arial Narrow"] = "Fonts\\ARIALN.TTF",
-        ["Morpheus"] = "Fonts\\MORPHEUS.TTF",
-        ["Skurri"] = "Fonts\\skurri.ttf",
-    }
-
-    if type(fontName) ~= "string" or fontName == "" then
-        return STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
-    end
-
-    if fonts[fontName] then
-        return fonts[fontName]
-    end
-
-    if fontName:find("\\") or fontName:find("/") then
-        return fontName
-    end
-
-    return STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
-end
-
 function QuestAnnounce:CreateCustomTooltip()
     if not self.customTooltip then
         self.customTooltip = CreateFrame("GameTooltip", "QuestAnnounceTooltip", UIParent, "GameTooltipTemplate")
@@ -284,7 +239,7 @@ function QuestAnnounce:UpdateTooltipBackground()
     end
 
     local bgColor = self.db.profile.tooltip.bgColor or {0, 0, 0, 0.8}
-    local font = self:GetTooltipFontPath(self.db.profile.tooltip.font)
+    local fontValue = self.db.profile.tooltip.font
     local fontSize = self.db.profile.tooltip.fontSize or 12
     local fontColor = self.db.profile.tooltip.fontColor or {1, 1, 1}
 
@@ -298,18 +253,17 @@ function QuestAnnounce:UpdateTooltipBackground()
         local rightLine = tooltipName and _G[tooltipName .. "TextRight" .. i] or nil
 
         if leftLine then
-            local _, _, flags = leftLine:GetFont()
             if i == 1 then
-                leftLine:SetFont(font, fontSize + 4, flags)
+                -- DE: Titel vier Punkte größer. / EN: Title is four points larger.
+                self:ApplyTooltipLineFont(leftLine, fontValue, fontSize + 4)
             else
-                leftLine:SetFont(font, fontSize, flags)
+                self:ApplyTooltipLineFont(leftLine, fontValue, fontSize)
             end
             leftLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
         end
 
         if rightLine then
-            local _, _, flags = rightLine:GetFont()
-            rightLine:SetFont(font, fontSize, flags)
+            self:ApplyTooltipLineFont(rightLine, fontValue, fontSize)
             rightLine:SetTextColor(fontColor[1], fontColor[2], fontColor[3])
         end
     end

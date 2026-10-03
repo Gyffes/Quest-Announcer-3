@@ -1,5 +1,5 @@
-## Interface: 50504
-## X-Interface: 50504
+## Interface: 16001
+## X-Interface: 16001
 ## Title: Quest Announce 3
 ## Version: 9.3.0.10
 ## Author: Michael Irving (original), Sommy aka Gyffes(Gilneas) (WoW 2.4), Kotenuki aka Cinnabuns(Doomhammer) (WoW 4.0+)

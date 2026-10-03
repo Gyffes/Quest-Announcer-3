@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-10-03",
+  "addonVersion": "9.3.0.10",
+  "releaseTag": "V9.3.0.10-RC1-Multi",
+  "clients": [
+    {"id":"Mainline","version":"12.1.5","build":"70077","interface":120105,"interfaces":[100207,110000,110002,120000,120001,120100,120105],"toc":"QuestAnnounce_Mainline.toc","aliases":[],"source":"https://github.com/Gethe/wow-ui-source/tree/12.1.5","status":"UI source tag; live mirror still reports 12.1.0.69933; both identifiers included"},
+    {"id":"Classic","version":"1.15.9","build":"70003","interface":11509,"toc":"QuestAnnounce_Classic.toc","aliases":["QuestAnnounce_ClassicEra.toc","QuestAnnounce_Hardcore.toc","QuestAnnounce_SeasonOfDiscovery.toc"],"source":"https://github.com/Gethe/wow-ui-source/blob/classic_era/version.txt","status":"Era, Hardcore and SoD client family"},
+    {"id":"TBC","version":"2.5.6","build":"69795","interface":20506,"toc":"QuestAnnounce_TBC.toc","aliases":["QuestAnnounce_Anniversary.toc"],"source":"https://github.com/Gethe/wow-ui-source/blob/classic_anniversary/version.txt","status":"TBC Anniversary; not the Era client family"},
+    {"id":"Wrath","version":"3.4.5","build":null,"interface":30405,"toc":"QuestAnnounce-Wrath.toc","aliases":[],"source":"https://github.com/BigWigsMods/BigWigs/blob/master/BigWigs.toc","status":"Historical interface corroborated by upstream TOC; no active official client or final build verified"},
+    {"id":"Cata","version":"4.4.2","build":"60895","interface":40402,"toc":"QuestAnnounce_Cata.toc","aliases":["QuestAnnounce_Cataclysm.toc"],"source":"https://github.com/Gethe/wow-ui-source/tree/4.4.2","status":"Historical official UI source tag"},
+    {"id":"Mists","version":"5.5.4","build":"70032","interface":50504,"toc":"QuestAnnounce_Mists.toc","aliases":["QuestAnnounce_MoP.toc"],"source":"https://github.com/Gethe/wow-ui-source/blob/classic/version.txt","status":"Current Mists client family"},
+    {"id":"Camelot","version":"1.60.1","build":"70205","interface":16001,"toc":"QuestAnnounce_Camelot.toc","aliases":[],"source":"https://github.com/Gethe/wow-ui-source/blob/forever/version.txt","status":"Forever beta; distinct from Era"}
+  ]
+}
