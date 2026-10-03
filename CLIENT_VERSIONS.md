@@ -31,7 +31,7 @@ The metadata check covers all previously supported variants plus Forever. All 14
 - Wrath: Interface `30405` wird von der aktuellen [BigWigs-TOC](https://github.com/BigWigsMods/BigWigs/blob/master/BigWigs.toc) weiterhin geführt. Das ist eine Gegenprüfung der erhaltenen Kennung, kein Nachweis eines aktiven offiziellen Wrath-Clients oder eines finalen Builds.
 - Canonical-TOC-Namen und Camelot-Zuordnung: [Packager-Quellcode](https://github.com/BigWigsMods/packager/blob/master/release.sh). Vorhandene alternative Namen bleiben erhalten.
 
-Blizzards extrahierte UI-Quellen wurden für vorhandene Settings-, Quest-, Chat- und Fontmodule der oben verfügbaren Clientzweige verglichen. Das prüft Quellstände, nicht einen laufenden Client. Datenbasis der automatischen Prüfung: `tests/client_matrix.json`.
+Blizzards extrahierte UI-Quellen wurden für vorhandene Settings-, Quest-, Chat- und Fontmodule der oben verfügbaren Clientzweige verglichen. Das prüft Quellstände, nicht einen laufenden Client. Die obige Tabelle dokumentiert die geprüften Metadaten; Testwerkzeuge und CI-Workflows wurden auf Wunsch aus dem PR entfernt. Die folgenden Ergebnisse stammen aus den Prüfungen vor dieser Entfernung.
 
 ## Prüfung / Validation
 

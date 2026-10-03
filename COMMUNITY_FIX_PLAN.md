@@ -1,13 +1,13 @@
 # Behebungsplan: Community-Meldungen vom 03.10.2026
 
-Status: Technische Umsetzung für 9.3.0.10 RC1 abgeschlossen; automatische Prüfungen bestehen, echte Ingame-Abnahme und Veröffentlichung stehen aus. Dieser Plan bleibt als Referenz erhalten und ist keine Zusage bereits absolvierter Clienttests.
+Status: Technische Umsetzung für 9.3.0.10 RC1 abgeschlossen; automatische Prüfungen vor dem Entfernen der Testwerkzeuge bestanden, echte Ingame-Abnahme und Veröffentlichung stehen aus. Testwerkzeuge und GitHub-Workflows sind auf Wunsch nicht Bestandteil dieses PRs; automatische CI-Prüfung und Artefaktbereitstellung entfallen. Dieser Plan bleibt als Referenz erhalten und ist keine Zusage bereits absolvierter Clienttests.
 
 ## Umsetzungsstand
 
 - Gemeinsamer Schriftkatalog/-helfer in der Kern-Datei; Optionen und Minimap verwenden denselben sicheren Stilpfad. Client-Fontobjekte werden nur gelesen.
 - Automatische Client-Schrift, native Auswahl für die vier betroffenen Locales und nichtdestruktive Behandlung bekannter Altwerte umgesetzt. Drei neue UI-Texte in allen zehn Locale-Tabellen.
 - Alle bestehenden TOCs geprüft und aktive Kennungen aktualisiert. Canonical-Camelot-/Mists-/Cata-TOCs und universelle TOC ergänzt; alle bestehenden Aliase erhalten. Einzelheiten und Quellengrenzen in [CLIENT_VERSIONS.md](CLIENT_VERSIONS.md).
-- Lua-5.1-Tests führen echten Addon-Code unter simulierten Client-APIs aus: 70 Clientfamilien-/Locale-Kombinationen, beide Tooltips, Reset, Profilwechsel, Fontfehler, Questabgabe und Kampf-Retry. Bestehende Source-/Taint-Schutzprüfungen bleiben aktiv.
+- Vor dem Entfernen der Testwerkzeuge wurden Lua-5.1-Tests mit echtem Addon-Code unter simulierten Client-APIs bestanden: 70 Clientfamilien-/Locale-Kombinationen, beide Tooltips, Reset, Profilwechsel, Fontfehler, Questabgabe und Kampf-Retry. Bestehende Source-/Taint-Schutzprüfungen bestanden ebenfalls. Die Laufzeit-Schutzmechanismen des Addons bleiben unverändert.
 - Offen: echte Ladeprüfung auf allen Clientvarianten, native Glyphendarstellung und erneute normale/Videoquest-Tests einschließlich Abbruch. Automatische Tests können diese Abnahme nicht ersetzen.
 - Neuer RC lokal vorbereitet; das bisherige Release bleibt unverändert. Veröffentlichung separat.
 

@@ -12,12 +12,16 @@ Local release candidate dated 2026-10-03; not yet published to GitHub. The previ
 - Native font choices for Korean, simplified/traditional Chinese, and Russian. Known incompatible legacy values fall back to the client font without changing saved profiles; Latin choices, size, colors, and custom paths remain available.
 - Forever-/Camelot-TOC ergänzt; bestehende Clientstände aktualisiert, Canonical-Mists-/Cata- und universelle TOC hinzugefügt. Anniversary verwendet den recherchierten TBC-Zweig. Details: [CLIENT_VERSIONS.md](CLIENT_VERSIONS.md).
 - Added Forever/Camelot, canonical Mists/Cata, and universal TOCs; updated existing client metadata. Anniversary uses the researched TBC branch. See the client matrix for source details and limitations.
-- Keine Änderungen an Questabgabe-, Chat-Lockdown-, Cinematic-/Taint- oder Soundlogik; vorhandene Schutzprüfungen bleiben bestehen. Drei neue UI-Texte in allen zehn Sprachen.
-- No changes to quest turn-in, chat lockdown, cinematic/taint, or sound behavior; existing safety contracts remain checked. Three new UI strings translated into all ten locales.
+- Keine Änderungen an Questabgabe-, Chat-Lockdown-, Cinematic-/Taint- oder Soundlogik; vorhandene Schutzmechanismen bleiben bestehen. Drei neue UI-Texte in allen zehn Sprachen.
+- No changes to quest turn-in, chat lockdown, cinematic/taint, or sound behavior; existing protections remain intact. Three new UI strings translated into all ten locales.
 
 Danke / Thank you: [user_n6i4a961y2ds2da7](https://legacy.curseforge.com/members/user_n6i4a961y2ds2da7) für den hilfreichen Schriftartenhinweis / for the helpful tooltip-font report.
 
 ## Bestanden / Passed
+
+Die folgenden Prüfungen wurden vor dem Entfernen der Testwerkzeuge bestanden. Der PR enthält auf Wunsch keine Testwerkzeuge oder GitHub-Workflows; automatische CI-Prüfung und Artefaktbereitstellung sind nicht eingerichtet.
+
+The following checks passed before test tooling was removed. As requested, this PR includes no test tooling or GitHub workflows; automated CI verification and artifact delivery are not configured.
 
 - 14 TOCs mit identischer Kern-Ladereihenfolge und Addonversion / matching core load order and addon version.
 - Zehn Locale-Tabellen mit 234 Schlüsseln und passenden Platzhaltern / ten locales with 234 keys and matching placeholders.
