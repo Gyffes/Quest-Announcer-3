@@ -154,16 +154,16 @@ The addon has been significantly modernized in the current development phase:
 
 ## Hinweise für Entwicklung (DE)
 
-- Lua-Laufzeittests: Python 3.12 und `python -m pip install -r tests/requirements.txt`; danach `./verify_release_candidate.ps1`. Alternativer Interpreter: `-PythonPath <Pfad>`. Lupa/Lua ist ausschließlich eine Testabhängigkeit, keine Addon-Abhängigkeit.
-- RC-Paket: `./build_release_candidate.ps1` führt zuerst alle Prüfungen aus und erstellt ZIP plus SHA256 in `dist/`. Vorhandene RC-Ausgaben werden nicht überschrieben. GitHub Actions prüft und archiviert das Paket, veröffentlicht aber kein Release.
+- Prüfung: Python 3.12 und `python -m pip install -r tests/requirements.txt`; danach `python tests/verify_addon.py`. Lupa/Lua ist ausschließlich eine Testabhängigkeit, keine Addon-Abhängigkeit. PowerShell-Skripte sind nicht erforderlich.
+- RC-Paket: `python tests/verify_addon.py --package` führt zuerst alle Prüfungen aus und erstellt ZIP plus SHA256 in `dist/`. Vorhandene RC-Ausgaben werden nicht überschrieben. GitHub Actions prüft und archiviert das Paket, veröffentlicht aber kein Release.
 - Die UI arbeitet auf `QuestAnnounceDB.profile`.
 - Fehlende Übersetzungen werden per Metatable auf `enUS` zurückgeführt.
 - Für Änderungen an sichtbaren Texten immer `Localization.lua` mitpflegen.
 
 ## Development Notes (EN)
 
-- Lua runtime tests: Python 3.12 and `python -m pip install -r tests/requirements.txt`, then `./verify_release_candidate.ps1`. Use `-PythonPath <path>` for another interpreter. Lupa/Lua is a test dependency only, not an addon dependency.
-- RC package: `./build_release_candidate.ps1` runs verification first, then creates a ZIP and SHA256 in `dist/`. Existing RC outputs are never overwritten. GitHub Actions verifies and uploads the artifact but does not publish a release.
+- Verification: Python 3.12 and `python -m pip install -r tests/requirements.txt`, then `python tests/verify_addon.py`. Lupa/Lua is a test dependency only, not an addon dependency. No PowerShell scripts are required.
+- RC package: `python tests/verify_addon.py --package` runs verification first, then creates a ZIP and SHA256 in `dist/`. Existing RC outputs are never overwritten. GitHub Actions verifies and uploads the artifact but does not publish a release.
 - The UI works with `QuestAnnounceDB.profile`.
 - Missing translations fall back to `enUS` via metatable behavior.
 - When changing visible text, always update `Localization.lua`.

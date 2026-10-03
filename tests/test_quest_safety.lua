@@ -56,4 +56,15 @@ QA:QueuePendingCombatChatMessage("latest")
 TEST_TIME=TEST_TIME+10.001
 QA:FlushPendingCombatChatMessage()
 assert(replayCount==1)
+-- Preserve all former queue-policy boundary cases using the real Lua handler.
+local baseTime=TEST_TIME
+for _,age in ipairs({0,10,10.001,-0.001}) do
+    TEST_TIME=baseTime
+    QA:QueuePendingCombatChatMessage("latest")
+    TEST_TIME=baseTime+age
+    local before=replayCount
+    QA:FlushPendingCombatChatMessage()
+    assert(replayCount==before+((age>=0 and age<=10) and 1 or 0))
+    assert(QA.pendingCombatChatMessage==nil)
+end
 QA.DispatchChatOutputs=originalDispatch
