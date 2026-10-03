@@ -8,6 +8,9 @@ debug = true
 --@end-debug@]===]
 
 QuestAnnounce_L.enUS = {
+	["Automatic (Client Font)"] = "Automatic (Client Font)",
+	["Locale font fallback"] = "Locale font fallback",
+	["Tooltip font locale help"] = "Automatic uses the client's language font. Incompatible saved fonts use this fallback without changing the profile. Custom fonts must support your language.",
 	["Test Frame Messages"] = "Test Frame Message",
 	["General"] = "General",
 	["Announce Every"] = "Announce Every",
@@ -246,6 +249,9 @@ QuestAnnounce_L.enUS = {
 
 
 QuestAnnounce_L.deDE = {
+	["Automatic (Client Font)"] = "Automatisch (Client-Schrift)",
+	["Locale font fallback"] = "Sprachgerechte Ersatzschrift",
+	["Tooltip font locale help"] = "Automatisch nutzt die Schrift der Clientsprache. Ungeeignete gespeicherte Schriften werden ersetzt, ohne das Profil zu ändern. Eigene Schriften müssen deine Sprache unterstützen.",
 	["Test Frame Messages"] = "Testnachricht senden",
 	["General"] = "Allgemein",
 	["Announce Every"] = "Alle X Schritte",
@@ -481,6 +487,9 @@ QuestAnnounce_L.deDE = {
 	["Progress sound 8959 master channel note"] = "Die Standard-Fortschritts-Sound-ID 8959 folgt jetzt dem gewählten Ausgabekanal. QA3 spielt die zugehörige Raid-Warning-Datei direkt ab, weil das WoW-SoundKit selbst dauerhaft an Master gebunden ist.",}
 
 QuestAnnounce_L.esMX = {
+	["Automatic (Client Font)"] = "Automática (fuente del cliente)",
+	["Locale font fallback"] = "Fuente alternativa del idioma",
+	["Tooltip font locale help"] = "Automática usa la fuente del idioma del cliente. Las fuentes guardadas incompatibles se sustituyen sin cambiar el perfil. Las fuentes personalizadas deben admitir tu idioma.",
 	["Test Frame Messages"] = "Test Frame Message",
 	["General"] = "General",
 	["Announce Every"] = "Anunciar cada",
@@ -717,6 +726,9 @@ QuestAnnounce_L.esMX = {
 	["Progress sound 8959 master channel note"] = "El sonido de progreso predeterminado ID 8959 ahora sigue el canal de salida seleccionado. QA3 reproduce directamente el archivo Raid Warning correspondiente porque el SoundKit de WoW está vinculado permanentemente a Maestro.",}
 
 QuestAnnounce_L.esES = {
+	["Automatic (Client Font)"] = "Automática (fuente del cliente)",
+	["Locale font fallback"] = "Fuente alternativa del idioma",
+	["Tooltip font locale help"] = "Automática usa la fuente del idioma del cliente. Las fuentes guardadas incompatibles se sustituyen sin cambiar el perfil. Las fuentes personalizadas deben admitir tu idioma.",
 	["Test Frame Messages"] = "Test Frame Message",
 	["General"] = "General",
 	["Announce Every"] = "Anunciar cada",
@@ -953,6 +965,9 @@ QuestAnnounce_L.esES = {
 	["Progress sound 8959 master channel note"] = "El sonido de progreso predeterminado ID 8959 ahora sigue el canal de salida seleccionado. QA3 reproduce directamente el archivo Raid Warning correspondiente porque el SoundKit de WoW está vinculado permanentemente a Maestro.",}
 
 QuestAnnounce_L.frFR = {
+	["Automatic (Client Font)"] = "Automatique (police du client)",
+	["Locale font fallback"] = "Police de remplacement adaptée",
+	["Tooltip font locale help"] = "Le mode automatique utilise la police de la langue du client. Les polices enregistrées incompatibles sont remplacées sans modifier le profil. Les polices personnalisées doivent prendre en charge votre langue.",
 	["Test Frame Messages"] = "Test Frame Message",
 	["General"] = "General",
 	["Announce Every"] = "Annoncer chaque",
@@ -1189,6 +1204,9 @@ QuestAnnounce_L.frFR = {
 	["Progress sound 8959 master channel note"] = "Le son de progression par défaut ID 8959 suit désormais le canal de sortie choisi. QA3 joue directement le fichier Raid Warning correspondant, car le SoundKit de WoW est lié en permanence au canal Principal.",}
 
 QuestAnnounce_L.koKR = {
+	["Automatic (Client Font)"] = "자동 (클라이언트 글꼴)",
+	["Locale font fallback"] = "언어에 맞는 대체 글꼴",
+	["Tooltip font locale help"] = "자동은 클라이언트 언어의 글꼴을 사용합니다. 저장된 글꼴이 호환되지 않으면 프로필을 변경하지 않고 대체 글꼴을 사용합니다. 사용자 지정 글꼴은 사용 중인 언어를 지원해야 합니다.",
 	["Test Frame Messages"] = "Test Frame Message",
 	["General"] = "General",
 	["Announce Every"] = "모두 알림",
@@ -1426,6 +1444,9 @@ QuestAnnounce_L.koKR = {
 
 
 QuestAnnounce_L.ruRU = {
+	["Automatic (Client Font)"] = "Автоматически (шрифт клиента)",
+	["Locale font fallback"] = "Шрифт для языка клиента",
+	["Tooltip font locale help"] = "Автоматический режим использует шрифт языка клиента. Несовместимые сохранённые шрифты заменяются без изменения профиля. Пользовательские шрифты должны поддерживать ваш язык.",
 	["Test Frame Messages"] = "Test Frame Message",
 	["General"] = "General",
 	["Announce Every"] = "Анонсировать каждые",
@@ -1662,6 +1683,9 @@ QuestAnnounce_L.ruRU = {
 	["Progress sound 8959 master channel note"] = "Стандартный звук прогресса ID 8959 теперь следует выбранному каналу вывода. QA3 воспроизводит соответствующий файл Raid Warning напрямую, поскольку SoundKit WoW постоянно привязан к Главному каналу.",}
 
 QuestAnnounce_L.zhCN = {
+	["Automatic (Client Font)"] = "自动（客户端字体）",
+	["Locale font fallback"] = "语言适配字体",
+	["Tooltip font locale help"] = "自动模式使用客户端语言的字体。已保存的字体不兼容时会使用适配字体，但不会修改配置。自定义字体必须支持你的语言。",
 	["Test Frame Messages"] = "Test Frame Message",
 	["General"] = "General",
 	["Announce Every"] = "任务通报方式",
@@ -1898,6 +1922,9 @@ QuestAnnounce_L.zhCN = {
 	["Progress sound 8959 master channel note"] = "默认进度音效 ID 8959 现在会遵循所选输出频道。由于 WoW SoundKit 本身永久绑定主音量，QA3 会直接播放对应的 Raid Warning 文件。",}
 
 QuestAnnounce_L.zhTW = {
+	["Automatic (Client Font)"] = "自動（用戶端字型）",
+	["Locale font fallback"] = "語言適用字型",
+	["Tooltip font locale help"] = "自動模式使用用戶端語言的字型。已儲存的字型不相容時會使用適用字型，但不會修改設定檔。自訂字型必須支援你的語言。",
 	["Test Frame Messages"] = "Test Frame Message",
 	["General"] = "General",
 	["Announce Every"] = "任務進度廣播方式",
@@ -2135,6 +2162,9 @@ QuestAnnounce_L.zhTW = {
 	["Progress sound 8959 master channel note"] = "預設進度音效 ID 8959 現在會遵循所選輸出頻道。由於 WoW SoundKit 本身永久綁定主音量，QA3 會直接播放對應的 Raid Warning 檔案。",}
 
 QuestAnnounce_L.ptBR = {
+	["Automatic (Client Font)"] = "Automática (fonte do cliente)",
+	["Locale font fallback"] = "Fonte alternativa do idioma",
+	["Tooltip font locale help"] = "O modo automático usa a fonte do idioma do cliente. Fontes salvas incompatíveis são substituídas sem alterar o perfil. Fontes personalizadas devem oferecer suporte ao seu idioma.",
 	["Test Frame Messages"] = "Test Frame Message",
 	["General"] = "General",
 	["Announce Every"] = "Anunciar Cada",

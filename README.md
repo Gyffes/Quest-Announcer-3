@@ -5,10 +5,27 @@ Quest Announce 3 is a World of Warcraft addon that automatically announces quest
 
 ## Version / Version
 
-Aktueller Stand: **9.3.0.9**
-Current version: **9.3.0.9**
+Aktueller Stand: **9.3.0.10 RC1**
+Current version: **9.3.0.10 RC1**
 
-GitHub Release: **V9.3.0.9-Multi**
+Vorbereiteter GitHub-RC / Prepared GitHub RC: **V9.3.0.10-RC1-Multi**. Noch nicht veröffentlicht / Not published yet.
+
+Aktuelles Stable-Release / Current stable release: **V9.3.0.9-Multi**.
+
+## Community-Korrekturen / Community fixes
+
+Stand / Date: 03.10.2026. **Umgesetzt; Ingame-Abnahme offen / Implemented; in-game acceptance pending.** Der bisherige 9.3.0.9 RC1 wurde nicht überschrieben / The previous 9.3.0.9 RC1 has not been overwritten.
+
+- DE: Alle bestehenden Clientvarianten sind in einer expliziten Versionsmatrix erfasst. Aktive TOCs wurden anhand der recherchierten Clientdaten aktualisiert; historische Wrath-/Cataclysm-Kennungen bleiben erhalten. Forever erhält `QuestAnnounce_Camelot.toc` mit Interface `16001`. Canonical-TOCs für Mists/Cata und eine universelle Fallback-TOC ergänzen die vorhandenen Dateien. Anniversary verwendet jetzt den TBC-Zweig, nicht die Era-Kennung.
+- EN: An explicit version matrix covers every existing client variant. Active TOCs were updated against researched client data; historical Wrath/Cataclysm identifiers remain available. Forever gains `QuestAnnounce_Camelot.toc` with interface `16001`. Canonical Mists/Cata TOCs and a universal fallback TOC supplement the existing files. Anniversary now uses the TBC branch rather than the Era identifier.
+- DE: Beide Tooltip-Arten verwenden denselben Schriftkatalog und Helfer. „Automatisch (Client-Schrift)“ liest `GameTooltipText:GetFont()` bzw. `GameFontNormal:GetFont()`. Koreanisch, vereinfachtes/traditionelles Chinesisch und Russisch erhalten eigene native Schriftwahlen. Bekannte ungeeignete Altwerte werden zur Anzeige durch die Client-Schrift ersetzt, ohne den gespeicherten Wert zu löschen. Eigene Pfade bleiben unterstützt; ihre Zeichenabdeckung liegt in der Verantwortung des Nutzers.
+- EN: Both tooltip types share one font catalog and helper. “Automatic (Client Font)” reads `GameTooltipText:GetFont()` or `GameFontNormal:GetFont()`. Korean, simplified/traditional Chinese, and Russian have native font choices. Known incompatible legacy values use the client font for display without deleting the saved preference. Custom paths remain supported; users must ensure their glyph coverage.
+- DE: Globale Blizzard-Schriften bleiben unverändert. Fehlende Fontobjekte und fehlgeschlagene `SetFont`-Aufrufe werden abgefangen; Größe, Farben, Profile und bestehende Quest-/Taint-/Kampfschutzmechanismen bleiben erhalten. Neue sichtbare Texte sind in allen zehn Sprachen übersetzt.
+- EN: Global Blizzard fonts remain unchanged. Missing font objects and failed `SetFont` calls are handled safely; size, colors, profiles, and existing quest/taint/combat protections remain intact. New visible text is translated into all ten languages.
+- DE: Vor dem Entfernen der Testwerkzeuge geprüft: 14 TOCs, zehn Locale-Tabellen mit jeweils 234 Schlüsseln und 70 Lua-5.1-Mock-Kombinationen. Dieser PR enthält keine Testwerkzeuge oder CI-Workflows. Keine Aussage über abgeschlossene Ingame-Prüfung: Ladestatus ohne Outdated-Schalter, echte API-Ausführung, Glyphendarstellung und normale/Videoquest-Abgaben müssen auf den jeweiligen Clients noch bestätigt werden.
+- EN: Verified before removing test tooling: 14 TOCs, ten locale tables with 234 keys each, and 70 Lua 5.1 mock combinations. This PR includes no test tooling or CI workflows. This is not completed in-game validation: loading without the outdated-addon toggle, real API execution, glyph rendering, and normal/cinematic quest turn-ins still need confirmation on the respective clients.
+
+Clientstände und Quellen / Client versions and sources: [CLIENT_VERSIONS.md](CLIENT_VERSIONS.md). Plan und Abnahme / Plan and acceptance: [COMMUNITY_FIX_PLAN.md](COMMUNITY_FIX_PLAN.md). RC-Hinweise / RC notes: [RELEASE_NOTES_V9.3.0.10-RC1.md](RELEASE_NOTES_V9.3.0.10-RC1.md).
 
 ## Projektstatus (DE)
 
@@ -33,7 +50,7 @@ Das Addon wurde in der aktuellen Entwicklungsphase grundlegend modernisiert:
 - 9.3.0.7-Update: Questabgabe-Sound wird standardmäßig nur noch im manuellen Questdialog-Kontext abgespielt; optional kann Auto-Turn-In-Sound separat aktiviert werden.
 - 9.3.0.7-Feinschliff: Questabgabe-Sound im manuellen Kontext wird nur noch bei expliziter Abgabe-Aktion (Abgeben/Quest beenden Button) ausgelöst.
 - 9.3.0.7: Alle QA3-Auswahlfelder sind jetzt addon-eigene Radio-Menüs; die globale Blizzard-`UIDropDownMenu`-API wird nicht mehr verwendet und kann beim Laden der Optionen keinen UI-Taint mehr setzen.
-- 9.3.0.7: Alle unterstützten Locales sind wieder vollständig; CI prüft künftig Taint-Isolation und Übersetzungsvollständigkeit.
+- 9.3.0.7: Alle unterstützten Locales sind wieder vollständig; Taint-Isolation und Übersetzungsvollständigkeit wurden geprüft.
 - 9.3.0.7: Multi-Kompatibilität bleibt erhalten: Retail, Classic Era, Hardcore, Anniversary, Season of Discovery, TBC, Wrath, Cataclysm und MoP nutzen weiterhin dieselbe getestete Codebasis.
 - 9.3.0.7: Die Soundausgabe respektiert den ausgewählten WoW-Soundkanal. Hinweis: Der Blizzard-SoundKit 8959 ist auf manchen Clients an Master gebunden; für getrennte Kanäle kann eine andere Fortschritts-Sound-ID gewählt werden.
 - 9.3.0.8: Chat-Ausgaben werden gegen WoW-Chat-/Encounter-Lockdowns abgesichert. Öffentliche automatische Chat-Typen (SAY/YELL/EMOTE/CHANNEL) werden vor dem Blizzard-Aufruf geprüft und bei geschütztem Client-Kontext übersprungen; Tooltip und Popup erklären die Einschränkung.
@@ -64,7 +81,7 @@ The addon has been significantly modernized in the current development phase:
 - 9.3.0.7 refinement: in manual context, turn-in sound now requires an explicit turn-in action (turn-in/complete quest button click).
 - 9.3.0.7 taint-hardening: QuestAnnounce tooltips were internally hardened and fragile template-region stripping was removed.
 - 9.3.0.7: All QA3 selectors now use addon-owned radio menus; the global Blizzard `UIDropDownMenu` API is no longer used, preventing option-load UI taint.
-- 9.3.0.7: All supported locales are complete again; CI now checks both taint isolation and localization completeness.
+- 9.3.0.7: All supported locales are complete again; taint isolation and localization completeness were checked.
 - 9.3.0.7: Multi-client compatibility remains intact: Retail, Classic Era, Hardcore, Anniversary, Season of Discovery, TBC, Wrath, Cataclysm, and MoP continue to use the same tested codebase.
 - 9.3.0.7: Sound output respects the selected WoW sound channel. Note: Blizzard SoundKit 8959 is Master-bound on some clients; choose another progress sound ID for separate channel routing.
 - 9.3.0.8: Chat output is protected against WoW chat/encounter lockdowns. Public automated chat types (SAY/YELL/EMOTE/CHANNEL) are checked before calling Blizzard APIs and skipped when the client context is protected; tooltip and popup explain the limitation.
@@ -89,7 +106,7 @@ The addon has been significantly modernized in the current development phase:
   - Rechtsklick: Optionen öffnen
   - Drag & Drop mit gespeicherter Position
 - Tooltip-Styling (Schriftart, Größe, Farben)
-- Robuste Font-Auflösung für Tooltips (Label/Pfad + Fallback auf `STANDARD_TEXT_FONT`)
+- Gemeinsame sprachgerechte Font-Auflösung für Tooltips (Client-Fontobjekte, native Auswahl, Altprofil-/Pfadbehandlung und abgesicherte Fallbacks ohne Pflicht auf `STANDARD_TEXT_FONT`)
 - Tooltip-Styling wirkt auf QuestAnnounce-eigene Tooltips (z. B. Optionen + Minimap), ohne globale Beeinflussung fremder Addon-/Blizzard-Tooltips
 - Tooltip-Interna sind gehärtet (addon-eigene Frames, kein fragiles Region-Stripping), wodurch das Risiko von Taint/Nebeneffekten in Blizzard-Map/Widget-Hoverpfaden reduziert wird.
 - Questlinks in Ankündigungen (taint-sicher):
@@ -117,7 +134,7 @@ The addon has been significantly modernized in the current development phase:
   - Right click: open options
   - Drag & drop with saved position
 - Tooltip styling (font, size, colors)
-- Robust tooltip font resolution (label/path + `STANDARD_TEXT_FONT` fallback)
+- Shared locale-aware tooltip font resolution (client font objects, native choices, legacy profile/path handling, and safe fallbacks without requiring `STANDARD_TEXT_FONT`)
 - Tooltip styling applies to QuestAnnounce-owned tooltips (e.g. options + minimap) without globally impacting third-party/Blizzard tooltips
 - Tooltip internals are hardened (addon-owned frames, no fragile region stripping), reducing taint/side-effect risk in Blizzard map/widget hover paths.
 - Quest links in announcements (taint-safe):
@@ -137,12 +154,14 @@ The addon has been significantly modernized in the current development phase:
 
 ## Hinweise für Entwicklung (DE)
 
+- Testwerkzeuge, PowerShell-Skripte und GitHub-Workflows sind auf Wunsch nicht Bestandteil dieses PRs. Die dokumentierten Prüfungen wurden vor ihrer Entfernung durchgeführt; eine automatische CI-Prüfung oder Paketbereitstellung ist hier nicht eingerichtet.
 - Die UI arbeitet auf `QuestAnnounceDB.profile`.
 - Fehlende Übersetzungen werden per Metatable auf `enUS` zurückgeführt.
 - Für Änderungen an sichtbaren Texten immer `Localization.lua` mitpflegen.
 
 ## Development Notes (EN)
 
+- Test tooling, PowerShell scripts and GitHub workflows are excluded from this PR as requested. Documented checks were performed before their removal; no automated CI verification or package delivery is configured here.
 - The UI works with `QuestAnnounceDB.profile`.
 - Missing translations fall back to `enUS` via metatable behavior.
 - When changing visible text, always update `Localization.lua`.

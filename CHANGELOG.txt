@@ -1,3 +1,24 @@
+v9.3.0.10 Multi (RC1) - 03-10-2026
+         - [DE] Gemeinsame sprachgerechte Tooltip-Schriftaufloesung in der Kern-Datei: Optionen und Minimap verwenden denselben Helfer statt doppelter westlicher Pfadtabellen
+         - [EN] Shared locale-aware tooltip font resolution in the core: options and minimap use one helper instead of duplicate Western path tables
+         - [DE] Nutzervorschlag umgesetzt: Automatisch (Client-Schrift) liest GameTooltipText/GetFont bzw. GameFontNormal/GetFont; fehlende Objekte und SetFont-Fehler werden sicher behandelt, globale Blizzard-Schriften bleiben unveraendert
+         - [EN] Implemented the community suggestion: Automatic (Client Font) reads GameTooltipText/GetFont or GameFontNormal/GetFont; missing objects and SetFont failures are handled safely without changing global Blizzard fonts
+         - [DE] Native Schriftwahlen fuer koKR, zhCN, zhTW und ruRU; bekannte inkompatible Altwerte verwenden die Client-Schrift ohne Profilreset, lateinische Auswahl, eigene Pfade, Groesse und Farben bleiben erhalten
+         - [EN] Native font choices for koKR, zhCN, zhTW and ruRU; known incompatible legacy values use the client font without resetting profiles, preserving Latin choices, custom paths, size and colors
+         - [DE] Alle bisherigen Clientvarianten in einer Versionsmatrix geprueft; Kennungen auf recherchierte aktive Staende aktualisiert, historische Wrath-/Cata-Kennungen erhalten; Anniversary jetzt im TBC-Zweig
+         - [EN] Checked all existing client variants in a version matrix; updated identifiers to researched active versions, retained historical Wrath/Cata identifiers; Anniversary now uses the TBC branch
+         - [DE] Forever/Camelot-TOC mit Interface 16001, Canonical-Mists-/Cata-TOCs und universelle Fallback-TOC ergaenzt; alle bisherigen TOCs bleiben erhalten
+         - [EN] Added Forever/Camelot TOC with interface 16001, canonical Mists/Cata TOCs and a universal fallback TOC; all previous TOCs remain available
+         - [DE] Kommentare und drei neue UI-Texte in allen zehn Locales ergaenzt; Lua-5.1-Laufzeittests decken 70 Clientfamilien-/Locale-Kombinationen inklusive Profilwechsel, Reset, beiden Tooltips, Questabgabe und Kampf-Retry ab
+         - [EN] Extended comments and added three UI strings in all ten locales; Lua 5.1 runtime tests cover 70 client-family/locale combinations including profile load, reset, both tooltips, turn-in and combat replay
+         - [DE] Bestehende Quest-, Sound-, Chat-, Taint- und Kampfschutzlogik unveraendert; Quelltext-Schutzpruefungen und alle 14 TOC-Pruefungen bestehen
+         - [EN] Existing quest, sound, chat, taint and combat protection logic unchanged; source safety contracts and all 14 TOC checks pass
+         - [DE] README, Clientmatrix und RC-Hinweise aktualisiert. Echte Client-Lade-, API-, Glyphen- und normale/Videoquest-Tests sind noch offen; keine Behauptung abgeschlossener Ingame-Abnahme
+         - [EN] Updated README, client matrix and RC notes. Real-client loading, API, glyph and normal/cinematic quest tests remain pending; no claim of completed in-game acceptance
+         - [DE] Vielen Dank an user_n6i4a961y2ds2da7 fuer den hilfreichen Hinweis zur Tooltip-Schrift und zur doppelten Aufloesungslogik!
+         - [EN] Thank you to user_n6i4a961y2ds2da7 for the helpful report about tooltip fonts and duplicate resolution logic!
+         - https://legacy.curseforge.com/members/user_n6i4a961y2ds2da7
+
 v9.3.0.9 Multi - 27-08-2026
          - [DE] Stable-Freigabe des getesteten V9.3.0.9 RC1 ohne Aenderungen an der Produktionslogik
          - [EN] Stable release of the tested V9.3.0.9 RC1 without production-logic changes
