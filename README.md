@@ -5,14 +5,24 @@ Quest Announce 3 is a World of Warcraft addon that automatically announces quest
 
 ## Version / Version
 
-Aktueller Stand: **9.3.0.10 RC1**
-Current version: **9.3.0.10 RC1**
+Aktueller Stand: **9.3.0.11-Rc1**
+Current version: **9.3.0.11-Rc1**
 
-Vorbereiteter GitHub-RC / Prepared GitHub RC: **V9.3.0.10-RC1-Multi**. Noch nicht veröffentlicht / Not published yet.
+Vorbereiteter GitHub-RC / Prepared GitHub RC: **V9.3.0.11-Rc1-Multi**. Noch nicht veröffentlicht / Not published yet.
 
 Aktuelles Stable-Release / Current stable release: **V9.3.0.9-Multi**.
 
-## Community-Korrekturen / Community fixes
+## Chatoptimierung / Chat optimization
+
+DE: `9.3.0.11-Rc1` ersetzt die pauschale Kampfverzögerung auf der geprüften Retailbasis durch kanalabhängige Regeln. Andere Clients behalten einen konservativen Kampffallback. EMOTE und RAID sind neue, standardmäßig ausgeschaltete Ausgabeziele. „Chatankündigungen“ erklärt den bisherigen Chat-Hauptschalter. Lokale Anzeigen und Sounds bleiben unabhängig von der Chatwarteschlange. Neue Texte und Tooltips sind in allen zehn Sprachen enthalten.
+
+EN: `9.3.0.11-Rc1` replaces blanket combat deferral on the tested Retail basis with channel-specific rules. Other clients retain a conservative combat fallback. EMOTE and RAID are new destinations, off by default. “Chat announcements” explains the existing chat master switch. Local displays and sounds remain independent of the chat queue. New text and tooltips cover all ten languages.
+
+DE: Separate stille Diagnose unter „Chatdiagnose“ oder `/qa diag on`; keine Zusatznachrichten. Aktive Tests werden ausdrücklich gestartet. Nach `/reload` steht `QuestAnnounceDiagnosticsDB` in der SavedVariables-Datei `QuestAnnounce.lua`. Die Umsetzung wurde automatisiert geprüft; die Ingame-Abnahme des neuen RC ist offen. Vollständige Kanalregeln, Grenzen und Befehle: [RC-Hinweise](RELEASE_NOTES_V9.3.0.11-Rc1.md). [Freigegebener Plan](CHAT_OPTIMIZATION_PLAN_9.3.0.11-Rc1.md), [Issue #22](https://github.com/Gyffes/Quest-Announcer-3/issues/22).
+
+EN: Separate silent diagnostics are available under “Chat diagnostics” or `/qa diag on`; no additional messages. Active tests require explicit starting. After `/reload`, `QuestAnnounceDiagnosticsDB` is stored in the `QuestAnnounce.lua` SavedVariables file. Implementation passed automated checks; in-game acceptance of this RC is pending. Full channel rules, limitations and commands: [RC notes](RELEASE_NOTES_V9.3.0.11-Rc1.md). [Approved plan](CHAT_OPTIMIZATION_PLAN_9.3.0.11-Rc1.md), [issue #22](https://github.com/Gyffes/Quest-Announcer-3/issues/22).
+
+## Community-Korrekturen 9.3.0.10 / Community fixes 9.3.0.10
 
 Stand / Date: 03.10.2026. **Umgesetzt; Ingame-Abnahme offen / Implemented; in-game acceptance pending.** Der bisherige 9.3.0.9 RC1 wurde nicht überschrieben / The previous 9.3.0.9 RC1 has not been overwritten.
 
@@ -92,8 +102,9 @@ The addon has been significantly modernized in the current development phase:
 
 - Fortschritts- und Abschlussmeldungen für Quests.
 - Ausgabe in verschiedene Ziele:
-  - Chatkanäle (Sagen, Gruppe, Instanz, Gilde, Offizier, Flüstern, benutzerdefinierter Kanal, Fokus-Flüstern)
-  - UI-Rahmen (Chat Frame, Raid Warning Frame, UI Errors Frame)
+  - Chatkanäle (Sagen, Gruppe, Instanz, Raid, Emote, Gilde, Offizier, Flüstern, benutzerdefinierter Kanal, Fokus-Flüstern), abhängig von Clientrestriktionen
+  - Hauptschalter Chatankündigungen; lokale Anzeigen im eigenen Raid-Hinweisfenster und UI-Fehlerfenster
+  - Separate stille Chatdiagnose und ausdrücklich gestartete Testserien
 - Konfigurierbare Sound-IDs für Fortschritt, Abschluss, Quest angenommen und Questabgabe.
 - Pro Sound ein Test-Button, Zurücksetzen-Button und Aktivierungs-Checkbox.
 - Neue optionale Sound-Checkbox für Auto-Turn-In-Quests (`Play Turn-In Sound for Auto Turn-In`, Standard: aus).
@@ -119,8 +130,9 @@ The addon has been significantly modernized in the current development phase:
 
 - Quest progress and completion announcements.
 - Output to different targets:
-  - Chat channels (/say, party, instance, guild, officer, whisper, custom channel, focus whisper)
-  - UI frames (Chat Frame, Raid Warning Frame, UI Errors Frame)
+  - Chat channels (/say, party, instance, raid, emote, guild, officer, whisper, custom channel, focus whisper), subject to client restrictions
+  - Chat announcements master switch; local displays in the owned raid notice and UI error frame
+  - Separate silent chat diagnostics and explicitly started test suites
 - Configurable sound IDs for progress, completion, quest accepted, and quest turn-in.
 - Per-sound test button, reset button, and enable checkbox.
 - New optional auto-turn-in sound checkbox (`Play Turn-In Sound for Auto Turn-In`, default: off).
