@@ -1,4 +1,8 @@
 v9.3.0.11-Rc1 Multi - 06-10-2026
+         - [DE] Partnerdiagnose: beide Addons gleichen Test-IDs vorab ab; automatische Empfangsbelege nur nach tatsächlichem Chatereignis beim gewählten Empfänger, unsichtbare begrenzte Rückmeldungen mit Reload-Puffer; fehlender Beleg bleibt unbestätigt
+         - [EN] Peer diagnostics: both addons prepare test IDs in advance; automatic receipts only after the selected recipient receives the actual chat event, bounded hidden acknowledgements with reload buffering; missing evidence remains unconfirmed
+         - [DE] Kanalauswahl, Ergebnisliste und manueller Bestätigungsbutton ohne ID-Eingabe; eigene Echos per GUID/Name-Realm erkennen; Accountmerkmale und Partner-Build erfassen; zehn Sprachen, alle TOCs und Zweiclient-Simulation ergänzt
+         - [EN] Channel selection, result list and manual confirmation button without typing IDs; identify own echoes by GUID/name-realm; record account flags and peer build; extend ten locales, every TOC and two-client simulation
          - [DE] Kanalabhaengiger Chatversand auf gepruefter Retailbasis statt pauschaler Kampfverzoegerung; moderne Chat-/Encounter-/Map-Sperren und Activating-Zustaende beachten; konservativer Kampffallback auf anderen Clientfamilien
          - [EN] Channel-aware sending on the tested Retail basis instead of blanket combat deferral; respect modern Chat/Encounter/Map restrictions and Activating states; conservative combat fallback on other client families
          - [DE] Neueste Nachricht je Ziel maximal zehn Sekunden vormerken, Zielreihenfolge wechseln, Mindestabstand eine Sekunde; keine Wiederholung gesendeter oder blockierter Ziele; Fokus-Empfaenger festhalten

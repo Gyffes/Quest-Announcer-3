@@ -2244,6 +2244,45 @@ end
     diagnosticChannel:SetScript("OnEnterPressed", function(box) box:ClearFocus() end)
     diagnosticWhisper:SetScript("OnEditFocusLost", function(box) saveDiagnosticTarget("whisper", box) end)
     diagnosticChannel:SetScript("OnEditFocusLost", function(box) saveDiagnosticTarget("channel", box) end)
+    -- DE: Partner und Kanalauswahl sind separate Diagnoseoptionen, keine Profiländerungen.
+    -- EN: Peer and channel selection are separate diagnostic options, never profile changes.
+    local partnerLabel=diagnosticContent:CreateFontString(nil,"ARTWORK","GameFontNormal")
+    partnerLabel:SetPoint("TOPLEFT",channelLabel,"BOTTOMLEFT",0,-32)
+    partnerLabel:SetText(L["Diagnostic partner"])
+    local partnerBox=CreateEditBox(diagnosticContent,480,24,16,0,L["Diagnostic partner"],L["Diagnostic partner help"])
+    partnerBox:ClearAllPoints(); partnerBox:SetPoint("TOPLEFT",partnerLabel,"BOTTOMLEFT",0,-10)
+    partnerBox:SetScript("OnEnterPressed",function(box) box:ClearFocus() end)
+    partnerBox:SetScript("OnEditFocusLost",function(box)
+        if box:GetText()~=(QuestAnnounceDiagnosticsDB.settings.partner or "") then saveDiagnosticTarget("partner",box) end
+    end)
+    local receiverBox=CreateCheckbox(diagnosticContent,L["Diagnostic receive"],16,0,
+        function(box) QuestAnnounce:SetDiagnosticReceiver(box:GetChecked() and true or false)
+            box:SetChecked(QuestAnnounceDiagnosticsDB.settings.receive) end,
+        L["Diagnostic receive"],L["Diagnostic receive help"])
+    receiverBox:ClearAllPoints(); receiverBox:SetPoint("TOPLEFT",partnerBox,"BOTTOMLEFT",0,-18)
+    local channelHeading=diagnosticContent:CreateFontString(nil,"ARTWORK","GameFontNormal")
+    channelHeading:SetPoint("TOPLEFT",receiverBox,"BOTTOMLEFT",0,-24)
+    channelHeading:SetText(L["Diagnostic channels"])
+    local channelGrid=CreateFrame("Frame",nil,diagnosticContent)
+    channelGrid:SetPoint("TOPLEFT",channelHeading,"BOTTOMLEFT",0,-12)
+    channelGrid:SetSize(560,192)
+    local channelBoxes={}
+    local channelLabels={SAY="Say",EMOTE="Emote",PARTY="Party",RAID="Raid",INSTANCE_CHAT="Instance",
+        GUILD="Guild",OFFICER="Officer",WHISPER="Whisper",CHANNEL="Channel"}
+    for index, channel in ipairs(QuestAnnounce:GetDiagnosticChannels()) do
+        local name=channel
+        local label=channelLabels[name] and L[channelLabels[name]] or name
+        channelBoxes[name]=CreateCheckbox(channelGrid,label,0,0,function(box)
+            if QuestAnnounce.diagnosticSuite then
+                QuestAnnounce:NotifySelf(L["Diagnostic test already running"],false)
+                box:SetChecked(QuestAnnounceDiagnosticsDB.settings.channels[name])
+            else QuestAnnounceDiagnosticsDB.settings.channels[name]=box:GetChecked() and true or false end
+        end,label,L["Diagnostic channels help"])
+        channelBoxes[name].Text:SetWordWrap(true)
+        channelBoxes[name].Text:SetWidth(240)
+        channelBoxes[name]:ClearAllPoints()
+        channelBoxes[name]:SetPoint("TOPLEFT",(index-1)%2*280,-math.floor((index-1)/2)*32)
+    end
     local diagnosticButtons={}
     local function suiteButton(text, mode, y)
         diagnosticButtons[#diagnosticButtons+1]=CreateButton(diagnosticContent, L[text], 240, 26, 16, y,
@@ -2262,10 +2301,43 @@ end
     -- EN: Relative anchors allow longer translations to expand downward.
     for index, button in ipairs(diagnosticButtons) do
         button:ClearAllPoints()
-        button:SetPoint("TOPLEFT", index == 1 and channelLabel or diagnosticButtons[index-1], "BOTTOMLEFT", 0, index == 1 and -42 or -17)
+        button:SetPoint("TOPLEFT", index == 1 and channelGrid or diagnosticButtons[index-1], "BOTTOMLEFT", 0, index == 1 and -24 or -17)
+    end
+    local resultHeading=diagnosticContent:CreateFontString(nil,"ARTWORK","GameFontNormal")
+    resultHeading:SetPoint("TOPLEFT",diagnosticButtons[#diagnosticButtons],"BOTTOMLEFT",0,-28)
+    resultHeading:SetText(L["Diagnostic results"])
+    local resultText=diagnosticContent:CreateFontString(nil,"ARTWORK","GameFontHighlightSmall")
+    resultText:SetPoint("TOPLEFT",resultHeading,"BOTTOMLEFT",0,-12)
+    resultText:SetWidth(560); resultText:SetJustifyH("LEFT"); resultText:SetWordWrap(true)
+    AttachTooltip(resultText,L["Diagnostic results"],L["Diagnostic results help"])
+    local resultDropdown=CreateDropdown(diagnosticContent,500,16,0,{},nil,L["Diagnostic confirm"],L["Diagnostic confirm help"])
+    resultDropdown:ClearAllPoints(); resultDropdown:SetPoint("TOPLEFT",resultText,"BOTTOMLEFT",0,-18)
+    resultDropdown.onSelect=function(value,text) resultDropdown:SetSelected(value,text) end
+    local confirmButton=CreateButton(diagnosticContent,L["Diagnostic confirm"],240,26,16,0,function()
+        if resultDropdown.selectedValue then QuestAnnounce:ChatDiagnosticCommand("received " .. resultDropdown.selectedValue) end
+    end,L["Diagnostic confirm"],L["Diagnostic confirm help"])
+    confirmButton:ClearAllPoints(); confirmButton:SetPoint("TOPLEFT",resultDropdown,"BOTTOMLEFT",0,-16)
+    self.RefreshDiagnosticResults=function()
+        resultText:SetText(QuestAnnounce:GetDiagnosticResultText())
+        receiverBox:SetChecked(QuestAnnounceDiagnosticsDB.settings.receive)
+        local items={}
+        for index=#QuestAnnounceDiagnosticsDB.results,math.max(1,#QuestAnnounceDiagnosticsDB.results-24),-1 do
+            local r=QuestAnnounceDiagnosticsDB.results[index]
+            if r.status=="local" or r.status=="pending" or r.status=="unconfirmed" then
+                items[#items+1]={value=r.test,text=r.channel .. " · " .. L["Diagnostic status " .. r.status] .. " · " .. r.test}
+            end
+        end
+        resultDropdown:SetItems(items)
+        local found=false
+        for _, item in ipairs(items) do
+            if item.value==resultDropdown.selectedValue then resultDropdown:SetSelected(item.value,item.text); found=true end
+        end
+        if not found then resultDropdown:SetSelected(nil,L["Diagnostic select result"]) end
+        if found then confirmButton:Enable() else confirmButton:Disable() end
+        if QuestAnnounce.LayoutDiagnosticsPanel then QuestAnnounce:LayoutDiagnosticsPanel() end
     end
     local diagnosticCommands = diagnosticContent:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-    diagnosticCommands:SetPoint("TOPLEFT", diagnosticButtons[#diagnosticButtons], "BOTTOMLEFT", 0, -30)
+    diagnosticCommands:SetPoint("TOPLEFT", confirmButton, "BOTTOMLEFT", 0, -30)
     diagnosticCommands:SetWidth(560)
     diagnosticCommands:SetJustifyH("LEFT")
     diagnosticCommands:SetText(L["Diagnostic command help"])
@@ -2273,18 +2345,38 @@ end
         diagnosticCheckbox:SetChecked(QuestAnnounceDiagnosticsDB.enabled)
         diagnosticWhisper:SetText(QuestAnnounceDiagnosticsDB.settings.whisper or "")
         diagnosticChannel:SetText(QuestAnnounceDiagnosticsDB.settings.channel or "")
+        partnerBox:SetText(QuestAnnounceDiagnosticsDB.settings.partner or "")
+        for channel, box in pairs(channelBoxes) do box:SetChecked(QuestAnnounceDiagnosticsDB.settings.channels[channel]) end
+        QuestAnnounce:RefreshDiagnosticResults()
+        QuestAnnounce:LayoutDiagnosticsPanel()
     end)
-    diagnosticPanel:HookScript("OnSizeChanged", function(panel)
-        local width = math.max(520, (panel:GetWidth() or 620)-50)
+    self.LayoutDiagnosticsPanel=function()
+        local width = math.max(520, (diagnosticPanel:GetWidth() or 620)-50)
         diagnosticContent:SetWidth(width)
         diagnosticHelp:SetWidth(width-32)
         diagnosticCommands:SetWidth(width-32)
-        diagnosticContent:SetHeight(math.max(820, diagnosticHelp:GetStringHeight()+diagnosticCommands:GetStringHeight()+550))
-    end)
+        resultText:SetWidth(width-32)
+        partnerBox:SetWidth(width-48)
+        local columnWidth=math.floor((width-32)/2)
+        local rowHeight=32
+        for _, box in pairs(channelBoxes) do
+            box.Text:SetWidth(columnWidth-40)
+            rowHeight=math.max(rowHeight,box.Text:GetStringHeight()+12)
+        end
+        for index, channel in ipairs(QuestAnnounce:GetDiagnosticChannels()) do
+            local box=channelBoxes[channel]
+            box:ClearAllPoints(); box:SetPoint("TOPLEFT",(index-1)%2*columnWidth,-math.floor((index-1)/2)*rowHeight)
+        end
+        channelGrid:SetSize(width-32,6*rowHeight)
+        diagnosticContent:SetHeight(math.max(1300,diagnosticHelp:GetStringHeight()+diagnosticCommands:GetStringHeight()+resultText:GetStringHeight()+850+6*rowHeight))
+    end
+    diagnosticPanel:HookScript("OnSizeChanged",function() QuestAnnounce:LayoutDiagnosticsPanel() end)
     local diagnosticCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, diagnosticPanel, L["Chat Diagnostics"])
     Settings.RegisterAddOnCategory(diagnosticCategory)
     self.diagnosticOptionsCategory = diagnosticCategory
     self.optionsFrames.diagnostics = diagnosticPanel
+    self.diagnosticControls={partner=partnerBox,receive=receiverBox,channels=channelBoxes,results=resultText,
+        selection=resultDropdown,confirm=confirmButton}
 
     soundCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, soundPanel, L["Sound Settings"])
     questTypeCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, questTypePanel, L["Quest Type Filters"] or "Quest Type Filters")

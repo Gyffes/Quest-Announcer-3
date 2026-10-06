@@ -5,6 +5,12 @@ local channels = {"SAY", "YELL", "EMOTE", "PARTY", "RAID", "RAID_WARNING", "INST
 local frame = CreateFrame("Frame")
 local session, sequence = nil, 0
 
+function QA:GetDiagnosticChannels() return channels end
+function QA:NewDiagnosticTestID()
+    sequence=sequence+1
+    return session .. "-" .. sequence
+end
+
 -- DE: Diagnose getrennt von Profilen; begrenzte Daten und niemals automatische Testwiederaufnahme.
 -- EN: Diagnostics are separate from profiles; bounded data and never automatic test resumption.
 function QA:InitializeDiagnostics()
@@ -24,8 +30,10 @@ function QA:InitializeDiagnostics()
     old.serial = (tonumber(old.serial) or 0) + 1
     session = tostring(time()) .. "-" .. old.serial .. "-" .. tostring(GetTime()) .. "-" .. math.random(100000,999999)
     local version, build, _, interface = GetBuildInfo()
-    old.sessions[#old.sessions+1] = {id=session, version=version, build=build, interface=interface, locale=GetLocale(), project=WOW_PROJECT_ID}
+    old.sessions[#old.sessions+1] = {id=session, version=version, build=build, interface=interface, locale=GetLocale(), project=WOW_PROJECT_ID,
+        trial=self:ReadChatAPI(IsTrialAccount), veteranTrial=self:ReadChatAPI(IsVeteranTrialAccount)}
     QuestAnnounceDiagnosticsDB = old
+    self:InitializeDiagnosticPeer(session)
     self:RecordChatDiagnostic("SESSION", {})
 end
 function QA:GetChatDiagnosticState()
@@ -54,17 +62,23 @@ function QA:RecordChatDiagnostic(kind, detail)
     db.records[#db.records+1] = {session=session, time=date("%Y-%m-%d %H:%M:%S"), elapsed=GetTime(),
         kind=kind, data=data, state=self:GetChatDiagnosticState()}
     if #db.records > MAX_RECORDS then table.remove(db.records, 1) end
+    self:UpdateDiagnosticResult(kind, data)
 end
 function QA:SetChatDiagnosticsEnabled(enabled)
     self:InitializeDiagnostics()
     QuestAnnounceDiagnosticsDB.enabled=enabled == true
-    if not enabled then self:CancelChatDiagnosticSuite() end
+    if not enabled then self:CancelChatDiagnosticSuite(); QuestAnnounceDiagnosticsDB.settings.receive=false; self:ResetDiagnosticPeer()
+    else self:WakeDiagnosticPeer() end
     self:RecordChatDiagnostic("RECORDING_ENABLED", {})
     self:NotifySelf(L[enabled and "Diagnostics enabled" or "Diagnostics disabled"], false)
 end
 function QA:ClearChatDiagnosticLog()
     self:InitializeDiagnostics()
+    self:CancelChatDiagnosticSuite("log cleared")
+    self:ResetDiagnosticPeer()
     QuestAnnounceDiagnosticsDB.records={}
+    QuestAnnounceDiagnosticsDB.results={}
+    if self.RefreshDiagnosticResults then self:RefreshDiagnosticResults() end
     -- DE: Einstellungen/Sitzungszaehler erhalten; nur das Protokoll entfernen.
     -- EN: Preserve settings/session counters; clear only recorded data.
     self:NotifySelf(L["Diagnostic log cleared"], false)
@@ -74,10 +88,16 @@ function QA:CancelChatDiagnosticSuite(reason)
     self.diagnosticLocalPending=nil
     local run = self.diagnosticSuite
     if run then
+        self:CancelDiagnosticPartnerSetup(run)
+        for _, test in ipairs(run.tests) do
+            local result=test.result
+            if result.status=="waiting" then result.status="cancelled" end
+        end
         self:RecordChatDiagnostic("SUITE_CANCELLED", {mode=run.mode, reason=reason})
         self.diagnosticSuite=nil
         if run.ticker then run.ticker:Cancel() end
         self:ScheduleChatWake(0)
+        if self.RefreshDiagnosticResults then self:RefreshDiagnosticResults() end
     end
 end
 local function flag(fn, ...)
@@ -113,16 +133,34 @@ function QA:StartChatDiagnosticSuite(mode)
     if mode == "encounter" and type(IsEncounterInProgress) ~= "function" then
         self:NotifySelf(L["Diagnostic timer unavailable"], false) return false
     end
+    local settings=QuestAnnounceDiagnosticsDB.settings
+    local selected={}
+    for _, channel in ipairs(channels) do if settings.channels[channel] then selected[#selected+1]=channel end end
+    if #selected==0 then self:NotifySelf(L["Diagnostic channels required"],false); return false end
     self:SetChatDiagnosticsEnabled(true)
-    local run = {mode=mode, index=1, nextAt=GetTime()+5, deadline=GetTime()+300}
+    local run = {mode=mode, index=1, nextAt=GetTime()+5, deadline=GetTime()+300,tests={},paired=settings.partner~=nil}
+    for _, channel in ipairs(selected) do
+        local id=self:NewDiagnosticTestID()
+        local result=self:CreateDiagnosticResult(id,channel)
+        run.tests[#run.tests+1]={id=id,channel=channel,result=result}
+    end
     self.diagnosticSuite=run
+    if run.paired and not self:PrepareDiagnosticPartner(run) then self:CancelChatDiagnosticSuite("peer unavailable"); return false end
     self:RecordChatDiagnostic("SUITE_START", {mode=mode})
     self:NotifySelf(L["Diagnostic suite started"], false)
     run.ticker = C_Timer.NewTicker(.5, function()
         if self.diagnosticSuite ~= run then return end
         local now=GetTime()
+        if run.paired and not run.prepared then
+            if now>=(self.diagnosticPair and self.diagnosticPair.deadline or 0) then
+                self:RecordChatDiagnostic("PEER_SETUP_TIMEOUT",{})
+                self:CancelChatDiagnosticSuite("peer setup timeout")
+                self:NotifySelf(L["Diagnostic partner unavailable"],false)
+            end
+            return
+        end
         if now >= run.deadline then
-            self:RecordChatDiagnostic("SUITE_EXPIRED", {mode=mode, next=channels[run.index]})
+            self:RecordChatDiagnostic("SUITE_EXPIRED", {mode=mode, next=run.tests[run.index].channel})
             self:CancelChatDiagnosticSuite()
             self:NotifySelf(L["Diagnostic suite expired"], false) return
         end
@@ -135,18 +173,21 @@ function QA:StartChatDiagnosticSuite(mode)
             or (mode == "combat" and combat == true and encounter == false)
             or (mode == "encounter" and encounter == true)
         if not matches then return end
-        local channel=channels[run.index]
+        local test=run.tests[run.index]
+        local channel=test.channel
         local target, reason=prerequisite(channel)
-        sequence=sequence+1
-        local id=session .. "-" .. sequence
+        if run.paired and channel=="WHISPER" then target=settings.partner; reason=nil end
+        local id=test.id
         if reason then self:RecordChatDiagnostic("SKIPPED", {channel=channel, reason=reason, test=id})
         else
             -- DE: Bewusster einmaliger Restriktionstest, keine Umgehung und kein Retry bei Blockierung.
             -- EN: Explicit one-shot restriction probe, no bypass and no retry when blocked.
-            self:SendChatMessageSafe("[QA-DIAG " .. id .. "] " .. L["Diagnostic test message"], channel, nil, target, id)
+            test.result.expires=time()+600
+            local ok, sendReason=self:SendChatMessageSafe("[QA-DIAG " .. id .. "] " .. L["Diagnostic test message"], channel, nil, target, id)
+            if not ok and not test.result.attempted then self:RecordChatDiagnostic("SKIPPED",{test=id,channel=channel,reason=sendReason}) end
         end
         run.index=run.index+1; run.nextAt=now+8
-        if run.index > #channels then
+        if run.index > #run.tests then
             self:RecordChatDiagnostic("SUITE_END", {mode=mode})
             self.diagnosticSuite=nil; run.ticker:Cancel()
             self:ScheduleChatWake(0)
@@ -168,12 +209,14 @@ function QA:TestLocalDiagnosticFrames()
         if generation ~= (self.diagnosticLocalGeneration or 0) then return end
         self.diagnosticLocalPending=nil
         local function probe(name, fn)
-            self.currentChatAttempt={channel=name}
-            self:RecordChatDiagnostic("LOCAL_ATTEMPT", {channel=name})
+            local id=self:NewDiagnosticTestID()
+            self:CreateDiagnosticResult(id,name)
+            self.currentChatAttempt={channel=name,test=id}
+            self:RecordChatDiagnostic("LOCAL_ATTEMPT", {channel=name,test=id})
             local ok, value=pcall(fn, self, L["Diagnostic test message"])
             local blocked=self.currentChatAttempt.blocked == true
             self.currentChatAttempt=nil
-            self:RecordChatDiagnostic("LOCAL_RETURNED", {channel=name, success=ok and value == true, blocked=blocked})
+            self:RecordChatDiagnostic("LOCAL_RETURNED", {channel=name,test=id, success=ok and value == true, blocked=blocked})
         end
         probe("UIErrorsFrame", self.AddUIErrorMessageSafe)
         probe("AddonRaidNoticeFrame", self.AddRaidNoticeMessageSafe)
@@ -188,13 +231,35 @@ function QA:ChatDiagnosticCommand(input)
     elseif command == "cancel" then self:CancelChatDiagnosticSuite(); self:NotifySelf(L["Diagnostic test cancelled"], false)
     elseif command == "clear" then self:ClearChatDiagnosticLog()
     elseif command == "frames" then self:TestLocalDiagnosticFrames()
-    elseif command == "whisper" or command == "channel" then
+    elseif command == "receive" then
+        if rest:lower()=="on" or rest:lower()=="off" then self:SetDiagnosticReceiver(rest:lower()=="on")
+        else self:NotifySelf(L["Diagnostic command help"],false) end
+    elseif command == "channels" then
+        if self.diagnosticSuite then self:NotifySelf(L["Diagnostic test already running"],false); return end
+        local wanted={}
+        if rest:lower()=="all" then for _, channel in ipairs(channels) do wanted[channel]=true end
+        else
+            for channel in rest:upper():gmatch("[%w_]+") do
+                local found=false
+                for _, allowed in ipairs(channels) do if allowed==channel then found=true end end
+                if not found then self:NotifySelf(L["Diagnostic command help"],false); return end
+                wanted[channel]=true
+            end
+        end
+        for _, channel in ipairs(channels) do QuestAnnounceDiagnosticsDB.settings.channels[channel]=wanted[channel]==true end
+        self:NotifySelf(L["Diagnostic target saved"],false)
+    elseif command == "whisper" or command == "channel" or command == "partner" then
         if self.diagnosticSuite then self:NotifySelf(L["Diagnostic test already running"], false) return end
+        if command=="partner" then
+            if rest~="" and not self:NormalizeDiagnosticPlayer(rest) then self:NotifySelf(L["Diagnostic partner required"],false); return end
+            self:ResetDiagnosticPeer()
+            QuestAnnounceDiagnosticsDB.settings.receive=false
+        end
         QuestAnnounceDiagnosticsDB.settings[command]=rest ~= "" and rest:sub(1,120) or nil
         self:NotifySelf(L["Diagnostic target saved"], false)
     elseif command == "received" then
         local id=rest:match("^([%w%.%-]+)$")
-        if id then self:RecordChatDiagnostic("MANUAL_RECEIPT", {test=id}); self:NotifySelf(L["Diagnostic receipt saved"], false)
+        if id then self:SetChatDiagnosticsEnabled(true); self:RecordChatDiagnostic("MANUAL_RECEIPT", {test=id}); self:NotifySelf(L["Diagnostic receipt saved"], false)
         else self:NotifySelf(L["Diagnostic command help"], false) end
     elseif command == "status" then
         self:NotifySelf(L[QuestAnnounceDiagnosticsDB.enabled and "Diagnostics enabled" or "Diagnostics disabled"]
@@ -208,21 +273,22 @@ for _, event in ipairs({"ADDON_ACTION_BLOCKED", "ADDON_ACTION_FORBIDDEN", "ADDON
     "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED", "PLAYER_ENTERING_WORLD", "ENCOUNTER_START", "ENCOUNTER_END",
     "CHAT_MSG_SAY", "CHAT_MSG_YELL", "CHAT_MSG_EMOTE", "CHAT_MSG_PARTY", "CHAT_MSG_PARTY_LEADER", "CHAT_MSG_RAID",
     "CHAT_MSG_RAID_LEADER", "CHAT_MSG_RAID_WARNING", "CHAT_MSG_INSTANCE_CHAT", "CHAT_MSG_INSTANCE_CHAT_LEADER",
-    "CHAT_MSG_GUILD", "CHAT_MSG_OFFICER", "CHAT_MSG_WHISPER", "CHAT_MSG_WHISPER_INFORM", "CHAT_MSG_CHANNEL"}) do
+    "CHAT_MSG_GUILD", "CHAT_MSG_OFFICER", "CHAT_MSG_WHISPER", "CHAT_MSG_WHISPER_INFORM", "CHAT_MSG_CHANNEL", "CHAT_MSG_ADDON"}) do
     pcall(frame.RegisterEvent, frame, event)
 end
-frame:SetScript("OnEvent", function(_, event, arg1, arg2)
+frame:SetScript("OnEvent", function(_, event, arg1, arg2, ...)
     if not QuestAnnounceDiagnosticsDB or not QuestAnnounceDiagnosticsDB.enabled then return end
-    if event:find("^CHAT_MSG_") then
+    if event=="CHAT_MSG_ADDON" then
+        QA:OnDiagnosticControl(arg1,arg2,...)
+    elseif event:find("^CHAT_MSG_") then
         if QA:IsReadable(arg1) and type(arg1) == "string" then
             local id=arg1:match("^%[QA%-DIAG ([%w%.%-]+)%]")
             if id then
                 local own=event == "CHAT_MSG_WHISPER_INFORM"
-                if QA:IsReadable(arg2) and type(arg2) == "string" then
-                    local player=QA:ReadChatAPI(GetUnitName, "player", true)
-                    own=own or player == arg2
-                end
+                local guid=select(10,...)
+                own=own or QA:IsOwnDiagnosticSender(arg2,guid)
                 QA:RecordChatDiagnostic(own and "LOCAL_ECHO" or "OBSERVED_TEST_MESSAGE", {event=event, test=id})
+                if not own then QA:ObserveDiagnosticReceipt(event,id,arg2,guid,select(7,...)) end
             end
         end
     elseif event == "ADDON_ACTION_BLOCKED" or event == "ADDON_ACTION_FORBIDDEN" then
@@ -230,7 +296,7 @@ frame:SetScript("OnEvent", function(_, event, arg1, arg2)
         if QA:IsReadable(arg1) and arg1 == "QuestAnnounce" then attempt=QA.currentChatAttempt end
         QA:RecordChatDiagnostic(event, {addon=arg1, func=arg2,
             test=attempt and attempt.test,
-            channel=attempt and attempt.channel})
+            channel=attempt and attempt.channel,transport=attempt and attempt.transport})
     else
         QA:RecordChatDiagnostic(event, {restriction=arg1, state=arg2})
         if event == "ADDON_RESTRICTION_STATE_CHANGED" and C_Timer and C_Timer.After then

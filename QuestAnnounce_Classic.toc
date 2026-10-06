@@ -9,8 +9,10 @@
 
 Localization.lua
 LocalizationChat.lua
+LocalizationDiagnostics.lua
 QuestAnnounce.lua
 ChatRouting.lua
 Diagnostics.lua
+DiagnosticsPeer.lua
 Config.lua
 Minimap.lua

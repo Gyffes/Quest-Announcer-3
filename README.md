@@ -22,6 +22,10 @@ DE: Separate stille Diagnose unter „Chatdiagnose“ oder `/qa diag on`; keine 
 
 EN: Separate silent diagnostics are available under “Chat diagnostics” or `/qa diag on`; no additional messages. Active tests require explicit starting. After `/reload`, `QuestAnnounceDiagnosticsDB` is stored in the `QuestAnnounce.lua` SavedVariables file. Implementation passed automated checks; in-game acceptance of this RC is pending. Full channel rules, limitations and commands: [RC notes](RELEASE_NOTES_V9.3.0.11-Rc1.md). [Approved plan](CHAT_OPTIMIZATION_PLAN_9.3.0.11-Rc1.md), [issue #22](https://github.com/Gyffes/Quest-Announcer-3/issues/22).
 
+DE: Neu im Diagnoseausbau: Beide Spieler tragen unter „Chatdiagnose“ den jeweils anderen als Testpartner (`Name-Realm`) ein; der Empfänger aktiviert „Partnertests empfangen“. Beim Sender die benötigten Kanäle wählen und eine Testserie starten. Empfangsbelege werden automatisch über Addon-Kommunikation zurückgemeldet und separat beim Empfänger gespeichert. Für Bosstests die Verbindung vor dem Kampf vorbereiten lassen. Fehlende Bestätigung bleibt unbestätigt; lokale Anzeigen lassen sich per Ergebnis-Auswahl und Button bestätigen. Beide benötigen diesen aktuellen Addonstand; manuelle Tests bleiben mit leerem Partnerfeld verfügbar.
+
+EN: Diagnostic extension: both players enter each other as test partner (`Name-Realm`) under “Chat diagnostics”; the recipient enables “Receive partner tests”. The sender selects the required channels and starts a suite. Actual receipts are acknowledged automatically through addon communication and recorded separately by the recipient. Prepare boss tests before the encounter. Missing acknowledgement remains unconfirmed; local displays can be confirmed through the result selector and button. Both players need this updated addon build; manual tests remain available with a blank partner field.
+
 ## Community-Korrekturen 9.3.0.10 / Community fixes 9.3.0.10
 
 Stand / Date: 03.10.2026. **Umgesetzt; Ingame-Abnahme offen / Implemented; in-game acceptance pending.** Der bisherige 9.3.0.9 RC1 wurde nicht überschrieben / The previous 9.3.0.9 RC1 has not been overwritten.
