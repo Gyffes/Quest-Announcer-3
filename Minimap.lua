@@ -158,6 +158,7 @@ MinimapButton:RegisterForClicks("AnyUp")
         elseif button == "MiddleButton" then
             QuestAnnounce:SendDebugMsg(L["Middle-click detected on QuestAnnounce MinimapButton Toggle Pause"])
             QuestAnnounce.db.profile.settings.paused = not QuestAnnounce.db.profile.settings.paused
+            QuestAnnounce:ClearPendingChat("pause changed")
 
             if QuestAnnounce.db.profile.settings.paused then
                 QuestAnnounce:NotifySelf(L["QuestAnnounce temporarily paused!"], true)
@@ -169,6 +170,7 @@ MinimapButton:RegisterForClicks("AnyUp")
             QuestAnnounce:SendDebugMsg(L["Left-click detected on QuestAnnounce MinimapButton Toggle On / Off"])
 
             QuestAnnounce.db.profile.settings.enable = not QuestAnnounce.db.profile.settings.enable
+            QuestAnnounce:ClearPendingChat("enable changed")
             QuestAnnounce.db.profile.settings.paused = false
 
             if QuestAnnounce.db.profile.settings.enable then

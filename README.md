@@ -5,14 +5,38 @@ Quest Announce 3 is a World of Warcraft addon that automatically announces quest
 
 ## Version / Version
 
-Aktueller Stand: **9.3.0.10 RC1**
-Current version: **9.3.0.10 RC1**
+Aktueller Stand: **9.3.0.11-Rc1**
+Current version: **9.3.0.11-Rc1**
 
-Vorbereiteter GitHub-RC / Prepared GitHub RC: **V9.3.0.10-RC1-Multi**. Noch nicht veröffentlicht / Not published yet.
+Vorbereiteter GitHub-RC / Prepared GitHub RC: **V9.3.0.11-Rc1-Multi**. Noch nicht veröffentlicht / Not published yet.
+
+Diagnosebuild / Diagnostic build: **20261007-1**. Beide Testpartner sollten diesen Stand verwenden / Both test partners should use this build.
+
+DE: Überarbeitung vom 07.10.: Automatisches GUILD wird auf der geprüften Retailbasis vorsorglich zurückgehalten, auch ohne aktive Map-/Chat-Sperre. Gildenoptionen bleiben gespeichert; OFFICER und andere Ziele werden getrennt behandelt. Das ist eine Addon-Sicherheitsentscheidung, kein belegtes allgemeines Blizzard-Verbot. Die genaue Ursache bleibt offen.
+
+EN: October 7 revision: automatic GUILD is conservatively withheld on the measured Retail basis, including when Map/Chat restrictions are inactive. Guild preferences are preserved; OFFICER and other destinations remain independent. This is an addon safety decision, not an established universal Blizzard ban. The underlying cause remains unresolved.
+
+DE: Diagnose verwendet standardmäßig normale Versandregeln. Für bewusste Restriktionstests „Blizzard-Restriktionen direkt prüfen“ einschalten oder `/qa diag mode probe` verwenden; Schutzfehler sind dabei möglich. `/qa diag mode normal` stellt die normalen Regeln wieder her. Der Partneraufbau zeigt Fortschritt und Wartegründe, erlaubt 60 Sekunden nutzbare Zeit sowie maximal 180 Sekunden insgesamt und wiederholt fehlende Antworten begrenzt. Vor dem Bosspull auf „Partner bereit“ warten. Neue und bestehende lokale Simulationen bestehen; reale Abnahme dieses Diagnosebuilds bleibt offen.
+
+EN: Diagnostics use normal routing rules by default. Enable “Probe Blizzard restrictions directly” or use `/qa diag mode probe` for intentional restriction probes, which may produce protection errors. `/qa diag mode normal` restores normal rules. Peer setup shows progress/reasons, allows 60 seconds of usable time and a 180-second wall limit, and retries missing replies within bounds. Wait for “Partner ready” before pulling. New and existing local simulations pass; live acceptance of this diagnostic build remains pending.
 
 Aktuelles Stable-Release / Current stable release: **V9.3.0.9-Multi**.
 
-## Community-Korrekturen / Community fixes
+## Chatoptimierung / Chat optimization
+
+DE: `9.3.0.11-Rc1` ersetzt die pauschale Kampfverzögerung auf der geprüften Retailbasis durch kanalabhängige Regeln. Andere Clients behalten einen konservativen Kampffallback. EMOTE und RAID sind neue, standardmäßig ausgeschaltete Ausgabeziele. „Chatankündigungen“ erklärt den bisherigen Chat-Hauptschalter. Lokale Anzeigen und Sounds bleiben unabhängig von der Chatwarteschlange. Neue Texte und Tooltips sind in allen zehn Sprachen enthalten.
+
+EN: `9.3.0.11-Rc1` replaces blanket combat deferral on the tested Retail basis with channel-specific rules. Other clients retain a conservative combat fallback. EMOTE and RAID are new destinations, off by default. “Chat announcements” explains the existing chat master switch. Local displays and sounds remain independent of the chat queue. New text and tooltips cover all ten languages.
+
+DE: Separate stille Diagnose unter „Chatdiagnose“ oder `/qa diag on`; keine Zusatznachrichten. Aktive Tests werden ausdrücklich gestartet. Nach `/reload` steht `QuestAnnounceDiagnosticsDB` in der SavedVariables-Datei `QuestAnnounce.lua`. Die Umsetzung wurde automatisiert geprüft; die Ingame-Abnahme des neuen RC ist offen. Vollständige Kanalregeln, Grenzen und Befehle: [RC-Hinweise](RELEASE_NOTES_V9.3.0.11-Rc1.md). [Freigegebener Plan](CHAT_OPTIMIZATION_PLAN_9.3.0.11-Rc1.md), [Issue #22](https://github.com/Gyffes/Quest-Announcer-3/issues/22).
+
+EN: Separate silent diagnostics are available under “Chat diagnostics” or `/qa diag on`; no additional messages. Active tests require explicit starting. After `/reload`, `QuestAnnounceDiagnosticsDB` is stored in the `QuestAnnounce.lua` SavedVariables file. Implementation passed automated checks; in-game acceptance of this RC is pending. Full channel rules, limitations and commands: [RC notes](RELEASE_NOTES_V9.3.0.11-Rc1.md). [Approved plan](CHAT_OPTIMIZATION_PLAN_9.3.0.11-Rc1.md), [issue #22](https://github.com/Gyffes/Quest-Announcer-3/issues/22).
+
+DE: Neu im Diagnoseausbau: Beide Spieler tragen unter „Chatdiagnose“ den jeweils anderen als Testpartner (`Name-Realm`) ein; der Empfänger aktiviert „Partnertests empfangen“. Beim Sender die benötigten Kanäle wählen und eine Testserie starten. Empfangsbelege werden automatisch über Addon-Kommunikation zurückgemeldet und separat beim Empfänger gespeichert. Für Bosstests die Verbindung vor dem Kampf vorbereiten lassen. Fehlende Bestätigung bleibt unbestätigt; lokale Anzeigen lassen sich per Ergebnis-Auswahl und Button bestätigen. Beide benötigen diesen aktuellen Addonstand; manuelle Tests bleiben mit leerem Partnerfeld verfügbar.
+
+EN: Diagnostic extension: both players enter each other as test partner (`Name-Realm`) under “Chat diagnostics”; the recipient enables “Receive partner tests”. The sender selects the required channels and starts a suite. Actual receipts are acknowledged automatically through addon communication and recorded separately by the recipient. Prepare boss tests before the encounter. Missing acknowledgement remains unconfirmed; local displays can be confirmed through the result selector and button. Both players need this updated addon build; manual tests remain available with a blank partner field.
+
+## Community-Korrekturen 9.3.0.10 / Community fixes 9.3.0.10
 
 Stand / Date: 03.10.2026. **Umgesetzt; Ingame-Abnahme offen / Implemented; in-game acceptance pending.** Der bisherige 9.3.0.9 RC1 wurde nicht überschrieben / The previous 9.3.0.9 RC1 has not been overwritten.
 
@@ -92,8 +116,9 @@ The addon has been significantly modernized in the current development phase:
 
 - Fortschritts- und Abschlussmeldungen für Quests.
 - Ausgabe in verschiedene Ziele:
-  - Chatkanäle (Sagen, Gruppe, Instanz, Gilde, Offizier, Flüstern, benutzerdefinierter Kanal, Fokus-Flüstern)
-  - UI-Rahmen (Chat Frame, Raid Warning Frame, UI Errors Frame)
+  - Chatkanäle (Sagen, Gruppe, Instanz, Raid, Emote, Gilde, Offizier, Flüstern, benutzerdefinierter Kanal, Fokus-Flüstern), abhängig von Clientrestriktionen
+  - Hauptschalter Chatankündigungen; lokale Anzeigen im eigenen Raid-Hinweisfenster und UI-Fehlerfenster
+  - Separate stille Chatdiagnose und ausdrücklich gestartete Testserien
 - Konfigurierbare Sound-IDs für Fortschritt, Abschluss, Quest angenommen und Questabgabe.
 - Pro Sound ein Test-Button, Zurücksetzen-Button und Aktivierungs-Checkbox.
 - Neue optionale Sound-Checkbox für Auto-Turn-In-Quests (`Play Turn-In Sound for Auto Turn-In`, Standard: aus).
@@ -119,8 +144,9 @@ The addon has been significantly modernized in the current development phase:
 
 - Quest progress and completion announcements.
 - Output to different targets:
-  - Chat channels (/say, party, instance, guild, officer, whisper, custom channel, focus whisper)
-  - UI frames (Chat Frame, Raid Warning Frame, UI Errors Frame)
+  - Chat channels (/say, party, instance, raid, emote, guild, officer, whisper, custom channel, focus whisper), subject to client restrictions
+  - Chat announcements master switch; local displays in the owned raid notice and UI error frame
+  - Separate silent chat diagnostics and explicitly started test suites
 - Configurable sound IDs for progress, completion, quest accepted, and quest turn-in.
 - Per-sound test button, reset button, and enable checkbox.
 - New optional auto-turn-in sound checkbox (`Play Turn-In Sound for Auto Turn-In`, default: off).

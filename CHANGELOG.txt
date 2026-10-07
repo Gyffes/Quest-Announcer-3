@@ -1,3 +1,36 @@
+v9.3.0.11-Rc1 Multi - 07-10-2026 (Diagnosebuild / diagnostic build 20261007-1)
+         - [DE] GUILD auf geprüfter Retailbasis vorsorglich vor dem API-Aufruf zurückhalten; Profilwahl erhalten, OFFICER separat; unerwartete eigene normale Schutzfehler sperren nur den betroffenen Kanal bis Reload
+         - [EN] Conservatively withhold GUILD before the API call on measured Retail; preserve preferences and independent OFFICER; unexpected own normal protection failures disable only the affected channel until reload
+         - [DE] Diagnose standardmäßig mit normalen Regeln; ausdrückliche Raw-Probes per Option oder /qa diag mode probe, normale Entscheidung samt Grund separat erfassen
+         - [EN] Diagnostics default to normal routing; explicit raw probes through the option or /qa diag mode probe; separately record normal policy decisions and reasons
+         - [DE] Partneraufbau mit Fortschritt, 60 Sekunden nutzbarer Zeit und 180 Sekunden harter Grenze; begrenzte Antwortwiederholung, konkrete Fehlergründe, keine geschützten Kommunikations-Retries; Aufbau blockiert normale Questmeldungen nicht
+         - [EN] Peer setup with progress, 60 seconds of usable time and 180-second hard limit; bounded missing-reply retries, explicit failure reasons, no protected communication retries; setup does not block normal quest announcements
+         - [DE] Diagnosebuild, Transport, Kontrollpaketart/-ergebnis, Reload-Neuaufbau, Starter-Gildenhinweis und Echo-/Belegtrennung ergänzt; fremde Schutzfehler zählen ohne Logflut; 38 neue Texte in zehn Sprachen mit DE/EN-Codekommentaren
+         - [EN] Add diagnostic build, transport, control packet kind/result, fresh setup after reload, Starter guild notice and echo/evidence distinctions; count foreign protection errors without log flooding; 38 new texts in ten locales with DE/EN code comments
+         - [DE] Lua-/TOC-/70 Client-Locale-Prüfungen und neue Zweiclient-Fälle bestanden; Live-Ursache GUILD und früherer Verbindungsfehler weiterhin offen, aktuelle Ingame-Abnahme nicht behauptet
+         - [EN] Lua/TOC/70 client-locale checks and new two-client scenarios pass; native GUILD cause and previous connection failures remain unresolved, current live acceptance is not claimed
+
+v9.3.0.11-Rc1 Multi - 06-10-2026
+         - [DE] Partnerdiagnose: beide Addons gleichen Test-IDs vorab ab; automatische Empfangsbelege nur nach tatsächlichem Chatereignis beim gewählten Empfänger, unsichtbare begrenzte Rückmeldungen mit Reload-Puffer; fehlender Beleg bleibt unbestätigt
+         - [EN] Peer diagnostics: both addons prepare test IDs in advance; automatic receipts only after the selected recipient receives the actual chat event, bounded hidden acknowledgements with reload buffering; missing evidence remains unconfirmed
+         - [DE] Kanalauswahl, Ergebnisliste und manueller Bestätigungsbutton ohne ID-Eingabe; eigene Echos per GUID/Name-Realm erkennen; Accountmerkmale und Partner-Build erfassen; zehn Sprachen, alle TOCs und Zweiclient-Simulation ergänzt
+         - [EN] Channel selection, result list and manual confirmation button without typing IDs; identify own echoes by GUID/name-realm; record account flags and peer build; extend ten locales, every TOC and two-client simulation
+         - [DE] Kanalabhaengiger Chatversand auf gepruefter Retailbasis statt pauschaler Kampfverzoegerung; moderne Chat-/Encounter-/Map-Sperren und Activating-Zustaende beachten; konservativer Kampffallback auf anderen Clientfamilien
+         - [EN] Channel-aware sending on the tested Retail basis instead of blanket combat deferral; respect modern Chat/Encounter/Map restrictions and Activating states; conservative combat fallback on other client families
+         - [DE] Neueste Nachricht je Ziel maximal zehn Sekunden vormerken, Zielreihenfolge wechseln, Mindestabstand eine Sekunde; keine Wiederholung gesendeter oder blockierter Ziele; Fokus-Empfaenger festhalten
+         - [EN] Retain the latest message per destination for up to ten seconds, rotate destinations, use a one-second minimum interval; do not retry sent or blocked targets; freeze focus recipients
+         - [DE] Neue Ausgabeoptionen EMOTE und RAID standardmaessig aus; Gilde/Fokus getauscht; Chatankündigungen als erklaerter Hauptschalter; lokalisierter Hinweis zur automatischen CHANNEL-Blockierung auf Retail
+         - [EN] New EMOTE and RAID options default to off; swap Guild/Focus; clarify the chat announcements master switch; localized notice for automatic CHANNEL blocking on Retail
+         - [DE] Lokale Raidwarnungsanzeige, UI-Fehlerausgabe und Sounds bleiben getrennt; Deckkraft-Argument der UI-Fehleranzeige korrigiert ohne globale Anzeigeeinstellungen zu aendern; neue Abschnitte in DE/EN dokumentiert
+         - [EN] Local raid notice, UI errors and sounds remain separate; correct the UI error alpha argument without changing global display settings; document new sections in DE/EN
+         - [DE] Separate stille Diagnose und ausdrueckliche Testserien fuer alle elf Chattypen sowie lokale Anzeigen; begrenzte QuestAnnounceDiagnosticsDB, kein automatischer Neustart, keine Nachrichtentexte im Log
+         - [EN] Separate silent diagnostics and explicit suites for all eleven chat types plus local displays; bounded QuestAnnounceDiagnosticsDB, no automatic restart, no message text in logs
+         - [DE] Alle zehn Locales, Tooltips, Profile und 14 TOCs aktualisiert; 70 Lua-5.1-Client-/Locale-Mocks und Routing-/Diagnosepruefungen bestehen; Ingame-Abnahme des neuen Codes steht aus
+         - [EN] Update all ten locales, tooltips, profiles and 14 TOCs; 70 Lua 5.1 client/locale mocks and routing/diagnostic checks pass; in-game acceptance of the new code remains pending
+         - [DE] README, Clientmatrix, freigegebener Plan und RC-Testanleitung aktualisiert; Bezug Issue #22. Vielen Dank an Nerf_Teh_Derp fuer die Rueckmeldung auf CurseForge!
+         - [EN] Update README, client matrix, approved plan and RC test instructions; addresses issue #22. Thanks to Nerf_Teh_Derp for the CurseForge report!
+         - https://www.curseforge.com/members/nerf_teh_derp
+
 v9.3.0.10 Multi (RC1) - 03-10-2026
          - [DE] Gemeinsame sprachgerechte Tooltip-Schriftaufloesung in der Kern-Datei: Optionen und Minimap verwenden denselben Helfer statt doppelter westlicher Pfadtabellen
          - [EN] Shared locale-aware tooltip font resolution in the core: options and minimap use one helper instead of duplicate Western path tables

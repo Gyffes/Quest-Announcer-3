@@ -1,8 +1,20 @@
 # Clientstände / Client versions — 03.10.2026
 
-Die Metadatenprüfung umfasst alle bisher unterstützten Varianten und Forever. Alle 14 TOCs laden dieselben vier Kern-Dateien in derselben Reihenfolge, verwenden `QuestAnnounceDB` und Addonversion 9.3.0.10. TOC-Zahl bedeutet nicht 14 verschiedene Spielclients: einige Dateien sind erhaltene historische Aliase.
+DE: Diagnoseüberarbeitung vom 07.10.2026, Build `20261007-1`: gemeinsamer Partneraufbau mit begrenzten Antworten, Fortschritt und Reload-Prüfung in allen Varianten. Die vorübergehende GUILD-Zurückhaltung gilt nur für die moderne Retail-Regel; andere Clients behalten ihren bisherigen konservativen Fallback. Moderne Enum- sowie ältere bool/nil-Rückgaben wurden lokal simuliert. Die realen Retail-Belege vom 5./6. Oktober betreffen den vorherigen Stand; sie ersetzen keine Live-Abnahme dieser Überarbeitung. Interface-Kennungen bleiben erhalten.
 
-The metadata check covers all previously supported variants plus Forever. All 14 TOCs share the four core files, load order, saved variables, and addon version. Several TOCs are retained aliases, not separate game clients.
+EN: Diagnostic revision dated October 7, build `20261007-1`: shared bounded peer setup, progress and reload checks across variants. Temporary GUILD withholding applies only to modern Retail policy; other clients retain their previous conservative fallback. Modern enums and legacy bool/nil results were simulated locally. Real Retail evidence from October 5/6 covers the previous build and does not establish live acceptance of this revision. Interface identifiers remain unchanged.
+
+Die Metadatenprüfung umfasst alle bisher unterstützten Varianten und Forever. Alle 14 TOCs laden dieselben neun Lua-Dateien in derselben Reihenfolge, verwenden `QuestAnnounceDB` und `QuestAnnounceDiagnosticsDB` und Addonversion 9.3.0.11-Rc1. TOC-Zahl bedeutet nicht 14 verschiedene Spielclients: einige Dateien sind erhaltene historische Aliase.
+
+The metadata check covers all previously supported variants plus Forever. All 14 TOCs share nine Lua files, load order, both saved variables, and version 9.3.0.11-Rc1. Several TOCs are retained aliases, not separate game clients.
+
+DE: Die Partnerdiagnose prüft Addon-Kommunikations-APIs zur Laufzeit: moderne `C_ChatInfo`-Funktionen oder ältere globale Varianten. Ohne passende APIs bleiben manuelle Diagnosen verfügbar. Namespace-/globale Varianten und Empfang über Reload wurden mit zwei simulierten Clients geprüft; das belegt keine tatsächliche Kommunikationsfreigabe auf ungeprüften Clients.
+
+EN: Peer diagnostics check communication APIs at runtime: modern `C_ChatInfo` functions or older global variants. Without compatible APIs, manual diagnostics remain available. Namespaced/global variants and receipts across reload were verified with two simulated clients; this does not establish actual permission on unmeasured clients.
+
+DE: Chat-/Diagnoseänderungen vom 06.10.2026 gelten für alle Varianten. Die kanalabhängige Kampfoptimierung ist durch Nutzerprüfungen nur für Retail 12.1.0.69933 belegt und wird bei vorhandener moderner Retail-API angewendet. Ungeprüfte Clientfamilien verwenden den konservativen Kampffallback. 70 Client-/Locale-Mocks bestehen; das ist kein Nachweis tatsächlicher Client-Kompatibilität. Kanalregeln und weitere Abnahme: [9.3.0.11-Rc1](RELEASE_NOTES_V9.3.0.11-Rc1.md). Die unten angegebenen Interface-/Quellstände stammen aus der Metadatenrecherche vom 03.10.2026 und wurden für diesen RC nicht neu festgelegt.
+
+EN: Chat/diagnostic changes dated 06 October 2026 cover all variants. User measurements establish channel-specific combat optimization only for Retail 12.1.0.69933; it is applied when the modern Retail API is available. Unmeasured client families use conservative combat handling. All 70 client/locale mocks pass; this does not prove actual client compatibility. Channel policy and pending acceptance: [9.3.0.11-Rc1](RELEASE_NOTES_V9.3.0.11-Rc1.md). Interface/source versions below come from the 03 October metadata research and were not redefined for this RC.
 
 | Variante / Variant | Recherchierter Stand / Source version | Interface | TOC |
 | --- | --- | --- | --- |
@@ -35,7 +47,7 @@ Blizzards extrahierte UI-Quellen wurden für vorhandene Settings-, Quest-, Chat-
 
 ## Prüfung / Validation
 
-- Bestanden: explizite Dateiliste aller 14 TOCs, Interface-/Versionswerte, gemeinsame Kern-Dateien und SavedVariables; Quelltext-Schutzprüfungen; 70 Lua-5.1-Mock-Kombinationen für sieben Clientfamilien und zehn Locales. Aliase verwenden identischen Code. Neue Locale-Texte: zehn Tabellen, je 234 Schlüssel.
+- Bestanden: explizite Dateiliste aller 14 TOCs, Interface-/Versionswerte, gemeinsame Kern-Dateien und SavedVariables; Quelltext-Schutzprüfungen; 70 Lua-5.1-Mock-Kombinationen für sieben Clientfamilien und zehn Locales. Aliase verwenden identischen Code. Neue Chat-/Diagnosetexte sind in allen zehn Sprachtabellen enthalten.
 - Offen für alle Varianten: echtes Laden bei ausgeschaltetem „Veraltete Addons laden“, tatsächliche API-Funktion, Einstellungen, Questabläufe, Links und Sounds sowie Kampf-/Taint-Verhalten. Ein Mock ist kein Client-Kompatibilitätsnachweis.
 - Offen für koKR/zhCN/zhTW/ruRU: native Zeichen in beiden Tooltips, neue/alte Profile, alle angebotenen Fontassets und `/reload`. Erfolgreiches `SetFont` beweist keine Glyphenabdeckung.
 - Historische Zweige bleiben erhalten, werden aber nicht als aktuelle offizielle Live-Angebote ausgegeben.

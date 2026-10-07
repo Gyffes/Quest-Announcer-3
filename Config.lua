@@ -511,6 +511,7 @@ end
         -90,
         function(self)
             QuestAnnounce.db.profile.settings.enable = self:GetChecked() and true or false
+            QuestAnnounce:ClearPendingChat("enable changed")
             QuestAnnounce:SendDebugMsg("setSettings: enable :: " .. tostring(QuestAnnounce.db.profile.settings.enable))
         end,
         L["Enable"],
@@ -756,15 +757,16 @@ end
     -- Chatfenster-Ausgabe
     local chatFrameCheckbox = CreateCheckbox(
         content,
-        L["Chat Frame"],
+        L["Chat Announcements"],
         16,
         -346,
         function(self)
             QuestAnnounce.db.profile.announceTo.chatFrame = self:GetChecked() and true or false
+            QuestAnnounce:ClearPendingChat("chat settings changed")
             QuestAnnounce:SendDebugMsg("setAnnounceTo: chatFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.chatFrame))
         end,
-        L["Chat Frame"],
-        L["Send announcements to chat channels such as party, guild, whisper, or custom channel."]
+        L["Chat Announcements"],
+        L["Chat Announcements help"]
     )
 
     -- Raid-Warning-Ausgabe
@@ -821,6 +823,7 @@ end
         -450,
         function(self)
             QuestAnnounce.db.profile.announceIn.say = self:GetChecked() and true or false
+            QuestAnnounce:ClearPendingChat("chat settings changed")
             QuestAnnounce:SendDebugMsg("setAnnounceIn: say :: " .. tostring(QuestAnnounce.db.profile.announceIn.say))
             if QuestAnnounce.db.profile.announceIn.say then
                 ShowPublicChatRestrictionWarning(L["Say"])
@@ -837,6 +840,7 @@ end
         -480,
         function(self)
             QuestAnnounce.db.profile.announceIn.party = self:GetChecked() and true or false
+            QuestAnnounce:ClearPendingChat("chat settings changed")
             QuestAnnounce:SendDebugMsg("setAnnounceIn: party :: " .. tostring(QuestAnnounce.db.profile.announceIn.party))
         end,
         L["Party"],
@@ -850,13 +854,15 @@ end
         -510,
         function(self)
             QuestAnnounce.db.profile.announceIn.instance = self:GetChecked() and true or false
+            QuestAnnounce:ClearPendingChat("chat settings changed")
             QuestAnnounce:SendDebugMsg("setAnnounceIn: instance :: " .. tostring(QuestAnnounce.db.profile.announceIn.instance))
         end,
         L["Instance"],
         L["Send announcements to the instance chat channel when available."]
     )
 
-    -- Mittlere Spalte: Officer / Focus / Gilde
+    -- DE: Mittlere Spalte: Offizier / Gilde / Fokus.
+    -- EN: Middle column: Officer / Guild / Focus.
     local officerCheckbox = CreateCheckbox(
         content,
         L["Officer"],
@@ -864,6 +870,7 @@ end
         -450,
         function(self)
             QuestAnnounce.db.profile.announceIn.officer = self:GetChecked() and true or false
+            QuestAnnounce:ClearPendingChat("chat settings changed")
             QuestAnnounce:SendDebugMsg("setAnnounceIn: officer :: " .. tostring(QuestAnnounce.db.profile.announceIn.officer))
         end,
         L["Officer"],
@@ -874,9 +881,10 @@ end
         content,
         L["Focus"],
         220,
-        -480,
+        -510,
         function(self)
             QuestAnnounce.db.profile.announceIn.focus = self:GetChecked() and true or false
+            QuestAnnounce:ClearPendingChat("chat settings changed")
             QuestAnnounce:SendDebugMsg("setAnnounceIn: focus :: " .. tostring(QuestAnnounce.db.profile.announceIn.focus))
         end,
         L["Focus"],
@@ -887,14 +895,39 @@ end
         content,
         L["Guild"],
         220,
-        -510,
+        -480,
         function(self)
             QuestAnnounce.db.profile.announceIn.guild = self:GetChecked() and true or false
+            QuestAnnounce:ClearPendingChat("chat settings changed")
             QuestAnnounce:SendDebugMsg("setAnnounceIn: guild :: " .. tostring(QuestAnnounce.db.profile.announceIn.guild))
         end,
         L["Guild"],
-        L["Send announcements to guild chat."]
+        L["Send announcements to guild chat."] .. (QuestAnnounce:HasMeasuredRetailChatPolicy()
+            and ("\n" .. L["Guild sending safety notice"]) or "")
     )
+
+    -- DE: Dritte Spalte: Emote und darunter Schlachtzug; Profile bleiben abwaertskompatibel.
+    -- EN: Third column: Emote with Raid below; existing profiles remain compatible.
+    local emoteCheckbox = CreateCheckbox(content, L["Emote"], 424, -450,
+        function(box)
+            QuestAnnounce.db.profile.announceIn.emote = box:GetChecked() and true or false
+            QuestAnnounce:ClearPendingChat("chat settings changed")
+        end,
+        L["Emote"], L["Emote help"])
+    local raidCheckbox = CreateCheckbox(content, L["Raid"], 424, -480,
+        function(box)
+            QuestAnnounce.db.profile.announceIn.raid = box:GetChecked() and true or false
+            QuestAnnounce:ClearPendingChat("chat settings changed")
+        end,
+        L["Raid"], L["Raid help"])
+
+    -- DE: Spaltenbreiten begrenzen lange Labels; der vollständige Text bleibt im Tooltip.
+    -- EN: Bound long column labels; the full text remains available in the tooltip.
+    for _, box in ipairs({sayCheckbox, partyCheckbox, instanceCheckbox, officerCheckbox,
+        guildCheckbox, focusCheckbox, emoteCheckbox, raidCheckbox}) do
+        box.Text:SetWidth(170)
+        box.Text:SetWordWrap(false)
+    end
 
     -- Zeile 4: Flüstern + An wen flüstern + Eingabefeld
     local whisperCheckbox = CreateCheckbox(
@@ -904,6 +937,7 @@ end
         -560,
         function(self)
             QuestAnnounce.db.profile.announceIn.whisper = self:GetChecked() and true or false
+            QuestAnnounce:ClearPendingChat("chat settings changed")
             QuestAnnounce:SendDebugMsg("setAnnounceIn: whisper :: " .. tostring(QuestAnnounce.db.profile.announceIn.whisper))
         end,
         L["Whisper"],
@@ -932,11 +966,17 @@ end
     whisperWhoBox:ClearAllPoints()
     whisperWhoBox:SetPoint("LEFT", whisperWhoLabel, "RIGHT", 12, -2)
     whisperWhoBox:SetScript("OnEnterPressed", function(self)
+        if QuestAnnounce.db.profile.announceIn.whisperWho ~= self:GetText() then
+            QuestAnnounce:ClearPendingChat("chat settings changed")
+        end
         QuestAnnounce.db.profile.announceIn.whisperWho = self:GetText()
         QuestAnnounce:SendDebugMsg("setAnnounceIn: whisperWho :: " .. tostring(QuestAnnounce.db.profile.announceIn.whisperWho))
         self:ClearFocus()
     end)
     whisperWhoBox:SetScript("OnEditFocusLost", function(self)
+        if QuestAnnounce.db.profile.announceIn.whisperWho ~= self:GetText() then
+            QuestAnnounce:ClearPendingChat("chat settings changed")
+        end
         QuestAnnounce.db.profile.announceIn.whisperWho = self:GetText()
         QuestAnnounce:SendDebugMsg("setAnnounceIn: whisperWho :: " .. tostring(QuestAnnounce.db.profile.announceIn.whisperWho))
     end)
@@ -950,10 +990,11 @@ end
         function(self)
             local value = self:GetChecked() and true or false
             QuestAnnounce.db.profile.announceIn.channel = value
+            QuestAnnounce:ClearPendingChat("chat settings changed")
             QuestAnnounce:SendDebugMsg("setAnnounceIn: channel :: " .. tostring(value))
 
             if value then
-                ShowPublicChatRestrictionWarning(L["Channel"])
+                QuestAnnounce:ShowAddonDialog(L["Custom channel blocked"] .. "\n\n" .. L["Public chat restriction tooltip"])
                 if QuestAnnounce.db.profile.announceIn.channelName == "" or not QuestAnnounce.db.profile.announceIn.channelName then
                     QuestAnnounce:ShowAddonDialog(L["Please enter a channel name."], {
                         acceptText = OKAY or "OK",
@@ -968,7 +1009,7 @@ end
             end
         end,
         L["Channel"],
-        L["Send announcements to a custom chat channel."] .. "\n\n" .. L["Public chat restriction tooltip"]
+        L["Send announcements to a custom chat channel."] .. "\n\n" .. L["Custom channel blocked"]
     )
 
     local channelNameLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
@@ -993,11 +1034,17 @@ end
     channelNameBox:ClearAllPoints()
     channelNameBox:SetPoint("LEFT", channelNameLabel, "RIGHT", 12, -2)
     channelNameBox:SetScript("OnEnterPressed", function(self)
+        if QuestAnnounce.db.profile.announceIn.channelName ~= self:GetText() then
+            QuestAnnounce:ClearPendingChat("chat settings changed")
+        end
         QuestAnnounce.db.profile.announceIn.channelName = self:GetText()
         QuestAnnounce:SendDebugMsg("setAnnounceIn: channelName :: " .. tostring(QuestAnnounce.db.profile.announceIn.channelName))
         self:ClearFocus()
     end)
     channelNameBox:SetScript("OnEditFocusLost", function(self)
+        if QuestAnnounce.db.profile.announceIn.channelName ~= self:GetText() then
+            QuestAnnounce:ClearPendingChat("chat settings changed")
+        end
         QuestAnnounce.db.profile.announceIn.channelName = self:GetText()
         QuestAnnounce:SendDebugMsg("setAnnounceIn: channelName :: " .. tostring(QuestAnnounce.db.profile.announceIn.channelName))
     end)
@@ -1051,6 +1098,8 @@ local function RefreshGeneralPanel()
     uiErrorsCheckbox:SetChecked(announceTo.uiErrorsFrame and true or false)
 
     sayCheckbox:SetChecked(announceIn.say and true or false)
+    emoteCheckbox:SetChecked(announceIn.emote and true or false)
+    raidCheckbox:SetChecked(announceIn.raid and true or false)
     partyCheckbox:SetChecked(announceIn.party and true or false)
     instanceCheckbox:SetChecked(announceIn.instance and true or false)
     guildCheckbox:SetChecked(announceIn.guild and true or false)
@@ -1606,6 +1655,8 @@ end
     local function CollectChannelLabels(values, state)
         local labels = {
             { key = "say", label = L["Say"] },
+            { key = "emote", label = L["Emote"] },
+            { key = "raid", label = L["Raid"] },
             { key = "party", label = L["Party"] },
             { key = "instance", label = L["Instance"] },
             { key = "guild", label = L["Guild"] },
@@ -1613,7 +1664,7 @@ end
             { key = "focus", label = L["Focus"] },
             { key = "whisper", label = L["Whisper"] },
             { key = "channel", label = L["Channel"] },
-            { key = "chatFrame", label = L["Chat Frame"] },
+            { key = "chatFrame", label = L["Chat Announcements"] },
             { key = "raidWarningFrame", label = L["Raid Warning Frame"] },
             { key = "uiErrorsFrame", label = L["UI Errors Frame"] },
         }
@@ -1845,6 +1896,7 @@ end
 
         QuestAnnounce.db.profile = EnsureProfileShape(DeepCopy(profiles[name]))
         QuestAnnounceDB.profile = QuestAnnounce.db.profile
+        QuestAnnounce:ClearPendingChat("profile changed")
         selectedProfileName = name
         RefreshGeneralPanel()
         RefreshSoundPanel()
@@ -2144,6 +2196,202 @@ end
     questTypePanel:HookScript("OnSizeChanged", function()
         C_Timer.After(0, LayoutQuestTypePanel)
     end)
+    -- DE: Eigenes scrollbares Diagnosemenue; Texte/Tooltips nutzen dieselbe Lokalisierung.
+    -- EN: Separate scrollable diagnostics panel; labels/tooltips use the same localization.
+    local diagnosticPanel = CreateFrame("Frame")
+    local diagnosticScroll = CreateFrame("ScrollFrame", nil, diagnosticPanel, "UIPanelScrollFrameTemplate")
+    diagnosticScroll:SetPoint("TOPLEFT", 8, -8)
+    diagnosticScroll:SetPoint("BOTTOMRIGHT", -30, 8)
+    local diagnosticContent = CreateFrame("Frame", nil, diagnosticScroll)
+    diagnosticContent:SetSize(600, 820)
+    diagnosticScroll:SetScrollChild(diagnosticContent)
+    local diagnosticTitle = diagnosticContent:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    diagnosticTitle:SetPoint("TOPLEFT", 16, -16)
+    diagnosticTitle:SetText(L["Chat Diagnostics"])
+    local diagnosticHelp = diagnosticContent:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    diagnosticHelp:SetPoint("TOPLEFT", 16, -48)
+    diagnosticHelp:SetWidth(560)
+    diagnosticHelp:SetJustifyH("LEFT")
+    diagnosticHelp:SetWordWrap(true)
+    diagnosticHelp:SetText(L["Diagnostics help"])
+    local diagnosticCheckbox = CreateCheckbox(diagnosticContent, L["Record diagnostics"], 16, -135,
+        function(box) QuestAnnounce:SetChatDiagnosticsEnabled(box:GetChecked() and true or false) end,
+        L["Record diagnostics"], L["Diagnostics help"])
+    diagnosticCheckbox:ClearAllPoints()
+    diagnosticCheckbox:SetPoint("TOPLEFT", diagnosticHelp, "BOTTOMLEFT", 0, -20)
+    local function saveDiagnosticTarget(key, box)
+        if QuestAnnounce.diagnosticSuite then
+            QuestAnnounce:NotifySelf(L["Diagnostic test already running"], false)
+            box:SetText(QuestAnnounceDiagnosticsDB.settings[key] or "")
+        else QuestAnnounce:ChatDiagnosticCommand(key .. " " .. box:GetText()) end
+    end
+    local whisperLabel = diagnosticContent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    whisperLabel:SetPoint("TOPLEFT", diagnosticCheckbox, "BOTTOMLEFT", 0, -28)
+    whisperLabel:SetWidth(200)
+    whisperLabel:SetWordWrap(false)
+    whisperLabel:SetText(L["Whisper Who"])
+    local diagnosticWhisper = CreateEditBox(diagnosticContent, 270, 24, 230, -176, L["Whisper Who"], L["Diagnostic targets help"])
+    diagnosticWhisper:ClearAllPoints()
+    diagnosticWhisper:SetPoint("TOPLEFT", whisperLabel, "TOPLEFT", 214, 4)
+    local channelLabel = diagnosticContent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    channelLabel:SetPoint("TOPLEFT", whisperLabel, "BOTTOMLEFT", 0, -28)
+    channelLabel:SetWidth(200)
+    channelLabel:SetWordWrap(false)
+    channelLabel:SetText(L["Channel Name"])
+    local diagnosticChannel = CreateEditBox(diagnosticContent, 270, 24, 230, -216, L["Channel Name"], L["Diagnostic targets help"])
+    diagnosticChannel:ClearAllPoints()
+    diagnosticChannel:SetPoint("TOPLEFT", channelLabel, "TOPLEFT", 214, 4)
+    diagnosticWhisper:SetScript("OnEnterPressed", function(box) box:ClearFocus() end)
+    diagnosticChannel:SetScript("OnEnterPressed", function(box) box:ClearFocus() end)
+    diagnosticWhisper:SetScript("OnEditFocusLost", function(box) saveDiagnosticTarget("whisper", box) end)
+    diagnosticChannel:SetScript("OnEditFocusLost", function(box) saveDiagnosticTarget("channel", box) end)
+    -- DE: Partner und Kanalauswahl sind separate Diagnoseoptionen, keine Profiländerungen.
+    -- EN: Peer and channel selection are separate diagnostic options, never profile changes.
+    local partnerLabel=diagnosticContent:CreateFontString(nil,"ARTWORK","GameFontNormal")
+    partnerLabel:SetPoint("TOPLEFT",channelLabel,"BOTTOMLEFT",0,-32)
+    partnerLabel:SetText(L["Diagnostic partner"])
+    local partnerBox=CreateEditBox(diagnosticContent,480,24,16,0,L["Diagnostic partner"],L["Diagnostic partner help"])
+    partnerBox:ClearAllPoints(); partnerBox:SetPoint("TOPLEFT",partnerLabel,"BOTTOMLEFT",0,-10)
+    partnerBox:SetScript("OnEnterPressed",function(box) box:ClearFocus() end)
+    partnerBox:SetScript("OnEditFocusLost",function(box)
+        if box:GetText()~=(QuestAnnounceDiagnosticsDB.settings.partner or "") then saveDiagnosticTarget("partner",box) end
+    end)
+    local receiverBox=CreateCheckbox(diagnosticContent,L["Diagnostic receive"],16,0,
+        function(box) QuestAnnounce:SetDiagnosticReceiver(box:GetChecked() and true or false)
+            box:SetChecked(QuestAnnounceDiagnosticsDB.settings.receive) end,
+        L["Diagnostic receive"],L["Diagnostic receive help"])
+    receiverBox:ClearAllPoints(); receiverBox:SetPoint("TOPLEFT",partnerBox,"BOTTOMLEFT",0,-18)
+    -- DE: Rohaufrufe nur nach bewusster Auswahl; normale Versandregeln sind Diagnose-Standard.
+    -- EN: Raw calls require explicit selection; normal routing is the diagnostic default.
+    local probeBox=CreateCheckbox(diagnosticContent,L["Raw restriction probes"],16,0,function(box)
+        if QuestAnnounce.diagnosticSuite then
+            box:SetChecked(QuestAnnounceDiagnosticsDB.settings.probe)
+            QuestAnnounce:NotifySelf(L["Diagnostic test already running"],false)
+        else QuestAnnounceDiagnosticsDB.settings.probe=box:GetChecked() and true or false end
+    end,L["Raw restriction probes"],L["Raw restriction probes help"])
+    probeBox:ClearAllPoints(); probeBox:SetPoint("TOPLEFT",receiverBox,"BOTTOMLEFT",0,-18)
+    probeBox.Text:SetWordWrap(true); probeBox.Text:SetWidth(500)
+    local channelHeading=diagnosticContent:CreateFontString(nil,"ARTWORK","GameFontNormal")
+    channelHeading:SetPoint("TOPLEFT",probeBox,"BOTTOMLEFT",0,-24)
+    channelHeading:SetText(L["Diagnostic channels"])
+    local channelGrid=CreateFrame("Frame",nil,diagnosticContent)
+    channelGrid:SetPoint("TOPLEFT",channelHeading,"BOTTOMLEFT",0,-12)
+    channelGrid:SetSize(560,192)
+    local channelBoxes={}
+    local channelLabels={SAY="Say",EMOTE="Emote",PARTY="Party",RAID="Raid",INSTANCE_CHAT="Instance",
+        GUILD="Guild",OFFICER="Officer",WHISPER="Whisper",CHANNEL="Channel"}
+    for index, channel in ipairs(QuestAnnounce:GetDiagnosticChannels()) do
+        local name=channel
+        local label=channelLabels[name] and L[channelLabels[name]] or name
+        channelBoxes[name]=CreateCheckbox(channelGrid,label,0,0,function(box)
+            if QuestAnnounce.diagnosticSuite then
+                QuestAnnounce:NotifySelf(L["Diagnostic test already running"],false)
+                box:SetChecked(QuestAnnounceDiagnosticsDB.settings.channels[name])
+            else QuestAnnounceDiagnosticsDB.settings.channels[name]=box:GetChecked() and true or false end
+        end,label,L["Diagnostic channels help"])
+        channelBoxes[name].Text:SetWordWrap(true)
+        channelBoxes[name].Text:SetWidth(240)
+        channelBoxes[name]:ClearAllPoints()
+        channelBoxes[name]:SetPoint("TOPLEFT",(index-1)%2*280,-math.floor((index-1)/2)*32)
+    end
+    local diagnosticButtons={}
+    local function suiteButton(text, mode, y)
+        diagnosticButtons[#diagnosticButtons+1]=CreateButton(diagnosticContent, L[text], 240, 26, 16, y,
+            function() QuestAnnounce:StartChatDiagnosticSuite(mode) end, L[text], L["Diagnostic tests help"])
+    end
+    suiteButton("Test outside combat", "out", -275)
+    suiteButton("Test combat", "combat", -318)
+    suiteButton("Test encounter", "encounter", -361)
+    diagnosticButtons[#diagnosticButtons+1]=CreateButton(diagnosticContent, L["Test local frames"], 240, 26, 16, -404,
+        function() QuestAnnounce:TestLocalDiagnosticFrames() end, L["Test local frames"], L["Local frames help"])
+    diagnosticButtons[#diagnosticButtons+1]=CreateButton(diagnosticContent, L["Cancel diagnostic test"], 240, 26, 16, -447,
+        function() QuestAnnounce:ChatDiagnosticCommand("cancel") end, L["Cancel diagnostic test"], L["Diagnostic tests help"])
+    diagnosticButtons[#diagnosticButtons+1]=CreateButton(diagnosticContent, L["Clear diagnostic log"], 240, 26, 16, -490,
+        function() QuestAnnounce:ClearChatDiagnosticLog() end, L["Clear diagnostic log"], L["Clear diagnostic log help"])
+    -- DE: Relative Anker lassen lange Uebersetzungen nach unten wachsen.
+    -- EN: Relative anchors allow longer translations to expand downward.
+    for index, button in ipairs(diagnosticButtons) do
+        button:ClearAllPoints()
+        button:SetPoint("TOPLEFT", index == 1 and channelGrid or diagnosticButtons[index-1], "BOTTOMLEFT", 0, index == 1 and -24 or -17)
+    end
+    local resultHeading=diagnosticContent:CreateFontString(nil,"ARTWORK","GameFontNormal")
+    resultHeading:SetPoint("TOPLEFT",diagnosticButtons[#diagnosticButtons],"BOTTOMLEFT",0,-28)
+    resultHeading:SetText(L["Diagnostic results"])
+    local resultText=diagnosticContent:CreateFontString(nil,"ARTWORK","GameFontHighlightSmall")
+    resultText:SetPoint("TOPLEFT",resultHeading,"BOTTOMLEFT",0,-12)
+    resultText:SetWidth(560); resultText:SetJustifyH("LEFT"); resultText:SetWordWrap(true)
+    AttachTooltip(resultText,L["Diagnostic results"],L["Diagnostic results help"])
+    local resultDropdown=CreateDropdown(diagnosticContent,500,16,0,{},nil,L["Diagnostic confirm"],L["Diagnostic confirm help"])
+    resultDropdown:ClearAllPoints(); resultDropdown:SetPoint("TOPLEFT",resultText,"BOTTOMLEFT",0,-18)
+    resultDropdown.onSelect=function(value,text) resultDropdown:SetSelected(value,text) end
+    local confirmButton=CreateButton(diagnosticContent,L["Diagnostic confirm"],240,26,16,0,function()
+        if resultDropdown.selectedValue then QuestAnnounce:ChatDiagnosticCommand("received " .. resultDropdown.selectedValue) end
+    end,L["Diagnostic confirm"],L["Diagnostic confirm help"])
+    confirmButton:ClearAllPoints(); confirmButton:SetPoint("TOPLEFT",resultDropdown,"BOTTOMLEFT",0,-16)
+    self.RefreshDiagnosticResults=function()
+        resultText:SetText(QuestAnnounce:GetDiagnosticResultText())
+        receiverBox:SetChecked(QuestAnnounceDiagnosticsDB.settings.receive)
+        probeBox:SetChecked(QuestAnnounceDiagnosticsDB.settings.probe)
+        local items={}
+        for index=#QuestAnnounceDiagnosticsDB.results,math.max(1,#QuestAnnounceDiagnosticsDB.results-24),-1 do
+            local r=QuestAnnounceDiagnosticsDB.results[index]
+            if r.status=="local" or r.status=="pending" or r.status=="unconfirmed" then
+                items[#items+1]={value=r.test,text=r.channel .. " · " .. L["Diagnostic status " .. r.status] .. " · " .. r.test}
+            end
+        end
+        resultDropdown:SetItems(items)
+        local found=false
+        for _, item in ipairs(items) do
+            if item.value==resultDropdown.selectedValue then resultDropdown:SetSelected(item.value,item.text); found=true end
+        end
+        if not found then resultDropdown:SetSelected(nil,L["Diagnostic select result"]) end
+        if found then confirmButton:Enable() else confirmButton:Disable() end
+        if QuestAnnounce.LayoutDiagnosticsPanel then QuestAnnounce:LayoutDiagnosticsPanel() end
+    end
+    local diagnosticCommands = diagnosticContent:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    diagnosticCommands:SetPoint("TOPLEFT", confirmButton, "BOTTOMLEFT", 0, -30)
+    diagnosticCommands:SetWidth(560)
+    diagnosticCommands:SetJustifyH("LEFT")
+    diagnosticCommands:SetText(L["Diagnostic command help"])
+    diagnosticPanel:HookScript("OnShow", function()
+        diagnosticCheckbox:SetChecked(QuestAnnounceDiagnosticsDB.enabled)
+        diagnosticWhisper:SetText(QuestAnnounceDiagnosticsDB.settings.whisper or "")
+        diagnosticChannel:SetText(QuestAnnounceDiagnosticsDB.settings.channel or "")
+        partnerBox:SetText(QuestAnnounceDiagnosticsDB.settings.partner or "")
+        for channel, box in pairs(channelBoxes) do box:SetChecked(QuestAnnounceDiagnosticsDB.settings.channels[channel]) end
+        QuestAnnounce:RefreshDiagnosticResults()
+        QuestAnnounce:LayoutDiagnosticsPanel()
+    end)
+    self.LayoutDiagnosticsPanel=function()
+        local width = math.max(520, (diagnosticPanel:GetWidth() or 620)-50)
+        diagnosticContent:SetWidth(width)
+        diagnosticHelp:SetWidth(width-32)
+        diagnosticCommands:SetWidth(width-32)
+        resultText:SetWidth(width-32)
+        partnerBox:SetWidth(width-48)
+        probeBox.Text:SetWidth(width-56)
+        probeBox:SetHeight(math.max(26,probeBox.Text:GetStringHeight()+8))
+        local columnWidth=math.floor((width-32)/2)
+        local rowHeight=32
+        for _, box in pairs(channelBoxes) do
+            box.Text:SetWidth(columnWidth-40)
+            rowHeight=math.max(rowHeight,box.Text:GetStringHeight()+12)
+        end
+        for index, channel in ipairs(QuestAnnounce:GetDiagnosticChannels()) do
+            local box=channelBoxes[channel]
+            box:ClearAllPoints(); box:SetPoint("TOPLEFT",(index-1)%2*columnWidth,-math.floor((index-1)/2)*rowHeight)
+        end
+        channelGrid:SetSize(width-32,6*rowHeight)
+        diagnosticContent:SetHeight(math.max(1300,diagnosticHelp:GetStringHeight()+diagnosticCommands:GetStringHeight()+resultText:GetStringHeight()+850+6*rowHeight))
+    end
+    diagnosticPanel:HookScript("OnSizeChanged",function() QuestAnnounce:LayoutDiagnosticsPanel() end)
+    local diagnosticCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, diagnosticPanel, L["Chat Diagnostics"])
+    Settings.RegisterAddOnCategory(diagnosticCategory)
+    self.diagnosticOptionsCategory = diagnosticCategory
+    self.optionsFrames.diagnostics = diagnosticPanel
+    self.diagnosticControls={partner=partnerBox,receive=receiverBox,channels=channelBoxes,results=resultText,
+        selection=resultDropdown,confirm=confirmButton}
+
     soundCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, soundPanel, L["Sound Settings"])
     questTypeCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, questTypePanel, L["Quest Type Filters"] or "Quest Type Filters")
     tooltipCategory = Settings.RegisterCanvasLayoutSubcategory(generalCategory, tooltipPanel, L["Tooltip Settings"])
@@ -2168,7 +2416,10 @@ end
     -- DE: /qa öffnet dieselbe kampfgeschützte Einstellungsfunktion wie der Minimap-Button.
     -- EN: /qa uses the same combat-guarded settings function as the minimap button.
     SLASH_QUESTANNOUNCE1 = "/qa"
-    SlashCmdList["QUESTANNOUNCE"] = openConfig
+    SlashCmdList["QUESTANNOUNCE"] = function(input)
+        local rest = (input or ""):match("^diag%s*(.*)$")
+        if rest then QuestAnnounce:ChatDiagnosticCommand(rest) else openConfig() end
+    end
 	
 	-- DE: Feste Inhaltshöhe des scrollbaren Hauptbereichs.
 	-- EN: Fixed content height for the scrollable main panel.
