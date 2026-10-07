@@ -47,6 +47,11 @@ end
 -- DE: Gemeinsame Sperren und Kanalregeln; fehlende/unsichere Abfragen geben keine Freigabe.
 -- EN: Shared restrictions and channel rules; missing/unsafe queries never grant permission.
 function QA:IsChatSendRestricted(chatType)
+    -- DE: Nach einem eigenen Schutzfehler diesen Kanal bis zum Reload nicht erneut versuchen.
+    -- EN: After our own protected failure, do not retry this channel until reload.
+    if self.chatBlockedChannels and self.chatBlockedChannels[chatType] then
+        return true, "previous protected send", false
+    end
     local locked, err = self:ReadChatAPI(C_ChatInfo and C_ChatInfo.InChatMessagingLockdown)
     if locked == true then return true, "chat messaging lockdown", true end
     if locked == nil and not err then return true,"nil chat lockdown result",true end
@@ -68,11 +73,11 @@ function QA:IsChatSendRestricted(chatType)
         return true, "unverified client combat fallback", true
     end
     if self:HasMeasuredRetailChatPolicy() and chatType == "GUILD" then
-        local map, mapError = self:GetRestrictionState("Map")
-        local types = Enum and Enum.AddOnRestrictionType
-        if mapError or map ~= 0 or (types and self.restrictionTransition and self.restrictionTransition[types.Map]) then
-            return true, "map restriction or unavailable map status", true
-        end
+        -- DE: GUILD war auch bei Map=0/Chat=0 blockiert. Bis zur Klärung konservativ
+        --     auslassen; Profilwahl erhalten. Dies ist keine allgemeine Blizzard-Regel.
+        -- EN: GUILD was blocked even at Map=0/Chat=0. Conservatively skip it until
+        --     resolved, preserving the profile choice. This is not a universal Blizzard rule.
+        return true, "guild automatic sending unverified", false
     end
     if self:IsPublicChatType(chatType) then
         local allowed, reason = self:IsPublicChatAllowed(chatType)
@@ -110,20 +115,27 @@ end
 
 -- DE: Ein gemeinsamer Zeitabstand für echte Meldungen und ausdrücklich gestartete Tests.
 -- EN: One shared send interval for real announcements and explicitly started tests.
-function QA:SendChatMessageSafe(msg, chatType, languageID, target, diagnosticID)
+function QA:SendChatMessageSafe(msg, chatType, languageID, target, diagnosticID, respectPolicy)
     if not self:ValidChatText(msg) or (target ~= nil and not self:IsReadable(target)) then
         return false, "invalid or secret message/target", false
     end
-    if not diagnosticID then
+    if not diagnosticID or respectPolicy then
         local restricted, reason, retry = self:IsChatSendRestricted(chatType)
-        if restricted then return false, reason, retry end
+        if restricted then
+            if not diagnosticID and reason == "guild automatic sending unverified" and not self.guildPolicyNotice then
+                self.guildPolicyNotice=true
+                self:NotifySelf((QuestAnnounce_L[GetLocale()] or QuestAnnounce_L.enUS)["Guild sending safety notice"],false)
+            end
+            return false, reason, retry
+        end
     end
     local now = GetTime()
     if now < (self.nextChatSendAt or 0) then return false, "send spacing", true end
     local sender = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage
     if type(sender) ~= "function" then return false, "chat API unavailable", false end
     self.nextChatSendAt = now + INTERVAL
-    local attempt = {channel=chatType, test=diagnosticID}
+    local attempt = {channel=chatType, test=diagnosticID,
+        source=diagnosticID and (respectPolicy and "diagnostic normal" or "diagnostic probe") or "normal"}
     self.currentChatAttempt = attempt
     self:ChatRecord("ATTEMPT", attempt)
     local ok, result = pcall(sender, msg, chatType, languageID, target)
@@ -131,7 +143,15 @@ function QA:SendChatMessageSafe(msg, chatType, languageID, target, diagnosticID)
     self:ChatRecord(ok and "CALL_RETURNED" or "LUA_ERROR",
         {channel=chatType, test=diagnosticID, result=not ok and "Lua error (message omitted)" or (self:IsReadable(result) and tostring(result) or "secret"),
         blocked=attempt.blocked == true})
-    if attempt.blocked then return false, "blocked action", false end
+    if attempt.blocked then
+        if not diagnosticID then
+            self.chatBlockedChannels=self.chatBlockedChannels or {}
+            self.chatBlockedChannels[chatType]=true
+            self:NotifySelf(chatType .. ": " .. (QuestAnnounce_L[GetLocale()] or QuestAnnounce_L.enUS)
+                ["Diagnostic reason previous protected send"],false)
+        end
+        return false, "blocked action", false
+    end
     if not ok then return false, "Lua send error", false end
     return true
 end
@@ -221,7 +241,8 @@ function QA:FlushPendingCombatChatMessage()
                 -- DE: Aktive Diagnose reserviert die Sendeschritte; normale Ziele warten begrenzt.
                 -- EN: Active diagnostics reserve send slots; regular destinations wait within their TTL.
                 local ok, reason, retry
-                if self.diagnosticSuite then ok, reason, retry = false, "diagnostic suite", true
+                if self.diagnosticSuite and (not self.diagnosticSuite.paired or self.diagnosticSuite.prepared) then
+                    ok, reason, retry = false, "diagnostic suite", true
                 else
                     local target=item.target
                     if key == "channel" then target=self:GetChannelNameSafe(item.target) end

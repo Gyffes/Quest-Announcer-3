@@ -902,7 +902,8 @@ end
             QuestAnnounce:SendDebugMsg("setAnnounceIn: guild :: " .. tostring(QuestAnnounce.db.profile.announceIn.guild))
         end,
         L["Guild"],
-        L["Send announcements to guild chat."]
+        L["Send announcements to guild chat."] .. (QuestAnnounce:HasMeasuredRetailChatPolicy()
+            and ("\n" .. L["Guild sending safety notice"]) or "")
     )
 
     -- DE: Dritte Spalte: Emote und darunter Schlachtzug; Profile bleiben abwaertskompatibel.
@@ -2260,8 +2261,18 @@ end
             box:SetChecked(QuestAnnounceDiagnosticsDB.settings.receive) end,
         L["Diagnostic receive"],L["Diagnostic receive help"])
     receiverBox:ClearAllPoints(); receiverBox:SetPoint("TOPLEFT",partnerBox,"BOTTOMLEFT",0,-18)
+    -- DE: Rohaufrufe nur nach bewusster Auswahl; normale Versandregeln sind Diagnose-Standard.
+    -- EN: Raw calls require explicit selection; normal routing is the diagnostic default.
+    local probeBox=CreateCheckbox(diagnosticContent,L["Raw restriction probes"],16,0,function(box)
+        if QuestAnnounce.diagnosticSuite then
+            box:SetChecked(QuestAnnounceDiagnosticsDB.settings.probe)
+            QuestAnnounce:NotifySelf(L["Diagnostic test already running"],false)
+        else QuestAnnounceDiagnosticsDB.settings.probe=box:GetChecked() and true or false end
+    end,L["Raw restriction probes"],L["Raw restriction probes help"])
+    probeBox:ClearAllPoints(); probeBox:SetPoint("TOPLEFT",receiverBox,"BOTTOMLEFT",0,-18)
+    probeBox.Text:SetWordWrap(true); probeBox.Text:SetWidth(500)
     local channelHeading=diagnosticContent:CreateFontString(nil,"ARTWORK","GameFontNormal")
-    channelHeading:SetPoint("TOPLEFT",receiverBox,"BOTTOMLEFT",0,-24)
+    channelHeading:SetPoint("TOPLEFT",probeBox,"BOTTOMLEFT",0,-24)
     channelHeading:SetText(L["Diagnostic channels"])
     local channelGrid=CreateFrame("Frame",nil,diagnosticContent)
     channelGrid:SetPoint("TOPLEFT",channelHeading,"BOTTOMLEFT",0,-12)
@@ -2320,6 +2331,7 @@ end
     self.RefreshDiagnosticResults=function()
         resultText:SetText(QuestAnnounce:GetDiagnosticResultText())
         receiverBox:SetChecked(QuestAnnounceDiagnosticsDB.settings.receive)
+        probeBox:SetChecked(QuestAnnounceDiagnosticsDB.settings.probe)
         local items={}
         for index=#QuestAnnounceDiagnosticsDB.results,math.max(1,#QuestAnnounceDiagnosticsDB.results-24),-1 do
             local r=QuestAnnounceDiagnosticsDB.results[index]
@@ -2357,6 +2369,8 @@ end
         diagnosticCommands:SetWidth(width-32)
         resultText:SetWidth(width-32)
         partnerBox:SetWidth(width-48)
+        probeBox.Text:SetWidth(width-56)
+        probeBox:SetHeight(math.max(26,probeBox.Text:GetStringHeight()+8))
         local columnWidth=math.floor((width-32)/2)
         local rowHeight=32
         for _, box in pairs(channelBoxes) do

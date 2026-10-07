@@ -1,5 +1,11 @@
 # Plan: Quest Announce 9.3.0.11-Rc1
 
+## Nachprüfung und Überarbeitung vom 07.10.2026 / Review and revision dated October 7
+
+DE: Nach den echten Retail-Logs vom 5./6. Oktober wurde die Folgeumsetzung mit Diagnosebuild `20261007-1` durchgeführt: vorläufige Retail-GUILD-Zurückhaltung statt unvollständigem Map-Guard, getrennte normale Tests/Raw-Probes, Aufbauphasen und Kanalfortschritt, 60 Sekunden nutzbare/180 Sekunden harte Aufbaufrist, begrenzte Antwortenwiederholung, protokollierter Kontrollverkehr, Reload-Neuaufbau und Starter-/Echohinweise. 38 neue Texte in zehn Sprachen und DE/EN-Kommentare ergänzt. Der Einzelabgleich bleibt zur Protokollkompatibilität erhalten. Vorherige echte Empfangsbelege sind dokumentiert; Ursachen und Live-Abnahme des neuen Builds bleiben offen. Vollständiger Folgeplan: CHAT_DIAGNOSTICS_FOLLOWUP_PLAN_2026-10-07.md. Historische Aussagen unten beschreiben den vorherigen Stand.
+
+EN: Follow-up implementation after real Retail logs from October 5/6 uses diagnostic build `20261007-1`: temporary Retail GUILD withholding replaces the incomplete Map guard; separate normal tests/raw probes; setup phases/channel progress; 60 seconds usable/180 seconds hard setup limit; bounded missing-reply retries; logged control traffic; fresh setup after reload; Starter/echo notices. Added 38 strings across ten locales and DE/EN comments. Individual preparation is retained for protocol compatibility. Previous real receipts are documented; underlying causes and live acceptance of the new build remain pending. Full follow-up plan: CHAT_DIAGNOSTICS_FOLLOWUP_PLAN_2026-10-07.md. Historical statements below describe the previous build.
+
 Stand: 06.10.2026. Vom Nutzer zur Umsetzung freigegeben; als 9.3.0.11-Rc1 umgesetzt. Automatisierte Prüfungen und Paketprüfung erfolgen vor dem Draft-PR; die Ingame-Abnahme des RC bleibt offen. Bezug: GitHub Issue #22 (https://github.com/Gyffes/Quest-Announcer-3/issues/22), ursprünglich von Nerf_Teh_Derp auf CurseForge gemeldet. Ergebnis und Testanleitung: RELEASE_NOTES_V9.3.0.11-Rc1.md.
 
 ## Ziel und Evidenz

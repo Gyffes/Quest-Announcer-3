@@ -1,5 +1,9 @@
 # Clientstände / Client versions — 03.10.2026
 
+DE: Diagnoseüberarbeitung vom 07.10.2026, Build `20261007-1`: gemeinsamer Partneraufbau mit begrenzten Antworten, Fortschritt und Reload-Prüfung in allen Varianten. Die vorübergehende GUILD-Zurückhaltung gilt nur für die moderne Retail-Regel; andere Clients behalten ihren bisherigen konservativen Fallback. Moderne Enum- sowie ältere bool/nil-Rückgaben wurden lokal simuliert. Die realen Retail-Belege vom 5./6. Oktober betreffen den vorherigen Stand; sie ersetzen keine Live-Abnahme dieser Überarbeitung. Interface-Kennungen bleiben erhalten.
+
+EN: Diagnostic revision dated October 7, build `20261007-1`: shared bounded peer setup, progress and reload checks across variants. Temporary GUILD withholding applies only to modern Retail policy; other clients retain their previous conservative fallback. Modern enums and legacy bool/nil results were simulated locally. Real Retail evidence from October 5/6 covers the previous build and does not establish live acceptance of this revision. Interface identifiers remain unchanged.
+
 Die Metadatenprüfung umfasst alle bisher unterstützten Varianten und Forever. Alle 14 TOCs laden dieselben neun Lua-Dateien in derselben Reihenfolge, verwenden `QuestAnnounceDB` und `QuestAnnounceDiagnosticsDB` und Addonversion 9.3.0.11-Rc1. TOC-Zahl bedeutet nicht 14 verschiedene Spielclients: einige Dateien sind erhaltene historische Aliase.
 
 The metadata check covers all previously supported variants plus Forever. All 14 TOCs share nine Lua files, load order, both saved variables, and version 9.3.0.11-Rc1. Several TOCs are retained aliases, not separate game clients.

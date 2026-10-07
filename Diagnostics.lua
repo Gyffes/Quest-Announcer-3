@@ -1,4 +1,7 @@
 local QA = QuestAnnounce
+-- DE: Eindeutiger Teststand trotz unveränderter RC-Version, auch beim Partner protokolliert.
+-- EN: Identify the exact test build despite unchanged RC version, including peer metadata.
+QA.DIAGNOSTIC_REVISION="20261007-1"
 local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L.enUS
 local MAX_RECORDS, MAX_SESSIONS = 2000, 20
 local channels = {"SAY", "YELL", "EMOTE", "PARTY", "RAID", "RAID_WARNING", "INSTANCE_CHAT", "GUILD", "OFFICER", "WHISPER", "CHANNEL"}
@@ -25,13 +28,15 @@ function QA:InitializeDiagnostics()
         else old.settings[key]=old.settings[key]:sub(1,120) end
     end
     old.enabled = old.enabled == true
+    old.settings.probe=old.settings.probe==true
     while #old.records > MAX_RECORDS do table.remove(old.records, 1) end
     while #old.sessions >= MAX_SESSIONS do table.remove(old.sessions, 1) end
     old.serial = (tonumber(old.serial) or 0) + 1
     session = tostring(time()) .. "-" .. old.serial .. "-" .. tostring(GetTime()) .. "-" .. math.random(100000,999999)
     local version, build, _, interface = GetBuildInfo()
     old.sessions[#old.sessions+1] = {id=session, version=version, build=build, interface=interface, locale=GetLocale(), project=WOW_PROJECT_ID,
-        trial=self:ReadChatAPI(IsTrialAccount), veteranTrial=self:ReadChatAPI(IsVeteranTrialAccount)}
+        trial=self:ReadChatAPI(IsTrialAccount), veteranTrial=self:ReadChatAPI(IsVeteranTrialAccount),
+        diagnosticBuild=self.DIAGNOSTIC_REVISION,protocol=1}
     QuestAnnounceDiagnosticsDB = old
     self:InitializeDiagnosticPeer(session)
     self:RecordChatDiagnostic("SESSION", {})
@@ -69,6 +74,7 @@ function QA:SetChatDiagnosticsEnabled(enabled)
     QuestAnnounceDiagnosticsDB.enabled=enabled == true
     if not enabled then self:CancelChatDiagnosticSuite(); QuestAnnounceDiagnosticsDB.settings.receive=false; self:ResetDiagnosticPeer()
     else self:WakeDiagnosticPeer() end
+    if enabled then self:RecordDiagnosticControlState() end
     self:RecordChatDiagnostic("RECORDING_ENABLED", {})
     self:NotifySelf(L[enabled and "Diagnostics enabled" or "Diagnostics disabled"], false)
 end
@@ -95,6 +101,7 @@ function QA:CancelChatDiagnosticSuite(reason)
         end
         self:RecordChatDiagnostic("SUITE_CANCELLED", {mode=run.mode, reason=reason})
         self.diagnosticSuite=nil
+        self:SetDiagnosticPhase("cancelled",reason)
         if run.ticker then run.ticker:Cancel() end
         self:ScheduleChatWake(0)
         if self.RefreshDiagnosticResults then self:RefreshDiagnosticResults() end
@@ -138,7 +145,10 @@ function QA:StartChatDiagnosticSuite(mode)
     for _, channel in ipairs(channels) do if settings.channels[channel] then selected[#selected+1]=channel end end
     if #selected==0 then self:NotifySelf(L["Diagnostic channels required"],false); return false end
     self:SetChatDiagnosticsEnabled(true)
-    local run = {mode=mode, index=1, nextAt=GetTime()+5, deadline=GetTime()+300,tests={},paired=settings.partner~=nil}
+    self:RecordChatDiagnostic("DIAGNOSTIC_SETTINGS",{probe=settings.probe,receive=settings.receive,
+        partnerConfigured=settings.partner~=nil,diagnosticBuild=self.DIAGNOSTIC_REVISION})
+    local run = {mode=mode, index=1, nextAt=GetTime()+5, deadline=GetTime()+300,tests={},paired=settings.partner~=nil,
+        probe=settings.probe==true}
     for _, channel in ipairs(selected) do
         local id=self:NewDiagnosticTestID()
         local result=self:CreateDiagnosticResult(id,channel)
@@ -146,17 +156,14 @@ function QA:StartChatDiagnosticSuite(mode)
     end
     self.diagnosticSuite=run
     if run.paired and not self:PrepareDiagnosticPartner(run) then self:CancelChatDiagnosticSuite("peer unavailable"); return false end
-    self:RecordChatDiagnostic("SUITE_START", {mode=mode})
+    self:SetDiagnosticPhase(run.paired and "searching" or "ready")
+    self:RecordChatDiagnostic("SUITE_START", {mode=mode,probe=settings.probe,diagnosticBuild=self.DIAGNOSTIC_REVISION})
     self:NotifySelf(L["Diagnostic suite started"], false)
     run.ticker = C_Timer.NewTicker(.5, function()
         if self.diagnosticSuite ~= run then return end
         local now=GetTime()
         if run.paired and not run.prepared then
-            if now>=(self.diagnosticPair and self.diagnosticPair.deadline or 0) then
-                self:RecordChatDiagnostic("PEER_SETUP_TIMEOUT",{})
-                self:CancelChatDiagnosticSuite("peer setup timeout")
-                self:NotifySelf(L["Diagnostic partner unavailable"],false)
-            end
+            self:AdvanceDiagnosticPartnerSetup(run,now)
             return
         end
         if now >= run.deadline then
@@ -173,6 +180,7 @@ function QA:StartChatDiagnosticSuite(mode)
             or (mode == "combat" and combat == true and encounter == false)
             or (mode == "encounter" and encounter == true)
         if not matches then return end
+        self:SetDiagnosticPhase("testing")
         local test=run.tests[run.index]
         local channel=test.channel
         local target, reason=prerequisite(channel)
@@ -180,16 +188,20 @@ function QA:StartChatDiagnosticSuite(mode)
         local id=test.id
         if reason then self:RecordChatDiagnostic("SKIPPED", {channel=channel, reason=reason, test=id})
         else
-            -- DE: Bewusster einmaliger Restriktionstest, keine Umgehung und kein Retry bei Blockierung.
-            -- EN: Explicit one-shot restriction probe, no bypass and no retry when blocked.
+            -- DE: Normale Regeln sind Standard; nur bewusst gewählte Probes rufen die API roh auf.
+            -- EN: Normal policy is the default; only explicitly selected probes call the raw API.
+            local restricted, policyReason=self:IsChatSendRestricted(channel)
+            self:RecordChatDiagnostic("ROUTE_DECISION",{test=id,channel=channel,restricted=restricted,
+                reason=policyReason or "policy allows attempt",probe=run.probe})
             test.result.expires=time()+600
-            local ok, sendReason=self:SendChatMessageSafe("[QA-DIAG " .. id .. "] " .. L["Diagnostic test message"], channel, nil, target, id)
+            local ok, sendReason=self:SendChatMessageSafe("[QA-DIAG " .. id .. "] " .. L["Diagnostic test message"], channel, nil, target, id,not run.probe)
             if not ok and not test.result.attempted then self:RecordChatDiagnostic("SKIPPED",{test=id,channel=channel,reason=sendReason}) end
         end
         run.index=run.index+1; run.nextAt=now+8
         if run.index > #run.tests then
             self:RecordChatDiagnostic("SUITE_END", {mode=mode})
             self.diagnosticSuite=nil; run.ticker:Cancel()
+            self:SetDiagnosticPhase("finished")
             self:ScheduleChatWake(0)
             self:NotifySelf(L["Diagnostic suite finished"], false)
         end
@@ -233,6 +245,13 @@ function QA:ChatDiagnosticCommand(input)
     elseif command == "frames" then self:TestLocalDiagnosticFrames()
     elseif command == "receive" then
         if rest:lower()=="on" or rest:lower()=="off" then self:SetDiagnosticReceiver(rest:lower()=="on")
+        else self:NotifySelf(L["Diagnostic command help"],false) end
+    elseif command == "mode" then
+        if self.diagnosticSuite then self:NotifySelf(L["Diagnostic test already running"],false); return end
+        if rest=="normal" or rest=="probe" then
+            QuestAnnounceDiagnosticsDB.settings.probe=rest=="probe"
+            if self.RefreshDiagnosticResults then self:RefreshDiagnosticResults() end
+            self:NotifySelf(L["Diagnostic target saved"],false)
         else self:NotifySelf(L["Diagnostic command help"],false) end
     elseif command == "channels" then
         if self.diagnosticSuite then self:NotifySelf(L["Diagnostic test already running"],false); return end
@@ -292,6 +311,13 @@ frame:SetScript("OnEvent", function(_, event, arg1, arg2, ...)
             end
         end
     elseif event == "ADDON_ACTION_BLOCKED" or event == "ADDON_ACTION_FORBIDDEN" then
+        -- DE: Fremde Fehler zählen, ohne damit unseren begrenzten Belegspeicher zu fluten.
+        -- EN: Count unrelated failures without flooding our bounded evidence buffer.
+        if QA:IsReadable(arg1) and arg1~="QuestAnnounce" then
+            QuestAnnounceDiagnosticsDB.foreignBlockedCount=math.min(1000000000,
+                (tonumber(QuestAnnounceDiagnosticsDB.foreignBlockedCount) or 0)+1)
+            return
+        end
         local attempt
         if QA:IsReadable(arg1) and arg1 == "QuestAnnounce" then attempt=QA.currentChatAttempt end
         QA:RecordChatDiagnostic(event, {addon=arg1, func=arg2,

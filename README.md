@@ -10,6 +10,16 @@ Current version: **9.3.0.11-Rc1**
 
 Vorbereiteter GitHub-RC / Prepared GitHub RC: **V9.3.0.11-Rc1-Multi**. Noch nicht veröffentlicht / Not published yet.
 
+Diagnosebuild / Diagnostic build: **20261007-1**. Beide Testpartner sollten diesen Stand verwenden / Both test partners should use this build.
+
+DE: Überarbeitung vom 07.10.: Automatisches GUILD wird auf der geprüften Retailbasis vorsorglich zurückgehalten, auch ohne aktive Map-/Chat-Sperre. Gildenoptionen bleiben gespeichert; OFFICER und andere Ziele werden getrennt behandelt. Das ist eine Addon-Sicherheitsentscheidung, kein belegtes allgemeines Blizzard-Verbot. Die genaue Ursache bleibt offen.
+
+EN: October 7 revision: automatic GUILD is conservatively withheld on the measured Retail basis, including when Map/Chat restrictions are inactive. Guild preferences are preserved; OFFICER and other destinations remain independent. This is an addon safety decision, not an established universal Blizzard ban. The underlying cause remains unresolved.
+
+DE: Diagnose verwendet standardmäßig normale Versandregeln. Für bewusste Restriktionstests „Blizzard-Restriktionen direkt prüfen“ einschalten oder `/qa diag mode probe` verwenden; Schutzfehler sind dabei möglich. `/qa diag mode normal` stellt die normalen Regeln wieder her. Der Partneraufbau zeigt Fortschritt und Wartegründe, erlaubt 60 Sekunden nutzbare Zeit sowie maximal 180 Sekunden insgesamt und wiederholt fehlende Antworten begrenzt. Vor dem Bosspull auf „Partner bereit“ warten. Neue und bestehende lokale Simulationen bestehen; reale Abnahme dieses Diagnosebuilds bleibt offen.
+
+EN: Diagnostics use normal routing rules by default. Enable “Probe Blizzard restrictions directly” or use `/qa diag mode probe` for intentional restriction probes, which may produce protection errors. `/qa diag mode normal` restores normal rules. Peer setup shows progress/reasons, allows 60 seconds of usable time and a 180-second wall limit, and retries missing replies within bounds. Wait for “Partner ready” before pulling. New and existing local simulations pass; live acceptance of this diagnostic build remains pending.
+
 Aktuelles Stable-Release / Current stable release: **V9.3.0.9-Multi**.
 
 ## Chatoptimierung / Chat optimization

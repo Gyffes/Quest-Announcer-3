@@ -130,3 +130,128 @@ local clearHelp={
     zhTW="停止測試並清除日誌、結果及待傳送的接收確認。保留設定檔、診斷目標及記錄設定。",
 }
 for locale, text in pairs(clearHelp) do QuestAnnounce_L[locale]["Clear diagnostic log help"]=text end
+
+-- DE: Aufbauphasen und Versandentscheidungen vollständig übersetzen, technische Loggründe bleiben stabil.
+-- EN: Translate setup phases and routing decisions completely; technical log reasons remain stable.
+local followupKeys={
+    "Guild sending safety notice", "Raw restriction probes", "Raw restriction probes help",
+    "Diagnostic setup failed", "Diagnostic build label", "Diagnostic preparation progress",
+    "Diagnostic build mismatch", "Diagnostic starter guild recipient", "Diagnostic echo only",
+    "Diagnostic phase idle", "Diagnostic phase searching", "Diagnostic phase preparing", "Diagnostic phase restricted",
+    "Diagnostic phase ready", "Diagnostic phase testing", "Diagnostic phase finished", "Diagnostic phase cancelled",
+    "Diagnostic reason unknown", "Diagnostic reason protected control action", "Diagnostic reason transport failed",
+    "Diagnostic reason chat restriction setup timeout", "Diagnostic reason channel preparation timeout",
+    "Diagnostic reason partner response timeout", "Diagnostic reason receiver disabled", "Diagnostic reason protocol mismatch",
+    "Diagnostic reason guild automatic sending unverified", "Diagnostic reason previous protected send",
+    "Diagnostic reason automatic public chat restriction", "Diagnostic reason automatic custom channel blocked",
+    "Diagnostic reason player died", "Diagnostic reason log cleared", "Diagnostic reason no raid",
+    "Diagnostic reason no home party", "Diagnostic reason no instance group", "Diagnostic reason no guild",
+    "Diagnostic reason missing test recipient", "Diagnostic reason missing joined test channel", "Diagnostic reason no raid warning permission",
+}
+local followup={
+    enUS={
+        "Automatic guild sending is temporarily withheld on the measured Retail client: blocked calls also occurred without active Chat/Map restrictions. Your guild option is preserved; other destinations remain available.",
+        "Probe Blizzard restrictions directly", "Off: test the addon's normal sending rules. On: make explicit one-shot API probes, including contexts the normal sender skips. Visible messages and Blizzard protection errors are possible. No restriction is bypassed. Wait for partner readiness before pulling a boss.",
+        "Partner preparation stopped: %s", "Diagnostic build: %s", "Prepared channels: %d / %d",
+        "Partner uses a different diagnostic build. Update both addons before comparing results.", "Starter recipient: guild/officer receipt cannot be verified with this partner.", "Own echo only; partner receipt is not confirmed.",
+        "No active test", "Searching for partner", "Partner found; preparing channels", "Preparation waiting for chat restrictions to end", "Partner ready; waiting for test context", "Test running", "Test finished", "Test cancelled",
+        "See the diagnostic log for details.", "Protected addon communication; no retry until reload.", "Addon communication failed.", "Preparation timed out while chat restrictions interrupted communication.", "Channel preparation did not finish within the time limit.", "No partner response within the time limit.", "The partner has not enabled receiving.", "Diagnostic protocol mismatch.",
+        "Automatic guild sending is currently withheld for safety.", "This channel previously caused a protection error; no retry until reload.", "Automatic public chat is unavailable in this context.", "Automatic custom-channel sending is blocked on the measured Retail client.",
+        "Player died.", "Diagnostic log cleared.", "No raid group.", "No home party.", "No instance group.", "Not in a guild.", "No test recipient configured.", "No joined test channel configured.", "No raid-warning permission.",
+    },
+    deDE={
+        "Automatischer Gildenversand wird auf dem geprüften Retailclient vorübergehend zurückgehalten: Schutzfehler traten auch ohne aktive Chat-/Map-Sperre auf. Deine Gildenoption bleibt gespeichert; andere Ziele bleiben verfügbar.",
+        "Blizzard-Restriktionen direkt prüfen", "Aus: normale Versandregeln des Addons testen. An: bewusst einzelne API-Aufrufe prüfen, auch in normalerweise übersprungenen Situationen. Sichtbare Nachrichten und Blizzard-Schutzfehler sind möglich. Keine Sperre wird umgangen. Vor dem Bosspull auf Partnerbereitschaft warten.",
+        "Partnervorbereitung beendet: %s", "Diagnosebuild: %s", "Vorbereitete Kanäle: %d / %d",
+        "Der Partner verwendet einen anderen Diagnosebuild. Beide Addons vor dem Ergebnisvergleich aktualisieren.", "Starter-Empfänger: Gilden-/Offizierempfang ist mit diesem Partner nicht überprüfbar.", "Nur eigener Chat-Echo; Partnerempfang nicht bestätigt.",
+        "Kein aktiver Test", "Partner wird gesucht", "Partner erkannt; Kanäle werden vorbereitet", "Vorbereitung wartet auf das Ende der Chatsperre", "Partner bereit; wartet auf Testzustand", "Test läuft", "Test abgeschlossen", "Test abgebrochen",
+        "Einzelheiten stehen im Diagnoseprotokoll.", "Addon-Kommunikation geschützt; kein erneuter Versuch bis Reload.", "Addon-Kommunikation fehlgeschlagen.", "Vorbereitung abgelaufen, während Chatsperren die Kommunikation unterbrachen.", "Kanalvorbereitung wurde nicht rechtzeitig abgeschlossen.", "Keine Partnerantwort innerhalb der Aufbaufrist.", "Der Partner hat den Empfang nicht aktiviert.", "Diagnoseprotokolle sind nicht kompatibel.",
+        "Automatischer Gildenversand wird derzeit vorsorglich zurückgehalten.", "Dieser Kanal verursachte bereits einen Schutzfehler; kein erneuter Versuch bis Reload.", "Automatischer öffentlicher Chat ist in diesem Kontext nicht verfügbar.", "Automatischer Versand in eigene Kanäle ist auf dem geprüften Retailclient blockiert.",
+        "Spieler gestorben.", "Diagnoseprotokoll gelöscht.", "Keine Raidgruppe.", "Keine eigene Gruppe.", "Keine Instanzgruppe.", "Keine Gildenzugehörigkeit.", "Kein Testempfänger eingestellt.", "Kein beigetretener Testkanal eingestellt.", "Keine Raidwarnungsberechtigung.",
+    },
+    esES={
+        "El envío automático a hermandad se retiene temporalmente en el cliente Retail probado: hubo bloqueos sin restricciones activas de Chat/Map. Se conserva tu opción; los demás destinos siguen disponibles.",
+        "Probar directamente las restricciones de Blizzard", "Desactivado: prueba las reglas normales del addon. Activado: realiza llamadas únicas a la API, incluso donde el envío normal se omite. Puede generar mensajes visibles y errores de protección. No elude restricciones. Espera a que el compañero esté listo antes del jefe.",
+        "Preparación detenida: %s", "Versión de diagnóstico: %s", "Canales preparados: %d / %d",
+        "El compañero usa otra versión de diagnóstico. Actualizad ambos addons.", "Receptor Starter: no permite verificar recepción de hermandad/oficiales.", "Solo eco propio; recepción del compañero sin confirmar.",
+        "Sin prueba activa", "Buscando compañero", "Compañero encontrado; preparando canales", "Preparación en espera por restricciones de chat", "Compañero listo; esperando contexto", "Prueba en curso", "Prueba terminada", "Prueba cancelada",
+        "Consulta el registro para más detalles.", "Comunicación protegida; sin reintento hasta recargar.", "Falló la comunicación del addon.", "La preparación caducó durante restricciones de chat.", "La preparación de canales no terminó a tiempo.", "Sin respuesta dentro del plazo.", "El compañero no ha activado la recepción.", "Protocolos de diagnóstico incompatibles.",
+        "Envío automático a hermandad retenido por precaución.", "El canal causó un error de protección; sin reintento hasta recargar.", "Chat público automático no disponible aquí.", "Envío automático a canales personalizados bloqueado en Retail probado.",
+        "Jugador muerto.", "Registro borrado.", "Sin banda.", "Sin grupo propio.", "Sin grupo de instancia.", "Sin hermandad.", "Sin destinatario de prueba.", "Sin canal de prueba unido.", "Sin permiso de aviso de banda.",
+    },
+    esMX={
+        "El envío automático a hermandad se retiene temporalmente en el cliente Retail probado: hubo bloqueos sin restricciones activas de Chat/Map. Se conserva tu opción; los demás destinos siguen disponibles.",
+        "Probar directamente las restricciones de Blizzard", "Desactivado: prueba las reglas normales del addon. Activado: realiza llamadas únicas a la API, incluso donde el envío normal se omite. Puede generar mensajes visibles y errores de protección. No elude restricciones. Espera a que el compañero esté listo antes del jefe.",
+        "Preparación detenida: %s", "Versión de diagnóstico: %s", "Canales preparados: %d / %d",
+        "El compañero usa otra versión de diagnóstico. Actualicen ambos addons.", "Receptor Starter: no permite verificar recepción de hermandad/oficiales.", "Solo eco propio; recepción del compañero sin confirmar.",
+        "Sin prueba activa", "Buscando compañero", "Compañero encontrado; preparando canales", "Preparación en espera por restricciones de chat", "Compañero listo; esperando contexto", "Prueba en curso", "Prueba terminada", "Prueba cancelada",
+        "Consulta el registro para más detalles.", "Comunicación protegida; sin reintento hasta recargar.", "Falló la comunicación del addon.", "La preparación caducó durante restricciones de chat.", "La preparación de canales no terminó a tiempo.", "Sin respuesta dentro del plazo.", "El compañero no ha activado la recepción.", "Protocolos de diagnóstico incompatibles.",
+        "Envío automático a hermandad retenido por precaución.", "El canal causó un error de protección; sin reintento hasta recargar.", "Chat público automático no disponible aquí.", "Envío automático a canales personalizados bloqueado en Retail probado.",
+        "Jugador muerto.", "Registro borrado.", "Sin banda.", "Sin grupo propio.", "Sin grupo de instancia.", "Sin hermandad.", "Sin destinatario de prueba.", "Sin canal de prueba unido.", "Sin permiso de aviso de banda.",
+    },
+    frFR={
+        "L'envoi automatique de guilde est temporairement suspendu sur le client Retail testé : des blocages ont eu lieu sans restriction Chat/Map active. Votre option est conservée ; les autres destinations restent disponibles.",
+        "Tester directement les restrictions Blizzard", "Désactivé : tester les règles normales. Activé : appels uniques à l'API, même dans les situations ignorées normalement. Messages visibles et erreurs de protection possibles. Aucune restriction contournée. Attendez que le partenaire soit prêt avant le boss.",
+        "Préparation arrêtée : %s", "Version du diagnostic : %s", "Canaux préparés : %d / %d",
+        "Le partenaire utilise une autre version du diagnostic. Mettez à jour les deux addons.", "Destinataire Starter : réception guilde/officiers invérifiable avec ce partenaire.", "Écho personnel uniquement ; réception du partenaire non confirmée.",
+        "Aucun test actif", "Recherche du partenaire", "Partenaire trouvé ; préparation des canaux", "Préparation en attente de la fin des restrictions", "Partenaire prêt ; attente du contexte", "Test en cours", "Test terminé", "Test annulé",
+        "Consultez le journal pour les détails.", "Communication protégée ; aucun nouvel essai avant rechargement.", "Échec de communication de l'addon.", "Préparation expirée pendant les restrictions de discussion.", "Préparation des canaux inachevée dans le délai.", "Aucune réponse dans le délai.", "Le partenaire n'a pas activé la réception.", "Protocoles de diagnostic incompatibles.",
+        "Envoi automatique de guilde suspendu par précaution.", "Ce canal a causé une erreur de protection ; aucun nouvel essai avant rechargement.", "Discussion publique automatique indisponible ici.", "Envoi automatique aux canaux personnalisés bloqué sur le Retail testé.",
+        "Personnage mort.", "Journal effacé.", "Aucun raid.", "Aucun groupe personnel.", "Aucun groupe d'instance.", "Aucune guilde.", "Aucun destinataire de test.", "Aucun canal de test rejoint.", "Aucune permission d'avertissement de raid.",
+    },
+    ptBR={
+        "O envio automático à guilda está temporariamente suspenso no Retail testado: houve bloqueios sem restrições Chat/Map ativas. Sua opção é preservada; outros destinos continuam disponíveis.",
+        "Testar diretamente as restrições da Blizzard", "Desligado: testa as regras normais. Ligado: chamadas únicas à API, inclusive onde o envio normal é ignorado. Mensagens visíveis e erros de proteção são possíveis. Nenhuma restrição é contornada. Aguarde o parceiro ficar pronto antes do chefe.",
+        "Preparação interrompida: %s", "Versão do diagnóstico: %s", "Canais preparados: %d / %d",
+        "O parceiro usa outra versão de diagnóstico. Atualize ambos os addons.", "Destinatário Starter: não permite confirmar recebimento de guilda/oficiais.", "Apenas eco próprio; recebimento pelo parceiro não confirmado.",
+        "Nenhum teste ativo", "Buscando parceiro", "Parceiro encontrado; preparando canais", "Preparação aguardando fim das restrições", "Parceiro pronto; aguardando contexto", "Teste em execução", "Teste concluído", "Teste cancelado",
+        "Veja os detalhes no registro.", "Comunicação protegida; sem nova tentativa até recarregar.", "Falha na comunicação do addon.", "Preparação expirou durante restrições de chat.", "Preparação dos canais não terminou no prazo.", "Sem resposta no prazo.", "O parceiro não ativou o recebimento.", "Protocolos de diagnóstico incompatíveis.",
+        "Envio automático à guilda suspenso por precaução.", "Este canal causou erro de proteção; sem nova tentativa até recarregar.", "Chat público automático indisponível neste contexto.", "Envio automático a canais personalizados bloqueado no Retail testado.",
+        "Jogador morreu.", "Registro apagado.", "Sem raide.", "Sem grupo próprio.", "Sem grupo de instância.", "Sem guilda.", "Sem destinatário de teste.", "Sem canal de teste conectado.", "Sem permissão de aviso de raide.",
+    },
+    ruRU={
+        "Автоматическая отправка в гильдию временно приостановлена на проверенном Retail: блокировки возникали без активных ограничений Chat/Map. Настройка сохранена; остальные каналы доступны.",
+        "Проверять ограничения Blizzard напрямую", "Выключено: обычные правила аддона. Включено: однократные вызовы API, включая обычно пропускаемые условия. Возможны видимые сообщения и ошибки защиты. Ограничения не обходятся. Дождитесь готовности партнёра перед боссом.",
+        "Подготовка остановлена: %s", "Сборка диагностики: %s", "Подготовлено каналов: %d / %d",
+        "У партнёра другая сборка диагностики. Обновите оба аддона.", "Получатель Starter: приём гильдии/офицеров проверить невозможно.", "Только собственное эхо; приём партнёром не подтверждён.",
+        "Нет активного теста", "Поиск партнёра", "Партнёр найден; подготовка каналов", "Подготовка ожидает снятия ограничений чата", "Партнёр готов; ожидание условий", "Тест выполняется", "Тест завершён", "Тест отменён",
+        "Подробности в журнале диагностики.", "Связь защищена; повторов до перезагрузки нет.", "Ошибка связи аддона.", "Подготовка истекла во время ограничений чата.", "Каналы не подготовлены в срок.", "Нет ответа в отведённое время.", "Партнёр не включил приём.", "Несовместимые протоколы диагностики.",
+        "Автоматическая отправка в гильдию приостановлена для безопасности.", "Канал вызвал ошибку защиты; повторов до перезагрузки нет.", "Публичный автоматический чат здесь недоступен.", "Автоматическая отправка в свои каналы заблокирована на проверенном Retail.",
+        "Персонаж погиб.", "Журнал очищен.", "Нет рейда.", "Нет своей группы.", "Нет группы подземелья.", "Нет гильдии.", "Нет тестового получателя.", "Нет подключённого тестового канала.", "Нет прав на предупреждение рейда.",
+    },
+    koKR={
+        "테스트한 Retail에서는 Chat/Map 제한이 없어도 차단되어 자동 길드 전송을 일시 보류합니다. 길드 설정은 유지되며 다른 대상은 계속 사용할 수 있습니다.",
+        "블리자드 제한 직접 테스트", "끄면 애드온의 일반 전송 규칙을 테스트합니다. 켜면 평소 건너뛰는 상황에서도 API를 한 번 호출합니다. 표시되는 메시지와 보호 오류가 발생할 수 있습니다. 제한을 우회하지 않습니다. 우두머리 전투 전에 상대가 준비될 때까지 기다리세요.",
+        "상대 준비 중단: %s", "진단 빌드: %s", "준비된 채널: %d / %d",
+        "상대의 진단 빌드가 다릅니다. 두 애드온을 업데이트하세요.", "Starter 수신자: 길드/관리자 수신을 확인할 수 없습니다.", "자신의 메시지만 표시됨; 상대 수신은 미확인입니다.",
+        "활성 테스트 없음", "상대 찾는 중", "상대 확인; 채널 준비 중", "채팅 제한 해제를 기다리는 중", "상대 준비 완료; 테스트 상황 대기", "테스트 진행 중", "테스트 완료", "테스트 취소",
+        "자세한 내용은 진단 기록을 확인하세요.", "애드온 통신 보호됨; 재시작 전 재시도 없음.", "애드온 통신 실패.", "채팅 제한 중 준비 시간이 만료되었습니다.", "채널 준비 제한 시간 초과.", "제한 시간 내 상대 응답 없음.", "상대가 수신을 켜지 않았습니다.", "진단 프로토콜 불일치.",
+        "안전을 위해 자동 길드 전송을 보류합니다.", "이 채널에서 보호 오류 발생; 재시작 전 재시도 없음.", "이 상황에서는 자동 공개 채팅을 사용할 수 없습니다.", "테스트한 Retail에서 자동 사용자 채널 전송이 차단됩니다.",
+        "플레이어 사망.", "진단 기록 삭제됨.", "공격대 없음.", "일반 파티 없음.", "인스턴스 그룹 없음.", "길드 없음.", "테스트 수신자 없음.", "참가한 테스트 채널 없음.", "공격대 경보 권한 없음.",
+    },
+    zhCN={
+        "在测试的Retail客户端上，即使Chat/Map限制未激活也发生阻止，因此暂缓自动公会发送。公会选项保留，其他目标仍可用。",
+        "直接测试暴雪限制", "关闭：测试插件正常发送规则。开启：在通常跳过的环境中也只调用一次API。可能产生可见消息和保护错误，不绕过限制。首领战前请等待伙伴准备完成。",
+        "伙伴准备已停止：%s", "诊断版本：%s", "已准备频道：%d / %d",
+        "伙伴诊断版本不同，请更新双方插件。", "Starter接收者：无法验证公会/官员接收。", "仅有自身回显，伙伴接收未确认。",
+        "无活动测试", "正在寻找伙伴", "已找到伙伴，正在准备频道", "准备正在等待聊天限制解除", "伙伴已准备，等待测试环境", "测试进行中", "测试已完成", "测试已取消",
+        "详情请查看诊断记录。", "插件通信受保护，重载前不重试。", "插件通信失败。", "聊天限制期间准备超时。", "频道准备未在时限内完成。", "时限内未收到伙伴响应。", "伙伴未开启接收。", "诊断协议不兼容。",
+        "为安全起见暂缓自动公会发送。", "此频道曾产生保护错误，重载前不重试。", "当前环境不允许自动公共聊天。", "测试的Retail客户端阻止自动自定义频道发送。",
+        "玩家已死亡。", "诊断记录已清除。", "没有团队。", "没有普通队伍。", "没有副本队伍。", "没有公会。", "未设置测试接收者。", "未设置已加入的测试频道。", "没有团队警报权限。",
+    },
+    zhTW={
+        "在測試的Retail用戶端上，即使Chat/Map限制未啟用也發生阻止，因此暫緩自動公會傳送。公會選項保留，其他目標仍可用。",
+        "直接測試暴雪限制", "關閉：測試插件正常傳送規則。開啟：在通常略過的環境中也只呼叫一次API。可能產生可見訊息和保護錯誤，不繞過限制。首領戰前請等待夥伴準備完成。",
+        "夥伴準備已停止：%s", "診斷版本：%s", "已準備頻道：%d / %d",
+        "夥伴診斷版本不同，請更新雙方插件。", "Starter收件人：無法驗證公會/幹部接收。", "僅有自身回顯，夥伴接收未確認。",
+        "無活動測試", "正在尋找夥伴", "已找到夥伴，正在準備頻道", "準備正在等待聊天限制解除", "夥伴已準備，等待測試環境", "測試進行中", "測試已完成", "測試已取消",
+        "詳情請查看診斷記錄。", "插件通訊受保護，重載前不重試。", "插件通訊失敗。", "聊天限制期間準備逾時。", "頻道準備未在時限內完成。", "時限內未收到夥伴回應。", "夥伴未開啟接收。", "診斷協定不相容。",
+        "為安全起見暫緩自動公會傳送。", "此頻道曾產生保護錯誤，重載前不重試。", "目前環境不允許自動公共聊天。", "測試的Retail用戶端阻止自動自訂頻道傳送。",
+        "玩家已死亡。", "診斷記錄已清除。", "沒有團隊。", "沒有一般隊伍。", "沒有副本隊伍。", "沒有公會。", "未設定測試收件人。", "未設定已加入的測試頻道。", "沒有團隊警報權限。",
+    },
+}
+for locale,values in pairs(followup) do
+    for index,key in ipairs(followupKeys) do QuestAnnounce_L[locale][key]=values[index] end
+    QuestAnnounce_L[locale]["Diagnostic command help"]=QuestAnnounce_L[locale]["Diagnostic command help"]
+        .. "\n/qa diag mode normal|probe"
+end
