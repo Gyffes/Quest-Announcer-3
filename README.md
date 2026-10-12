@@ -1,7 +1,15 @@
-# Quest Announce 3
+# Quest Announce 3 (QuestAnnounce 3 / QA3)
 
-Quest Announce 3 ist ein World-of-Warcraft-Addon, das Quest-Fortschritt und Quest-Abschlüsse automatisch in gewählte Ausgabekanäle meldet.  
-Quest Announce 3 is a World of Warcraft addon that automatically announces quest progress and quest completion to selected output channels.
+**World of Warcraft quest announcement addon for Retail and Classic.** Quest Announce 3 automatically announces quest progress and quest completion to selected chat channels or in-game message frames. The standalone addon supports configurable announcements, quest links, sounds, and profiles.
+
+**World-of-Warcraft-Quest-Addon für Retail und Classic.** Quest Announce 3 meldet Questfortschritte und Questabschlüsse automatisch in auswählbaren Chatkanälen oder Hinweisfenstern. Das eigenständige Addon bietet einstellbare Meldungen, Questlinks, Sounds und Profile.
+
+**Official links / Offizielle Links:**
+[GitHub source code / Quellcode](https://github.com/Gyffes/Quest-Announcer-3) ·
+[GitHub releases](https://github.com/Gyffes/Quest-Announcer-3/releases) ·
+[CurseForge](https://www.curseforge.com/wow/addons/quest-announce-3) ·
+[WoWInterface](https://www.wowinterface.com/downloads/info11002-QuestAnnounce.html) ·
+[Issues & feedback](https://github.com/Gyffes/Quest-Announcer-3/issues)
 
 ## Version / Version
 
