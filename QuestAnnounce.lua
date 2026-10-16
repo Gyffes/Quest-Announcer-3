@@ -1,4 +1,5 @@
--- Laden erforderlicher Bibliotheken und Lokalisierung
+-- DE: Addon-eigenen Ereignisframe erstellen; Lokalisierung ist bereits geladen.
+-- EN: Create the addon-owned event frame; localization is already loaded.
 QuestAnnounce = CreateFrame("Frame")
 QuestAnnounce.events = {}
 QuestAnnounce.questCache = {}
@@ -14,6 +15,169 @@ QuestAnnounce.lastManualTurnInIntent = nil
 local COMBAT_CHAT_REPLAY_WINDOW_SECONDS = 10
 
 local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L["enUS"]
+
+-- DE: Gemeinsamer Schriftkatalog. Interne Werte bleiben sprachunabhängig;
+-- die Client-Schrift ist der Standard, nicht ein festes westliches Asset.
+-- EN: Shared font catalog. Stored values are locale-independent; the default
+-- comes from the client rather than a fixed Western asset.
+local westernTooltipFonts = {
+    { value = "Friz Quadrata TT", path = "Fonts\\FRIZQT__.TTF" },
+    { value = "Arial Narrow", path = "Fonts\\ARIALN.TTF" },
+    { value = "Morpheus", path = "Fonts\\MORPHEUS.TTF" },
+    { value = "Skurri", path = "Fonts\\skurri.ttf" },
+}
+local localizedTooltipFonts = {
+    koKR = {
+        { value = "2002", path = "Fonts\\2002.TTF" },
+    },
+    zhCN = {
+        { value = "ARKai C", path = "Fonts\\ARKai_C.ttf" },
+        { value = "ARKai T", path = "Fonts\\ARKai_T.ttf" },
+    },
+    zhTW = {
+        { value = "bHEI01B", path = "Fonts\\bHEI01B.TTF" },
+        { value = "blei00d", path = "Fonts\\blei00d.ttf" },
+    },
+    ruRU = {
+        { value = "Friz Quadrata Cyrillic", path = "Fonts\\FRIZQT___CYR.TTF" },
+        { value = "Morpheus Cyrillic", path = "Fonts\\MORPHEUS_CYR.TTF" },
+        { value = "Arial Narrow", path = "Fonts\\ARIALN.TTF" },
+    },
+}
+
+local function NormalizeFontPath(path)
+    if type(path) ~= "string" or path == "" then
+        return nil
+    end
+    return path:gsub("/", "\\"):lower()
+end
+
+local function IsFontPath(path)
+    local normalized = NormalizeFontPath(path)
+    return normalized and (normalized:match("%.ttf$") or normalized:match("%.otf$")) ~= nil
+end
+
+local function GetTooltipFontCatalog()
+    return localizedTooltipFonts[GetLocale()] or westernTooltipFonts
+end
+
+-- DE: Alte westliche Namen/Pfade werden auf nichtlateinischen Clients sicher
+-- ersetzt, ohne den gespeicherten Profilwert zu löschen. Eigene Pfade bleiben.
+-- EN: Safely replace legacy Western names/paths on non-Latin clients without
+-- deleting the saved preference. Custom paths remain supported.
+function QuestAnnounce:GetTooltipFontSelection(fontValue)
+    local normalized = NormalizeFontPath(fontValue)
+    for _, entry in ipairs(GetTooltipFontCatalog()) do
+        if fontValue == entry.value or normalized == NormalizeFontPath(entry.path) then
+            return entry.value, entry.value, entry.path
+        end
+    end
+    for _, entry in ipairs(westernTooltipFonts) do
+        if fontValue == entry.value or normalized == NormalizeFontPath(entry.path) then
+            return "AUTO", L["Automatic (Client Font)"]
+        end
+    end
+    -- DE/EN: Bekannte Schriften einer anderen Clientsprache nicht als eigene
+    -- Pfade behandeln / do not treat another locale's known fonts as custom paths.
+    for _, catalog in pairs(localizedTooltipFonts) do
+        for _, entry in ipairs(catalog) do
+            if fontValue == entry.value or normalized == NormalizeFontPath(entry.path) then
+                return "AUTO", L["Automatic (Client Font)"]
+            end
+        end
+    end
+    if IsFontPath(fontValue) then
+        return fontValue, fontValue, fontValue
+    end
+    return "AUTO", L["Automatic (Client Font)"]
+end
+
+function QuestAnnounce:GetTooltipFontLabel(fontValue)
+    local value, label = self:GetTooltipFontSelection(fontValue)
+    if value == "AUTO" and fontValue ~= nil and fontValue ~= "" and fontValue ~= "AUTO" then
+        return label .. " (" .. L["Locale font fallback"] .. ")"
+    end
+    return label
+end
+
+function QuestAnnounce:GetTooltipFontChoices()
+    local choices = { { value = "AUTO", text = L["Automatic (Client Font)"] } }
+    for _, entry in ipairs(GetTooltipFontCatalog()) do
+        choices[#choices + 1] = { value = entry.value, text = entry.value }
+    end
+    return choices
+end
+
+local function ReadFont(fontObject)
+    if not fontObject or type(fontObject.GetFont) ~= "function" then
+        return nil
+    end
+    local ok, path, size, flags = pcall(fontObject.GetFont, fontObject)
+    if ok and IsFontPath(path) then
+        return path, size, flags
+    end
+end
+
+local function GetClientTooltipFontPaths()
+    local paths, seen = {}, {}
+    local function AddPath(path)
+        if not IsFontPath(path) then return end
+        local normalized = NormalizeFontPath(path)
+        -- DE/EN: Auch ein von außen geänderter Client-Font darf bekannte
+        -- inkompatible westliche Assets nicht zurückbringen / reject these
+        -- assets even if another addon changed a client font object.
+        if localizedTooltipFonts[GetLocale()] then
+            for _, entry in ipairs(westernTooltipFonts) do
+                if normalized == NormalizeFontPath(entry.path) then
+                    if GetLocale() ~= "ruRU" or entry.value ~= "Arial Narrow" then
+                        return
+                    end
+                end
+            end
+        end
+        if not seen[normalized] then
+            seen[normalized] = true
+            paths[#paths + 1] = path
+        end
+    end
+    -- DE: Nutzervorschlag: gültigen Font aus Client-Fontobjekten lesen.
+    -- EN: Community suggestion: read a valid font from client font objects.
+    AddPath(ReadFont(GameTooltipText))
+    AddPath(ReadFont(GameFontNormal))
+    AddPath(STANDARD_TEXT_FONT)
+    return paths
+end
+
+function QuestAnnounce:GetClientDefaultFontPath()
+    return GetClientTooltipFontPaths()[1]
+end
+
+function QuestAnnounce:GetTooltipFontPath(fontValue)
+    local _, _, path = self:GetTooltipFontSelection(fontValue)
+    return path or self:GetClientDefaultFontPath()
+end
+
+-- DE: Nur addon-eigene FontStrings ändern. Fehlende Assets können SetFont
+-- scheitern lassen; dann Client-Schrift versuchen bzw. geerbte Schrift erhalten.
+-- EN: Modify addon-owned FontStrings only. If SetFont rejects an asset, try
+-- client fonts or retain the inherited font. Success does not prove glyph coverage.
+function QuestAnnounce:ApplyTooltipLineFont(line, fontValue, fontSize)
+    if not line or type(line.SetFont) ~= "function" then return false end
+    local inheritedPath, inheritedSize, flags = ReadFont(line)
+    if not line.qa3InheritedFontPath then
+        line.qa3InheritedFontPath = inheritedPath
+    end
+    fontSize = tonumber(fontSize) or inheritedSize or 12
+    local _, _, selectedPath = self:GetTooltipFontSelection(fontValue)
+    local paths = GetClientTooltipFontPaths()
+    if selectedPath then table.insert(paths, 1, selectedPath) end
+    if line.qa3InheritedFontPath then paths[#paths + 1] = line.qa3InheritedFontPath end
+    for _, path in ipairs(paths) do
+        local ok, result = pcall(line.SetFont, line, path, fontSize, flags)
+        if ok and result ~= false then return true end
+    end
+    return false
+end
 
 -- ---------------------------------------------------------
 -- QuestLog-API-Kompatibilität (Retail + Classic/TBC/Wrath)
@@ -199,7 +363,7 @@ local defaults = {
 			focus = false		   -- an Focus Schreiben	
         },
 		tooltip = {
-            font = "Friz Quadrata TT",
+            font = "AUTO",
             fontSize = 12,
             fontColor = {0.11, 1, 0.3},
             bgColor = {0, 0, 0, 0.8}, -- Hintergrundfarbe mit Alpha
