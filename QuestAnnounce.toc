@@ -1,13 +1,15 @@
-## Interface: 11509, 16001, 20506, 30405, 40402, 50504, 100207, 110000, 110002, 120000, 120001, 120100, 120105
+## Interface: 11509, 16001, 20506, 30405, 38002, 40402, 50504, 100207, 110000, 110002, 120000, 120001, 120100, 120105
 ## Interface-Mainline: 100207, 110000, 110002, 120000, 120001, 120100, 120105
 ## Interface-Vanilla: 11509
 ## Interface-TBC: 20506
-## Interface-Wrath: 30405
+## Interface-Wrath: 30405, 38002
 ## Interface-Cata: 40402
 ## Interface-Mists: 50504
 ## Interface-Camelot: 16001
 ## Title: Quest Announce 3
-## Version: 9.3.0.11-Rc1
+## Version: 9.3.0.11
+## X-Curse-Project-ID: 3607
+## X-WoWI-ID: 11002
 ## Author: Michael Irving (original), Sommy aka Gyffes(Gilneas) (WoW 2.4), Kotenuki aka Cinnabuns(Doomhammer) (WoW 4.0+)
 ## Notes: QuestAnnounce sends a message as you advance in a quest.
 ## SavedVariables: QuestAnnounceDB, QuestAnnounceDiagnosticsDB

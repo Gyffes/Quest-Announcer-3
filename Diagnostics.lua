@@ -1,6 +1,6 @@
 local QA = QuestAnnounce
--- DE: Eindeutiger Teststand trotz unveränderter RC-Version, auch beim Partner protokolliert.
--- EN: Identify the exact test build despite unchanged RC version, including peer metadata.
+-- DE: Diagnosekennung auch im Release erhalten; wird beim Partner protokolliert.
+-- EN: Preserve the diagnostic revision in releases, including peer metadata.
 QA.DIAGNOSTIC_REVISION="20261007-1"
 local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L.enUS
 local MAX_RECORDS, MAX_SESSIONS = 2000, 20

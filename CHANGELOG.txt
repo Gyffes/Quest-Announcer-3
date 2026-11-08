@@ -1,3 +1,23 @@
+v9.3.0.11 Multi - 08-11-2026
+         - [DE] Aktuellen Entwicklungsstand als regulaeres Release ohne RC-Zusatz freigegeben; Quest-/Chat-/Schriftlogik und Diagnosebuild 20261007-1 gegenueber dem vorbereiteten Stand unveraendert
+         - [EN] Promote current development state to a regular release without an RC suffix; quest/chat/font behavior and diagnostic build 20261007-1 remain unchanged from the prepared build
+         - [DE] Sprachgerechte Tooltip-Schriften, aktuelle Clientmetadaten inklusive Titan Reforged und kanalabhaengigen Chatversand samt Partnerdiagnose aus den bisherigen RCs zusammengefuehrt
+         - [EN] Consolidate locale-aware tooltip fonts, current client metadata including Titan Reforged, and channel-aware chat routing with peer diagnostics from the previous RCs
+         - [DE] README und Kurz-Anleitung fuer Debug/Chatdiagnose auf Deutsch und Englisch aktualisiert; alte Plan-/RC-Dokumente lokal archiviert statt mitzuliefern
+         - [EN] Update README and German/English debug/chat-diagnostics quick start; archive old plan/RC documents locally instead of shipping them
+         - [DE] Einheitliche Version in allen 14 TOCs; CurseForge-ID 3607 und WoWInterface-ID 11002 ergaenzt; GitHub-Multi-ZIP mit WowUp-release.json und SHA256, separate Uploadpakete fuer CurseForge/WoWInterface
+         - [EN] Consistent version across all 14 TOCs; add CurseForge ID 3607 and WoWInterface ID 11002; GitHub Multi ZIP with WowUp release.json and SHA256, separate CurseForge/WoWInterface upload packages
+         - [DE] Keine Tests, PowerShell-Skripte, Workflows, Referenzen oder persoenlichen Logs im Release; lokale Simulationen bestanden, regionale Ingame-/Glyphenabnahme weiterhin offen; vorsorgliche Retail-GUILD-Sperre bleibt dokumentiert
+         - [EN] No tests, PowerShell scripts, workflows, references or personal logs in the release; local simulations pass, regional in-game/glyph acceptance remains pending; conservative Retail GUILD withholding stays documented
+
+v9.3.0.11-Rc1 Multi - 08-11-2026 (Clientmetadaten / client metadata)
+         - [DE] Alle 14 TOCs gegen aktuelle Live-Quellstände abgeglichen: Retail 120105, Era/Hardcore/SoD 11509, TBC/Anniversary 20506, MoP 50504 und Forever 16001 waren bereits enthalten
+         - [EN] Recheck all 14 TOCs against current live sources: Retail 120105, Era/Hardcore/SoD 11509, TBC/Anniversary 20506, MoP 50504 and Forever 16001 were already listed
+         - [DE] Wrath-basierten Titan-Reforged-Client (China) mit Interface 38002 in Wrath-/universeller TOC ergänzt; historische 30405 erhalten, keine Änderungen an Lua-Code, Ladefolge, Profilen oder Schutzmechanismen
+         - [EN] Add interface 38002 for the Wrath-based Titan Reforged client (China) to Wrath/universal TOCs; retain historical 30405, with no changes to Lua code, load order, profiles or protections
+         - [DE] README, Clientmatrix und RC-Hinweise aktualisiert: Forever inzwischen veröffentlicht, Retail 12.1.7 weiterhin PTR; Addonversion und Diagnosebuild unverändert, regionale Ingame-Abnahme weiterhin offen
+         - [EN] Update README, client matrix and RC notes: Forever is now released, Retail 12.1.7 remains PTR; addon version and diagnostic build unchanged, regional in-game acceptance still pending
+
 v9.3.0.11-Rc1 Multi - 07-10-2026 (Diagnosebuild / diagnostic build 20261007-1)
          - [DE] GUILD auf geprüfter Retailbasis vorsorglich vor dem API-Aufruf zurückhalten; Profilwahl erhalten, OFFICER separat; unerwartete eigene normale Schutzfehler sperren nur den betroffenen Kanal bis Reload
          - [EN] Conservatively withhold GUILD before the API call on measured Retail; preserve preferences and independent OFFICER; unexpected own normal protection failures disable only the affected channel until reload

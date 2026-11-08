@@ -1,53 +1,51 @@
-# Clientstände / Client versions — 03.10.2026
+# Clientstände / Client versions — 08.11.2026
 
-DE: Diagnoseüberarbeitung vom 07.10.2026, Build `20261007-1`: gemeinsamer Partneraufbau mit begrenzten Antworten, Fortschritt und Reload-Prüfung in allen Varianten. Die vorübergehende GUILD-Zurückhaltung gilt nur für die moderne Retail-Regel; andere Clients behalten ihren bisherigen konservativen Fallback. Moderne Enum- sowie ältere bool/nil-Rückgaben wurden lokal simuliert. Die realen Retail-Belege vom 5./6. Oktober betreffen den vorherigen Stand; sie ersetzen keine Live-Abnahme dieser Überarbeitung. Interface-Kennungen bleiben erhalten.
+**Aktuelle Addonversion / Current addon version: 9.3.0.11 Multi.**
 
-EN: Diagnostic revision dated October 7, build `20261007-1`: shared bounded peer setup, progress and reload checks across variants. Temporary GUILD withholding applies only to modern Retail policy; other clients retain their previous conservative fallback. Modern enums and legacy bool/nil results were simulated locally. Real Retail evidence from October 5/6 covers the previous build and does not establish live acceptance of this revision. Interface identifiers remain unchanged.
+DE: Alle 14 TOCs laden dieselben neun Lua-Dateien in gleicher Reihenfolge und verwenden `QuestAnnounceDB` sowie `QuestAnnounceDiagnosticsDB`. Neuere Buildnummern allein erfordern keine neue Interfacekennung. Titan Reforged (China) ergänzt `38002`; historisches Wrath `30405` bleibt erhalten. Die Release-Promotion ändert keine Quest-, Chat-, Schrift- oder Sicherheitslogik und setzt keine Profile zurück.
 
-Die Metadatenprüfung umfasst alle bisher unterstützten Varianten und Forever. Alle 14 TOCs laden dieselben neun Lua-Dateien in derselben Reihenfolge, verwenden `QuestAnnounceDB` und `QuestAnnounceDiagnosticsDB` und Addonversion 9.3.0.11-Rc1. TOC-Zahl bedeutet nicht 14 verschiedene Spielclients: einige Dateien sind erhaltene historische Aliase.
+EN: All 14 TOCs share nine Lua files in the same order and use `QuestAnnounceDB` and `QuestAnnounceDiagnosticsDB`. A newer build alone does not require a new interface identifier. Titan Reforged (China) adds `38002`; historical Wrath `30405` is retained. Release promotion changes no quest, chat, font or safety logic and resets no profiles.
 
-The metadata check covers all previously supported variants plus Forever. All 14 TOCs share nine Lua files, load order, both saved variables, and version 9.3.0.11-Rc1. Several TOCs are retained aliases, not separate game clients.
+DE: Die Chat-/Partnerdiagnose verwendet weiterhin Diagnosebuild `20261007-1`. Die moderne Retail-Regel hält automatisches GUILD vorsorglich zurück; andere Clients behalten ihren konservativen Kampffallback. Die echten Retail-Belege vom 05./06.10. betreffen 12.1.0.69933 und sind keine neue Abnahme aktueller Builds. Anleitung und Einschränkungen: [README.md](README.md), [DEBUGGING.md](DEBUGGING.md).
 
-DE: Die Partnerdiagnose prüft Addon-Kommunikations-APIs zur Laufzeit: moderne `C_ChatInfo`-Funktionen oder ältere globale Varianten. Ohne passende APIs bleiben manuelle Diagnosen verfügbar. Namespace-/globale Varianten und Empfang über Reload wurden mit zwei simulierten Clients geprüft; das belegt keine tatsächliche Kommunikationsfreigabe auf ungeprüften Clients.
-
-EN: Peer diagnostics check communication APIs at runtime: modern `C_ChatInfo` functions or older global variants. Without compatible APIs, manual diagnostics remain available. Namespaced/global variants and receipts across reload were verified with two simulated clients; this does not establish actual permission on unmeasured clients.
-
-DE: Chat-/Diagnoseänderungen vom 06.10.2026 gelten für alle Varianten. Die kanalabhängige Kampfoptimierung ist durch Nutzerprüfungen nur für Retail 12.1.0.69933 belegt und wird bei vorhandener moderner Retail-API angewendet. Ungeprüfte Clientfamilien verwenden den konservativen Kampffallback. 70 Client-/Locale-Mocks bestehen; das ist kein Nachweis tatsächlicher Client-Kompatibilität. Kanalregeln und weitere Abnahme: [9.3.0.11-Rc1](RELEASE_NOTES_V9.3.0.11-Rc1.md). Die unten angegebenen Interface-/Quellstände stammen aus der Metadatenrecherche vom 03.10.2026 und wurden für diesen RC nicht neu festgelegt.
-
-EN: Chat/diagnostic changes dated 06 October 2026 cover all variants. User measurements establish channel-specific combat optimization only for Retail 12.1.0.69933; it is applied when the modern Retail API is available. Unmeasured client families use conservative combat handling. All 70 client/locale mocks pass; this does not prove actual client compatibility. Channel policy and pending acceptance: [9.3.0.11-Rc1](RELEASE_NOTES_V9.3.0.11-Rc1.md). Interface/source versions below come from the 03 October metadata research and were not redefined for this RC.
+EN: Chat/peer diagnostics retain revision `20261007-1`. Modern Retail policy conservatively withholds automatic GUILD; other clients retain conservative combat handling. Real Retail evidence from October 5/6 covers 12.1.0.69933 and is not new acceptance of current builds. Instructions and limitations: README and DEBUGGING.
 
 | Variante / Variant | Recherchierter Stand / Source version | Interface | TOC |
 | --- | --- | --- | --- |
-| Retail/Mainline | 12.1.5.70077 (UI-Tag); Live-Mirror noch 12.1.0.69933 | 120105 und 120100; ältere bestehende Kennungen erhalten | `QuestAnnounce_Mainline.toc` |
-| Classic | 1.15.9.70003 | 11509 | `QuestAnnounce_Classic.toc` |
+| Retail/Mainline | 12.1.5.70783 (Live-Quellstand / live source) | 120105; 120100 und ältere bestehende Kennungen erhalten | `QuestAnnounce_Mainline.toc` |
+| Classic | 1.15.9.70576 | 11509 | `QuestAnnounce_Classic.toc` |
 | Classic Era | derselbe Era-Zweig / same Era branch | 11509 | `QuestAnnounce_ClassicEra.toc` (Alias) |
 | Hardcore | derselbe Era-Zweig / same Era branch | 11509 | `QuestAnnounce_Hardcore.toc` (Alias) |
 | Season of Discovery | derselbe Era-Zweig / same Era branch | 11509 | `QuestAnnounce_SeasonOfDiscovery.toc` (Alias) |
-| TBC | 2.5.6.69795 | 20506 | `QuestAnnounce_TBC.toc` |
-| Anniversary | TBC Anniversary 2.5.6.69795 | 20506 | `QuestAnnounce_Anniversary.toc` (Alias) |
+| TBC | 2.5.6.70577 | 20506 | `QuestAnnounce_TBC.toc` |
+| Anniversary | TBC Anniversary 2.5.6.70577 | 20506 | `QuestAnnounce_Anniversary.toc` (Alias) |
 | Wrath | historisch: 30405; finaler Clientbuild nicht belegt | 30405 unverändert / unchanged | `QuestAnnounce-Wrath.toc` |
+| Wrath / Titan Reforged (China) | 3.80.2.70522 (`classic_titan`) | 38002 ergänzt / added; kein Gameplay-Nachweis / no gameplay validation | `QuestAnnounce-Wrath.toc` |
 | Cataclysm | historischer UI-Tag 4.4.2.60895 | 40402 unverändert / unchanged | `QuestAnnounce_Cata.toc` + `QuestAnnounce_Cataclysm.toc` (Alias) |
-| MoP/Mists | 5.5.4.70032 | 50504 | `QuestAnnounce_Mists.toc` + `QuestAnnounce_MoP.toc` (Alias) |
-| Forever/Camelot | Beta-Zweig 1.60.1.70205 | 16001 | `QuestAnnounce_Camelot.toc` |
+| MoP/Mists | 5.5.4.70631 | 50504 | `QuestAnnounce_Mists.toc` + `QuestAnnounce_MoP.toc` (Alias) |
+| Forever/Camelot | 1.60.1.70862; veröffentlicht / released | 16001 unverändert / unchanged | `QuestAnnounce_Camelot.toc` |
 
 `QuestAnnounce.toc` dient zusätzlich als universelle Fallback-TOC mit clientbezogenen `Interface-*`-Angaben. Diese werden nicht als Laufzeit-Schalter für veraltete APIs verwendet. Die API-Auswahl bleibt auf vorhandene Funktionen gestützt.
 
 ## Quellen und Grenzen / Sources and limitations
 
-- Retail: [offizielle 12.1.5-Updatehinweise](https://worldofwarcraft.blizzard.com/en-gb/news/24304162/1215-content-update-notes), [12.1.5 UI-Quellstand](https://github.com/Gethe/wow-ui-source/tree/12.1.5), [Live-Mirror](https://github.com/Gethe/wow-ui-source/blob/live/version.txt). Der Mirror meldet beim Abruf noch 12.1.0; deshalb werden beide Kennungen unterstützt. Regionale Ausrollung ist ohne lokalen Client nicht bestätigt.
+- Retail: [offizielle Updateübersicht](https://worldofwarcraft.blizzard.com/en-us/content-update-notes), [Live-Quellstand 12.1.5.70783](https://github.com/Gethe/wow-ui-source/blob/live/version.txt). Die bisherige Übergangsnotiz von 12.1.0 zu 12.1.5 ist überholt; alte eingetragene Kennungen bleiben erhalten. Regionale Ausrollung ist ohne lokalen Client nicht bestätigt.
 - Era/Hardcore/SoD: [classic_era](https://github.com/Gethe/wow-ui-source/blob/classic_era/version.txt).
 - TBC/Anniversary: [classic_anniversary](https://github.com/Gethe/wow-ui-source/blob/classic_anniversary/version.txt).
 - MoP: [classic](https://github.com/Gethe/wow-ui-source/blob/classic/version.txt).
-- Forever: [forever](https://github.com/Gethe/wow-ui-source/blob/forever/version.txt). Dies ist ein Beta-Clientstand, keine Live-Freigabe.
+- Forever: [forever, 1.60.1.70862](https://github.com/Gethe/wow-ui-source/blob/forever/version.txt), [offizielle Veröffentlichung](https://worldofwarcraft.blizzard.com/en-gb/news/24302093). Die frühere Beta-Einstufung vom Oktober ist überholt. Der offizielle globale Start am 04.11.2026 um 23:00 GMT entspricht dem 05.11.2026 um 00:00 Uhr in Berlin; dies ist kein Nachweis erfolgreicher Addon-Ausführung.
 - Cataclysm: [4.4.2 UI-Quellstand](https://github.com/Gethe/wow-ui-source/tree/4.4.2).
-- Wrath: Interface `30405` wird von der aktuellen [BigWigs-TOC](https://github.com/BigWigsMods/BigWigs/blob/master/BigWigs.toc) weiterhin geführt. Das ist eine Gegenprüfung der erhaltenen Kennung, kein Nachweis eines aktiven offiziellen Wrath-Clients oder eines finalen Builds.
+- Historisches Wrath: Interface `30405` wird von der [BigWigs-TOC](https://github.com/BigWigsMods/BigWigs/blob/master/BigWigs.toc) weiterhin geführt und bleibt erhalten; kein Nachweis eines aktiven historischen Live-Angebots oder finalen Builds.
+- Titan Reforged (China): [offizielles Classic-Angebot](https://wow.blizzard.cn/classic/home.html), [classic_titan, 3.80.2.70522](https://github.com/Gethe/wow-ui-source/blob/classic_titan/version.txt), [Questies Wrath-TOC mit 38002](https://github.com/Questie/Questie/blob/master/Questie_Wrath.toc). Ein offizieller regionaler Wrath-basierter Client, nicht der historische globale 3.4.x-Client und nicht das Retail-Remix-Event. Nur Metadaten ergänzt, vollständige regionale Ingame-Abnahme offen.
+- PTR getrennt: [ptr, 12.1.7.70740](https://github.com/Gethe/wow-ui-source/blob/ptr/version.txt). Interface `120107` wird nicht vorsorglich als Live-Unterstützung eingetragen. Nicht allein die höchste Nummer aus fremden Addons übernehmen.
 - Canonical-TOC-Namen und Camelot-Zuordnung: [Packager-Quellcode](https://github.com/BigWigsMods/packager/blob/master/release.sh). Vorhandene alternative Namen bleiben erhalten.
 
-Blizzards extrahierte UI-Quellen wurden für vorhandene Settings-, Quest-, Chat- und Fontmodule der oben verfügbaren Clientzweige verglichen. Das prüft Quellstände, nicht einen laufenden Client. Die obige Tabelle dokumentiert die geprüften Metadaten; Testwerkzeuge und CI-Workflows wurden auf Wunsch aus dem PR entfernt. Die folgenden Ergebnisse stammen aus den Prüfungen vor dieser Entfernung.
+Blizzards extrahierte UI-Quellen wurden bei der ursprünglichen Umsetzung für vorhandene Settings-, Quest-, Chat- und Fontmodule verglichen. Am 08.11.2026 wurden die veröffentlichten Versionsstände und TOCs neu abgeglichen; die Titan-Quest-/Chat-/Restriktionsdokumentation wurde zusätzlich als Quellreferenz geprüft. Das ist kein vollständiger neuer API-Audit und kein laufender Client. Testwerkzeuge und CI-Workflows bleiben auf Wunsch außerhalb des versionierten Addons und des Pakets.
 
 ## Prüfung / Validation
 
-- Bestanden: explizite Dateiliste aller 14 TOCs, Interface-/Versionswerte, gemeinsame Kern-Dateien und SavedVariables; Quelltext-Schutzprüfungen; 70 Lua-5.1-Mock-Kombinationen für sieben Clientfamilien und zehn Locales. Aliase verwenden identischen Code. Neue Chat-/Diagnosetexte sind in allen zehn Sprachtabellen enthalten.
+- Metadatenstand 08.11.2026: alle 14 TOCs, Interfacewerte einschließlich `30405`/`38002`, universelle Flavor-Angaben, neun gemeinsame Lua-Dateien in gleicher Reihenfolge und beide SavedVariables geprüft. Die übrigen Live-Kennungen waren bereits aktuell.
+- Lokal erneut bestanden: bestehende Lua-5.1-/70-Client-Locale-Mocks und Chat-/Partnerdiagnose-Simulationen. Aliase verwenden identischen Code. Neue Chat-/Diagnosetexte sind in allen zehn Sprachtabellen enthalten. Simulierte Projekt-/API-Kombinationen sind keine Abnahme des nativen Titan-Clients.
 - Offen für alle Varianten: echtes Laden bei ausgeschaltetem „Veraltete Addons laden“, tatsächliche API-Funktion, Einstellungen, Questabläufe, Links und Sounds sowie Kampf-/Taint-Verhalten. Ein Mock ist kein Client-Kompatibilitätsnachweis.
 - Offen für koKR/zhCN/zhTW/ruRU: native Zeichen in beiden Tooltips, neue/alte Profile, alle angebotenen Fontassets und `/reload`. Erfolgreiches `SetFont` beweist keine Glyphenabdeckung.
 - Historische Zweige bleiben erhalten, werden aber nicht als aktuelle offizielle Live-Angebote ausgegeben.
