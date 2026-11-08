@@ -74,7 +74,7 @@ Die alte Option „Debug“ zeigt allgemeine Meldungen im Chat. Die neue **Chatd
 
 3. Die Datei `<WoW-Client>/WTF/Account/<ACCOUNT>/SavedVariables/QuestAnnounce.lua` enthält **QuestAnnounceDiagnosticsDB** neben den persönlichen Profilen. Vor dem Teilen Profile und Namen/Partner-/Kanalangaben entfernen. Clientversion, Sprache und Fehlerbeschreibung beilegen. Erst danach bei Bedarf `/qa diag clear` verwenden.
 
-Partnertests, Einzeltests und Roh-Probes: [DEBUGGING.md](DEBUGGING.md). Tests senden sichtbare Nachrichten nur nach ausdrücklichem Start; keine kompletten Logs werden automatisch hochgeladen.
+Partnertests, Einzeltests und Roh-Probes: [Debug-Anleitung (DE/EN)](DEBUG-ANLEITUNG-GUIDE.md). Tests senden sichtbare Nachrichten nur nach ausdrücklichem Start; keine kompletten Logs werden automatisch hochgeladen.
 
 ## Debugging quick start (EN)
 
@@ -98,13 +98,13 @@ The old “Debug” option prints general chat messages. The new **Chat Diagnost
 
 3. The file `<WoW-client>/WTF/Account/<ACCOUNT>/SavedVariables/QuestAnnounce.lua` contains **QuestAnnounceDiagnosticsDB** alongside personal profiles. Remove profiles and names/peer/channel settings before sharing. Include client version, locale and a description. Only afterwards, use `/qa diag clear` if needed.
 
-Paired tests, single tests and raw probes: [DEBUGGING.md](DEBUGGING.md). Tests send visible messages only after explicit action; complete logs are never automatically uploaded.
+Paired tests, single tests and raw probes: [Debug Guide (DE/EN)](DEBUG-ANLEITUNG-GUIDE.md). Tests send visible messages only after explicit action; complete logs are never automatically uploaded.
 
 ## Clients / Bekannte Grenzen / Known limitations
 
-DE: 14 TOCs mit identischer Ladereihenfolge und denselben gespeicherten Variablen. Aktuelle Kennungen: Retail `120105`, Era/Hardcore/SoD `11509`, TBC/Anniversary `20506`, MoP `50504`, Forever `16001`, Titan Reforged (China) `38002`. Historische Wrath-/Cata-Kennungen bleiben erhalten; PTR wird nicht als Live-Unterstützung ausgegeben. Buildnummern, Quellen und Prüfgrenzen: [CLIENT_VERSIONS.md](CLIENT_VERSIONS.md).
+DE: 14 TOCs mit identischer Ladereihenfolge und denselben gespeicherten Variablen. Aktuelle Kennungen: Retail `120105`, Era/Hardcore/SoD `11509`, TBC/Anniversary `20506`, MoP `50504`, Forever `16001`, Titan Reforged (China) `38002`. Historische Wrath-/Cata-Kennungen bleiben erhalten; PTR wird nicht als Live-Unterstützung ausgegeben.
 
-EN: 14 TOCs share load order and saved variables. Current identifiers: Retail `120105`, Era/Hardcore/SoD `11509`, TBC/Anniversary `20506`, MoP `50504`, Forever `16001`, Titan Reforged (China) `38002`. Historical Wrath/Cata identifiers are retained; PTR is not presented as live support. Builds, sources and validation limits: [CLIENT_VERSIONS.md](CLIENT_VERSIONS.md).
+EN: 14 TOCs share load order and saved variables. Current identifiers: Retail `120105`, Era/Hardcore/SoD `11509`, TBC/Anniversary `20506`, MoP `50504`, Forever `16001`, Titan Reforged (China) `38002`. Historical Wrath/Cata identifiers are retained; PTR is not presented as live support.
 
 DE: **Automatisches GUILD wird auf der modernen Retail-Regel vorsorglich zurückgehalten**, weil geschützte Aufrufe auch ohne sichtbare Chat-/Map-Sperre beobachtet wurden. Die Option bleibt gespeichert; OFFICER ist unabhängig. Automatisches CHANNEL ist dort ebenfalls eingeschränkt. Andere Clients behalten den konservativen Kampffallback. Es gibt keine Umgehung von Blizzard-Sperren und keinen Wechsel zu alten Dropdown-/Chat-Modi.
 

@@ -1,4 +1,6 @@
 v9.3.0.11 Multi - 08-11-2026
+         - [DE] Dokumentation bereinigt: DEBUG-ANLEITUNG-GUIDE.md eindeutig benannt; interne Client-Versionsuebersicht nur lokal aufbewahrt, aus main entfernt
+         - [EN] Clean up documentation: rename the guide to DEBUG-ANLEITUNG-GUIDE.md; retain the internal client-version overview locally, remove it from main
          - [DE] Aktuellen Entwicklungsstand als regulaeres Release ohne RC-Zusatz freigegeben; Quest-/Chat-/Schriftlogik und Diagnosebuild 20261007-1 gegenueber dem vorbereiteten Stand unveraendert
          - [EN] Promote current development state to a regular release without an RC suffix; quest/chat/font behavior and diagnostic build 20261007-1 remain unchanged from the prepared build
          - [DE] Sprachgerechte Tooltip-Schriften, aktuelle Clientmetadaten inklusive Titan Reforged und kanalabhaengigen Chatversand samt Partnerdiagnose aus den bisherigen RCs zusammengefuehrt

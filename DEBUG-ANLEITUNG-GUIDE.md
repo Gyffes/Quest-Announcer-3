@@ -1,4 +1,4 @@
-# Chatdiagnose / Chat diagnostics — 9.3.0.11
+# Debug-Anleitung / Debug Guide — 9.3.0.11
 
 ## Deutsch
 
