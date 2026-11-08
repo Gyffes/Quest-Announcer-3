@@ -1,161 +1,127 @@
 # Quest Announce 3 (QuestAnnounce 3 / QA3)
 
-**World of Warcraft quest announcement addon for Retail and Classic.** Quest Announce 3 automatically announces quest progress and quest completion to selected chat channels or in-game message frames. The standalone addon supports configurable announcements, quest links, sounds, and profiles.
+**World of Warcraft quest announcement addon for Retail and Classic.** Quest Announce 3 announces quest progress and completion through configurable chat channels, local notices and sounds. Standalone: no Ace or other addon dependency.
 
-**World-of-Warcraft-Quest-Addon für Retail und Classic.** Quest Announce 3 meldet Questfortschritte und Questabschlüsse automatisch in auswählbaren Chatkanälen oder Hinweisfenstern. Das eigenständige Addon bietet einstellbare Meldungen, Questlinks, Sounds und Profile.
+**World-of-Warcraft-Quest-Addon für Retail und Classic.** Quest Announce 3 meldet Questfortschritt und Questabschluss über einstellbare Chatkanäle, lokale Hinweise und Sounds. Eigenständig: keine Abhängigkeit von Ace oder anderen Addons.
 
-**Official links / Offizielle Links:**
-[GitHub source code / Quellcode](https://github.com/Gyffes/Quest-Announcer-3) ·
-[GitHub releases](https://github.com/Gyffes/Quest-Announcer-3/releases) ·
-[CurseForge](https://www.curseforge.com/wow/addons/quest-announce-3) ·
-[WoWInterface](https://www.wowinterface.com/downloads/info11002-QuestAnnounce.html) ·
-[Issues & feedback](https://github.com/Gyffes/Quest-Announcer-3/issues)
+[GitHub source / Quellcode](https://github.com/Gyffes/Quest-Announcer-3) · [Latest release / Aktuelles Release](https://github.com/Gyffes/Quest-Announcer-3/releases/latest) · [CurseForge](https://www.curseforge.com/wow/addons/quest-announce-3) · [WoWInterface](https://www.wowinterface.com/downloads/info11002-QuestAnnounce3.html) · [Feedback](https://github.com/Gyffes/Quest-Announcer-3/issues)
 
-## Version / Version
+## Aktuelle Version / Current version
 
-Aktueller Stand: **9.3.0.9**
-Current version: **9.3.0.9**
+**9.3.0.11 Multi — 08.11.2026**
 
-GitHub Release: **V9.3.0.9-Multi**
+GitHub-Tag: **V9.3.0.11-Multi**. Reguläres Release ohne RC-Zusatz / Regular release without an RC suffix. Diagnosebuild / Diagnostic build: **20261007-1**; beide Testpartner verwenden dieselbe Addonversion / both peers should use the same addon version.
 
-## Projektstatus (DE)
+DE: Enthält die Tooltip-/Sprachkorrekturen, kanalabhängigen Chatversand, die integrierte Chatdiagnose und den aktuellen Client-Metadatenabgleich. Der Release-Status bedeutet nicht, dass jede Region, Schrift oder Client-API live getestet wurde. Bekannte Einschränkungen bleiben unten dokumentiert.
 
-Das Addon wurde in der aktuellen Entwicklungsphase grundlegend modernisiert:
+EN: Includes locale-aware tooltip fixes, channel-aware chat routing, integrated chat diagnostics and the current client metadata check. Release status does not mean every region, font or client API was tested live. Known limitations remain documented below.
 
-- Umstellung auf **Standalone** (Abhängigkeiten auf Ace/andere Fremd-Addons entfernt).
-- Große Teile der Logik und der Optionen wurden auf Basis des alten Codes neu aufgebaut.
-- Erweiterte Link-Funktionalität für Questtexte (klickbar + Wowhead-Copy-Flow).
-- Fokus-Flüstern wurde überarbeitet und stabilisiert.
-- Umfangreiche Lokalisierungs-Überarbeitung (inkl. Fallback auf `enUS`).
-- Minimap-Button optisch/technisch verbessert (rundes Icon-Masking).
-- Neues Profilverwaltungs-Untermenü mit Speichern/Laden/Kopieren/Überschreiben/Löschen und Profilübersicht.
-- Neuer Questtyp-Filterbereich (normal, Weltquest, trivial, Kampagne, Story) mit defensiver API-Auswertung.
-- Neues Sound-Untermenü mit Sound-IDs, Test-/Reset-Buttons, Aktivierungs-Checkboxen und Soundkanal-Auswahl (Master/Effekt/Umgebung/Dialog/Musik).
-- Neue Sound-Events für Quest angenommen (ID 6197) und Questabgabe (Standard-Questabgabe), inkl. geordneter Wiedergabelogik ohne Sound-Überlagerung.
-- Nachfolgende UI-Feinarbeiten: dynamische Reflow-Layouts für Sound- und Questtyp-Optionen bei UI-Skalierung/Panelbreite.
-- Der Standard-Fortschrittston 8959 (Raid Warning) folgt jetzt auch in WoW 12.1 dem gewählten Ausgabekanal: QA3 spielt dafür die passende Audiodatei direkt ab Ein Fallback auf das alte SoundKit erfolgt nur bei explizit gewähltem Master.
-- Neue Allgemein-Optionen: Minimap-Button sichtbar/unsichtbar sowie „Eigene Meldungen“ (Addon-Status-/Warnmeldungen für den eigenen Client an/aus).
-- Lokalisierungen für die neuen Optionen in allen unterstützten Sprachen ergänzt.
-- TBC-2.5.5-Kompatibilitätsfix: Legacy-Questlog-APIs werden abgefangen, damit kein `GetNumQuestLogEntries`-Lua-Fehler mehr auftritt.
-- Zusätzlicher 9.3.0.5-Hotfix: Tooltip-Schriften werden intern auf gültige WoW-Assetpfade gemappt, damit kein `SetFont(): Invalid font file asset` mehr auftritt.
-- 9.3.0.7-Update: Questabgabe-Sound wird standardmäßig nur noch im manuellen Questdialog-Kontext abgespielt; optional kann Auto-Turn-In-Sound separat aktiviert werden.
-- 9.3.0.7-Feinschliff: Questabgabe-Sound im manuellen Kontext wird nur noch bei expliziter Abgabe-Aktion (Abgeben/Quest beenden Button) ausgelöst.
-- 9.3.0.7: Alle QA3-Auswahlfelder sind jetzt addon-eigene Radio-Menüs; die globale Blizzard-`UIDropDownMenu`-API wird nicht mehr verwendet und kann beim Laden der Optionen keinen UI-Taint mehr setzen.
-- 9.3.0.7: Alle unterstützten Locales sind wieder vollständig; CI prüft künftig Taint-Isolation und Übersetzungsvollständigkeit.
-- 9.3.0.7: Multi-Kompatibilität bleibt erhalten: Retail, Classic Era, Hardcore, Anniversary, Season of Discovery, TBC, Wrath, Cataclysm und MoP nutzen weiterhin dieselbe getestete Codebasis.
-- 9.3.0.7: Die Soundausgabe respektiert den ausgewählten WoW-Soundkanal. Hinweis: Der Blizzard-SoundKit 8959 ist auf manchen Clients an Master gebunden; für getrennte Kanäle kann eine andere Fortschritts-Sound-ID gewählt werden.
-- 9.3.0.8: Chat-Ausgaben werden gegen WoW-Chat-/Encounter-Lockdowns abgesichert. Öffentliche automatische Chat-Typen (SAY/YELL/EMOTE/CHANNEL) werden vor dem Blizzard-Aufruf geprüft und bei geschütztem Client-Kontext übersprungen; Tooltip und Popup erklären die Einschränkung.
-- 9.3.0.9: Normaler Kampf wird zusätzlich über `InCombatLockdown()` erkannt. Die jüngste blockierte Chatmeldung wird höchstens zehn Sekunden gehalten und nach Kampfende einmalig erneut geprüft, ohne lokale Frames oder Sounds zu wiederholen. Die Questabgabe-Erkennung nutzt nur noch Quest-Events und verarbeitet `QUEST_TURNED_IN` zeitlich entkoppelt. Die lokale Raidwarnungs-Ausgabe verwendet ein anonymes QuestAnnounce-Hinweisfenster statt Blizzards gemeinsamem `RaidWarningFrame`, damit anschließende Cinematics keinen markierten `LowHealthFrame`-Pfad übernehmen. Questlinks verwenden einen sicheren `SetItemRef`-Nachhook; Links-, Rechts- und Shift-Klick sowie der Classic-Fallback bleiben erhalten.
-- 9.3.0.9 Stable: Temporäre Taint-Diagnosezweige wurden entfernt. Questabschlussprüfungen verwenden konsequent Quest-IDs, Altprofile werden vollständig migriert, und alle zehn Lokalisierungen werden automatisiert auf Schlüssel und Format-Platzhalter geprüft.
+## Installation / WowUp
 
-## Project Status (EN)
+DE: Das installierbare Release-ZIP entpackt direkt nach `Interface/AddOns/QuestAnnounce/`. Nicht GitHubs automatisch erzeugtes „Source code (zip)“ installieren. Beim Aktualisieren den bestehenden Addonordner ersetzen; die persönlichen Einstellungen unter `WTF` behalten.
 
-The addon has been significantly modernized in the current development phase:
+EN: Extract the installable release ZIP directly to `Interface/AddOns/QuestAnnounce/`. Do not install GitHub's automatically generated “Source code (zip)”. Replace the existing addon folder when updating; preserve personal settings under `WTF`.
 
-- Migrated to **standalone** mode (Ace/third-party addon dependencies removed).
-- Large parts of the logic and options were rebuilt based on the legacy code.
-- Extended quest link functionality (clickable quest text + Wowhead copy flow).
-- Focus whisper support was revised and stabilized.
-- Major localization overhaul (including `enUS` fallback behavior).
-- Improved minimap button visuals/technical behavior (round icon masking).
-- New profile management submenu with save/load/copy/overwrite/delete actions and a profile overview.
-- New quest-type filter section (normal, world, trivial, campaign, story) with defensive API-based detection.
-- New sound submenu with sound IDs, test/reset buttons, per-sound enable checkboxes, and sound output channel selection (Master/Effects/Ambience/Dialog/Music).
-- New sound events for quest accepted (ID 6197) and quest turn-in (default turn-in sound), including ordered playback logic to avoid overlapping sound spam.
-- Follow-up UI refinements: dynamic reflow layouts for sound and quest-type options under varying UI scale/panel widths.
-- Special handling for sound ID 8959: muted target channels stay silent, audible target channels are handled consistently.
-- New general options: show/hide minimap button and “Self Messages” (toggle addon status/warning messages for your own client).
-- Added translations for the new options across all supported locales.
-- TBC 2.5.5 compatibility fix: legacy quest log APIs are now bridged to avoid `GetNumQuestLogEntries` Lua errors.
-- Additional 9.3.0.5 hotfix: tooltip fonts are internally mapped to valid WoW asset paths to prevent `SetFont(): Invalid font file asset`.
-- 9.3.0.7 update: quest turn-in sound now plays only in manual quest dialog context by default; auto turn-in sound can be enabled separately.
-- 9.3.0.7 refinement: in manual context, turn-in sound now requires an explicit turn-in action (turn-in/complete quest button click).
-- 9.3.0.7 taint-hardening: QuestAnnounce tooltips were internally hardened and fragile template-region stripping was removed.
-- 9.3.0.7: All QA3 selectors now use addon-owned radio menus; the global Blizzard `UIDropDownMenu` API is no longer used, preventing option-load UI taint.
-- 9.3.0.7: All supported locales are complete again; CI now checks both taint isolation and localization completeness.
-- 9.3.0.7: Multi-client compatibility remains intact: Retail, Classic Era, Hardcore, Anniversary, Season of Discovery, TBC, Wrath, Cataclysm, and MoP continue to use the same tested codebase.
-- 9.3.0.7: Sound output respects the selected WoW sound channel. Note: Blizzard SoundKit 8959 is Master-bound on some clients; choose another progress sound ID for separate channel routing.
-- 9.3.0.8: Chat output is protected against WoW chat/encounter lockdowns. Public automated chat types (SAY/YELL/EMOTE/CHANNEL) are checked before calling Blizzard APIs and skipped when the client context is protected; tooltip and popup explain the limitation.
-- 9.3.0.9: Ordinary combat is additionally detected through `InCombatLockdown()`. The latest blocked chat message is retained for at most ten seconds and checked once after combat without replaying local frames or sounds. Turn-in detection now relies only on quest events and defers `QUEST_TURNED_IN` processing. Local raid-warning output uses an anonymous QuestAnnounce notice frame instead of Blizzard's shared `RaidWarningFrame`, preventing following cinematics from inheriting a marked `LowHealthFrame` path. Quest links use a secure `SetItemRef` post-hook; left-, right-, and Shift-click plus the Classic fallback remain available.
-- 9.3.0.9 Stable: Temporary taint diagnostic branches were removed. Quest completion checks consistently use quest IDs, legacy profiles receive a complete migration, and automated validation checks keys and format placeholders across all ten localizations.
+DE: In WowUp „Get Addons“ → per URL installieren und die Repository-URL `https://github.com/Gyffes/Quest-Announcer-3` verwenden. GitHub stellt ein Multi-ZIP und `release.json` zur eindeutigen Client-Zuordnung bereit. Ein direkt importierter ZIP-Link hat dagegen keinen automatischen Updatekanal. Vorhandene Provider-IDs: CurseForge `3607`, WoWInterface `11002`.
 
-## Hauptfunktionen (DE)
+EN: In WowUp, open Get Addons → install from URL using the repository URL `https://github.com/Gyffes/Quest-Announcer-3`. GitHub supplies a Multi ZIP and `release.json` for explicit client matching. Importing a direct ZIP link does not provide an automatic update channel. Provider IDs: CurseForge `3607`, WoWInterface `11002`.
 
-- Fortschritts- und Abschlussmeldungen für Quests.
-- Ausgabe in verschiedene Ziele:
-  - Chatkanäle (Sagen, Gruppe, Instanz, Gilde, Offizier, Flüstern, benutzerdefinierter Kanal, Fokus-Flüstern)
-  - UI-Rahmen (Chat Frame, Raid Warning Frame, UI Errors Frame)
-- Konfigurierbare Sound-IDs für Fortschritt, Abschluss, Quest angenommen und Questabgabe.
-- Pro Sound ein Test-Button, Zurücksetzen-Button und Aktivierungs-Checkbox.
-- Neue optionale Sound-Checkbox für Auto-Turn-In-Quests (`Play Turn-In Sound for Auto Turn-In`, Standard: aus).
-- Auswahl des WoW-Soundkanals (Master, Effekt, Umgebung, Dialoge, Musik).
-- Dynamische Layout-Anpassung für Sound- und Questtyp-Bereiche bei abweichender UI-Skalierung.
-- Sound-ID 8959 berücksichtigt Kanal-Stummschaltung (kein unerwarteter Ton bei stummem Zielkanal).
-- Minimap-Button:
-  - Linksklick: Addon an/aus
-  - Mittelklick: temporäre Pause an/aus (schnelles Stummschalten ohne Deaktivierung)
-  - Rechtsklick: Optionen öffnen
-  - Drag & Drop mit gespeicherter Position
-- Tooltip-Styling (Schriftart, Größe, Farben)
-- Robuste Font-Auflösung für Tooltips (Label/Pfad + Fallback auf `STANDARD_TEXT_FONT`)
-- Tooltip-Styling wirkt auf QuestAnnounce-eigene Tooltips (z. B. Optionen + Minimap), ohne globale Beeinflussung fremder Addon-/Blizzard-Tooltips
-- Tooltip-Interna sind gehärtet (addon-eigene Frames, kein fragiles Region-Stripping), wodurch das Risiko von Taint/Nebeneffekten in Blizzard-Map/Widget-Hoverpfaden reduziert wird.
-- Questlinks in Ankündigungen (taint-sicher):
-  - Linksklick: Quest im Questlog öffnen
-  - Rechtsklick: Wowhead-URL im Copy-Dialog öffnen
-  - Shift+Linksklick: offizieller Questlink wird in den Chat eingefügt
-- Slash-Command: `/qa`
+## Funktionen (DE)
 
-## Main Features (EN)
+- Questfortschritt/-abschluss, optionale Questtypfilter und einstellbare Meldungsabstände.
+- Chatziele: SAY, YELL, EMOTE, PARTY, RAID, RAID_WARNING, INSTANCE_CHAT, GUILD, OFFICER, WHISPER, CHANNEL und Fokus-Flüstern, soweit der Client diese erlaubt.
+- Lokales Chatfenster, eigenes Raid-Hinweisfenster und UI-Fehleranzeige; unabhängig vom Chatversand.
+- Sounds für Fortschritt, Abschluss, Annahme und Abgabe, mit Sound-ID, Kanal, Test und Zurücksetzen. Auto-Turn-In-Sound ist separat und standardmäßig aus.
+- Profile speichern, laden, kopieren, überschreiben und löschen; bestehende Profile bleiben erhalten.
+- Questlinks: Linksklick öffnet das Questlog, Rechtsklick den Wowhead-Kopierdialog, Shift-Klick fügt einen Questlink ein.
+- Minimap: links an/aus, mittig Pause, rechts Optionen; Position verschiebbar.
+- Sprachgerechte Tooltip-Schrift, Größe und Farben. Automatische Schrift aus Client-Fontobjekten; native Auswahl für Koreanisch, Chinesisch und Russisch. Keine globale Änderung von Blizzard-Schriften.
+- Zehn Sprachen: enUS, deDE, esES, esMX, frFR, koKR, ptBR, ruRU, zhCN und zhTW; Fallback auf enUS.
+- Integrierte, standardmäßig ausgeschaltete Chatdiagnose; Einzel-/Partnertests nur nach ausdrücklichem Start.
 
-- Quest progress and completion announcements.
-- Output to different targets:
-  - Chat channels (/say, party, instance, guild, officer, whisper, custom channel, focus whisper)
-  - UI frames (Chat Frame, Raid Warning Frame, UI Errors Frame)
-- Configurable sound IDs for progress, completion, quest accepted, and quest turn-in.
-- Per-sound test button, reset button, and enable checkbox.
-- New optional auto-turn-in sound checkbox (`Play Turn-In Sound for Auto Turn-In`, default: off).
-- Selectable WoW sound channel (Master, Effects, Ambience, Dialog, Music).
-- Dynamic layout adaptation for sound and quest-type sections under different UI scales.
-- Sound ID 8959 respects target-channel muting (no unexpected playback when target channel is muted).
-- Optional quest-type filters (normal/world/trivial/campaign/story, only where API data is reliable).
-- Minimap button:
-  - Left click: toggle addon on/off
-  - Middle click: toggle temporary pause (quick mute without disabling)
-  - Right click: open options
-  - Drag & drop with saved position
-- Tooltip styling (font, size, colors)
-- Robust tooltip font resolution (label/path + `STANDARD_TEXT_FONT` fallback)
-- Tooltip styling applies to QuestAnnounce-owned tooltips (e.g. options + minimap) without globally impacting third-party/Blizzard tooltips
-- Tooltip internals are hardened (addon-owned frames, no fragile region stripping), reducing taint/side-effect risk in Blizzard map/widget hover paths.
-- Quest links in announcements (taint-safe):
-  - Left click: open quest in quest log
-  - Right click: open Wowhead URL in copy dialog
-  - Shift+Left click: insert official quest link into chat
-- Slash command: `/qa`
+## Features (EN)
 
-## Dateistruktur / File Structure
+- Quest progress/completion, optional quest-type filters and configurable announcement intervals.
+- Chat destinations: SAY, YELL, EMOTE, PARTY, RAID, RAID_WARNING, INSTANCE_CHAT, GUILD, OFFICER, WHISPER, CHANNEL and focus whisper, where permitted by the client.
+- Local chat frame, addon-owned raid notice and UI error display, independent of chat transmission.
+- Progress, completion, acceptance and turn-in sounds with configurable ID, channel, test and reset. Auto-turn-in sound is separate and off by default.
+- Save, load, copy, overwrite and delete profiles; preserve existing profiles.
+- Quest links: left-click opens the quest log, right-click opens the Wowhead copy dialog, Shift-click inserts a quest link.
+- Minimap: left-click toggles, middle-click pauses, right-click opens options; draggable position.
+- Locale-aware tooltip font, size and colors. Automatic font from client font objects, with native Korean, Chinese and Russian choices. No global changes to Blizzard fonts.
+- Ten languages: enUS, deDE, esES, esMX, frFR, koKR, ptBR, ruRU, zhCN and zhTW; enUS fallback.
+- Integrated chat diagnostics, off by default; single/paired tests require explicit action.
 
-- `QuestAnnounce.lua` – Kernlogik, Events, Parsing, Versandlogik / Core logic, events, parsing, message routing
-- `Config.lua` – Blizzard-Optionspanel und Einstellungen / Blizzard settings panel and options
-- `Minimap.lua` – Minimap-Button, Tooltip, Positionierung / Minimap button, tooltip, positioning
-- `Localization.lua` – Übersetzungen aller unterstützten Locales / Translations for all supported locales
-- `CHANGELOG.txt` – Versionshistorie / Version history
-- `QuestAnnounce_*.toc` – Versions-/Interface-Dateien je WoW-Spielvariante / Version/interface files per WoW variant
+## Debugging kurz (DE)
 
-## Hinweise für Entwicklung (DE)
+Die alte Option „Debug“ zeigt allgemeine Meldungen im Chat. Die neue **Chatdiagnose** ist separat: `/qa` → Chatdiagnose oder folgende Befehle.
 
-- Die UI arbeitet auf `QuestAnnounceDB.profile`.
-- Fehlende Übersetzungen werden per Metatable auf `enUS` zurückgeführt.
-- Für Änderungen an sichtbaren Texten immer `Localization.lua` mitpflegen.
+1. Aufzeichnung einschalten, normale Regeln beibehalten, Fehler beim gewöhnlichen Spielen reproduzieren:
 
-## Development Notes (EN)
+```text
+/qa diag on
+/qa diag mode normal
+/qa diag status
+```
 
-- The UI works with `QuestAnnounceDB.profile`.
-- Missing translations fall back to `enUS` via metatable behavior.
-- When changing visible text, always update `Localization.lua`.
+2. Danach Tests abbrechen, Aufzeichnung ausschalten und speichern:
 
-## Hinweis zur Erstellung / Creation Note
+```text
+/qa diag cancel
+/qa diag off
+/reload
+```
 
-Teile der Modernisierung, Dokumentation und technischen Überarbeitung dieses Projekts wurden mit Unterstützung von ChatGPT/Codex erstellt.  
-Parts of the modernization, documentation, and technical refactoring of this project were created with support from ChatGPT/Codex.
+3. Die Datei `<WoW-Client>/WTF/Account/<ACCOUNT>/SavedVariables/QuestAnnounce.lua` enthält **QuestAnnounceDiagnosticsDB** neben den persönlichen Profilen. Vor dem Teilen Profile und Namen/Partner-/Kanalangaben entfernen. Clientversion, Sprache und Fehlerbeschreibung beilegen. Erst danach bei Bedarf `/qa diag clear` verwenden.
+
+Partnertests, Einzeltests und Roh-Probes: [DEBUGGING.md](DEBUGGING.md). Tests senden sichtbare Nachrichten nur nach ausdrücklichem Start; keine kompletten Logs werden automatisch hochgeladen.
+
+## Debugging quick start (EN)
+
+The old “Debug” option prints general chat messages. The new **Chat Diagnostics** feature is separate: open `/qa` → Chat Diagnostics or use these commands.
+
+1. Enable recording, keep normal rules and reproduce the problem during ordinary gameplay:
+
+```text
+/qa diag on
+/qa diag mode normal
+/qa diag status
+```
+
+2. Afterwards cancel tests, stop recording and save:
+
+```text
+/qa diag cancel
+/qa diag off
+/reload
+```
+
+3. The file `<WoW-client>/WTF/Account/<ACCOUNT>/SavedVariables/QuestAnnounce.lua` contains **QuestAnnounceDiagnosticsDB** alongside personal profiles. Remove profiles and names/peer/channel settings before sharing. Include client version, locale and a description. Only afterwards, use `/qa diag clear` if needed.
+
+Paired tests, single tests and raw probes: [DEBUGGING.md](DEBUGGING.md). Tests send visible messages only after explicit action; complete logs are never automatically uploaded.
+
+## Clients / Bekannte Grenzen / Known limitations
+
+DE: 14 TOCs mit identischer Ladereihenfolge und denselben gespeicherten Variablen. Aktuelle Kennungen: Retail `120105`, Era/Hardcore/SoD `11509`, TBC/Anniversary `20506`, MoP `50504`, Forever `16001`, Titan Reforged (China) `38002`. Historische Wrath-/Cata-Kennungen bleiben erhalten; PTR wird nicht als Live-Unterstützung ausgegeben. Buildnummern, Quellen und Prüfgrenzen: [CLIENT_VERSIONS.md](CLIENT_VERSIONS.md).
+
+EN: 14 TOCs share load order and saved variables. Current identifiers: Retail `120105`, Era/Hardcore/SoD `11509`, TBC/Anniversary `20506`, MoP `50504`, Forever `16001`, Titan Reforged (China) `38002`. Historical Wrath/Cata identifiers are retained; PTR is not presented as live support. Builds, sources and validation limits: [CLIENT_VERSIONS.md](CLIENT_VERSIONS.md).
+
+DE: **Automatisches GUILD wird auf der modernen Retail-Regel vorsorglich zurückgehalten**, weil geschützte Aufrufe auch ohne sichtbare Chat-/Map-Sperre beobachtet wurden. Die Option bleibt gespeichert; OFFICER ist unabhängig. Automatisches CHANNEL ist dort ebenfalls eingeschränkt. Andere Clients behalten den konservativen Kampffallback. Es gibt keine Umgehung von Blizzard-Sperren und keinen Wechsel zu alten Dropdown-/Chat-Modi.
+
+EN: **Automatic GUILD is conservatively withheld by the modern Retail policy** because protected calls were observed even without visible chat/map restrictions. The preference is preserved; OFFICER remains independent. Automatic CHANNEL is also restricted there. Other clients retain conservative combat handling. Blizzard restrictions are not bypassed, and legacy dropdown/chat modes are not reintroduced.
+
+DE: Lokale Lua-5.1-, Übersetzungs-, Metadaten- und Partnersimulationen bestehen. Tatsächliches Laden aller Clients ohne Outdated-Schalter, regionale API-/Gameplay-Tests und die visuelle koKR/zhCN/zhTW/ruRU-Abnahme bleiben offen. Ein erfolgreicher API-Aufruf oder eigener Chat-Echo ist kein Zustellnachweis.
+
+EN: Local Lua 5.1, translation, metadata and peer simulations pass. Actual loading on every client without the outdated-addon toggle, regional API/gameplay tests and visual koKR/zhCN/zhTW/ruRU acceptance remain pending. A successful API call or local chat echo is not proof of delivery.
+
+## Entwicklung / Development
+
+Der versionierte Stand und die ZIPs enthalten nur Addondateien, Icon und aktuelle Dokumentation. Keine PowerShell-Dateien, Testordner, Workflows, Referenzaddons, persönlichen Logs oder alten Plan-/RC-Dokumente. Lokale Entwicklungsunterlagen bleiben außerhalb der Veröffentlichung erhalten. Keine automatische Build-/Upload-Pipeline.
+
+The tracked tree and ZIPs contain only addon files, the icon and current documentation. No PowerShell files, test folders, workflows, reference addons, personal logs or obsolete plan/RC documents. Local development material is preserved outside the distribution. No automatic build/upload pipeline.
+
+Änderungen / Changes: [CHANGELOG.txt](CHANGELOG.txt). Sichtbare Texte in den Lokalisierungsdateien mitpflegen / Maintain localization files when changing visible text.
+
+Danke an [user_n6i4a961y2ds2da7](https://legacy.curseforge.com/members/user_n6i4a961y2ds2da7) für den Schriftartenhinweis und an [Nerf_Teh_Derp](https://www.curseforge.com/members/nerf_teh_derp) für den Chatbericht / Thanks for the tooltip-font and chat reports.
+
+Teile der Modernisierung und Dokumentation wurden mit Unterstützung von ChatGPT/Codex erstellt. / Parts of the modernization and documentation were created with ChatGPT/Codex assistance.

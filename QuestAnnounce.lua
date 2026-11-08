@@ -1,4 +1,5 @@
--- Laden erforderlicher Bibliotheken und Lokalisierung
+-- DE: Addon-eigenen Ereignisframe erstellen; Lokalisierung ist bereits geladen.
+-- EN: Create the addon-owned event frame; localization is already loaded.
 QuestAnnounce = CreateFrame("Frame")
 QuestAnnounce.events = {}
 QuestAnnounce.questCache = {}
@@ -7,13 +8,176 @@ QuestAnnounce.questCompletionAnnounced = {}
 QuestAnnounce.questCompletionAnnouncedAt = {}
 QuestAnnounce.turnInSoundHistory = {}
 QuestAnnounce.pendingCompletionRecheck = {}
-QuestAnnounce.pendingCombatChatMessage = nil
+-- DE/EN: Zielweise Chatwarteschlange / Per-destination chat queue.
+QuestAnnounce.pendingChatRoutes = {}
 QuestAnnounce.lastMessage = nil
 QuestAnnounce.lastManualTurnInIntent = nil
 
-local COMBAT_CHAT_REPLAY_WINDOW_SECONDS = 10
 
 local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L["enUS"]
+
+-- DE: Gemeinsamer Schriftkatalog. Interne Werte bleiben sprachunabhängig;
+-- die Client-Schrift ist der Standard, nicht ein festes westliches Asset.
+-- EN: Shared font catalog. Stored values are locale-independent; the default
+-- comes from the client rather than a fixed Western asset.
+local westernTooltipFonts = {
+    { value = "Friz Quadrata TT", path = "Fonts\\FRIZQT__.TTF" },
+    { value = "Arial Narrow", path = "Fonts\\ARIALN.TTF" },
+    { value = "Morpheus", path = "Fonts\\MORPHEUS.TTF" },
+    { value = "Skurri", path = "Fonts\\skurri.ttf" },
+}
+local localizedTooltipFonts = {
+    koKR = {
+        { value = "2002", path = "Fonts\\2002.TTF" },
+    },
+    zhCN = {
+        { value = "ARKai C", path = "Fonts\\ARKai_C.ttf" },
+        { value = "ARKai T", path = "Fonts\\ARKai_T.ttf" },
+    },
+    zhTW = {
+        { value = "bHEI01B", path = "Fonts\\bHEI01B.TTF" },
+        { value = "blei00d", path = "Fonts\\blei00d.ttf" },
+    },
+    ruRU = {
+        { value = "Friz Quadrata Cyrillic", path = "Fonts\\FRIZQT___CYR.TTF" },
+        { value = "Morpheus Cyrillic", path = "Fonts\\MORPHEUS_CYR.TTF" },
+        { value = "Arial Narrow", path = "Fonts\\ARIALN.TTF" },
+    },
+}
+
+local function NormalizeFontPath(path)
+    if type(path) ~= "string" or path == "" then
+        return nil
+    end
+    return path:gsub("/", "\\"):lower()
+end
+
+local function IsFontPath(path)
+    local normalized = NormalizeFontPath(path)
+    return normalized and (normalized:match("%.ttf$") or normalized:match("%.otf$")) ~= nil
+end
+
+local function GetTooltipFontCatalog()
+    return localizedTooltipFonts[GetLocale()] or westernTooltipFonts
+end
+
+-- DE: Alte westliche Namen/Pfade werden auf nichtlateinischen Clients sicher
+-- ersetzt, ohne den gespeicherten Profilwert zu löschen. Eigene Pfade bleiben.
+-- EN: Safely replace legacy Western names/paths on non-Latin clients without
+-- deleting the saved preference. Custom paths remain supported.
+function QuestAnnounce:GetTooltipFontSelection(fontValue)
+    local normalized = NormalizeFontPath(fontValue)
+    for _, entry in ipairs(GetTooltipFontCatalog()) do
+        if fontValue == entry.value or normalized == NormalizeFontPath(entry.path) then
+            return entry.value, entry.value, entry.path
+        end
+    end
+    for _, entry in ipairs(westernTooltipFonts) do
+        if fontValue == entry.value or normalized == NormalizeFontPath(entry.path) then
+            return "AUTO", L["Automatic (Client Font)"]
+        end
+    end
+    -- DE/EN: Bekannte Schriften einer anderen Clientsprache nicht als eigene
+    -- Pfade behandeln / do not treat another locale's known fonts as custom paths.
+    for _, catalog in pairs(localizedTooltipFonts) do
+        for _, entry in ipairs(catalog) do
+            if fontValue == entry.value or normalized == NormalizeFontPath(entry.path) then
+                return "AUTO", L["Automatic (Client Font)"]
+            end
+        end
+    end
+    if IsFontPath(fontValue) then
+        return fontValue, fontValue, fontValue
+    end
+    return "AUTO", L["Automatic (Client Font)"]
+end
+
+function QuestAnnounce:GetTooltipFontLabel(fontValue)
+    local value, label = self:GetTooltipFontSelection(fontValue)
+    if value == "AUTO" and fontValue ~= nil and fontValue ~= "" and fontValue ~= "AUTO" then
+        return label .. " (" .. L["Locale font fallback"] .. ")"
+    end
+    return label
+end
+
+function QuestAnnounce:GetTooltipFontChoices()
+    local choices = { { value = "AUTO", text = L["Automatic (Client Font)"] } }
+    for _, entry in ipairs(GetTooltipFontCatalog()) do
+        choices[#choices + 1] = { value = entry.value, text = entry.value }
+    end
+    return choices
+end
+
+local function ReadFont(fontObject)
+    if not fontObject or type(fontObject.GetFont) ~= "function" then
+        return nil
+    end
+    local ok, path, size, flags = pcall(fontObject.GetFont, fontObject)
+    if ok and IsFontPath(path) then
+        return path, size, flags
+    end
+end
+
+local function GetClientTooltipFontPaths()
+    local paths, seen = {}, {}
+    local function AddPath(path)
+        if not IsFontPath(path) then return end
+        local normalized = NormalizeFontPath(path)
+        -- DE/EN: Auch ein von außen geänderter Client-Font darf bekannte
+        -- inkompatible westliche Assets nicht zurückbringen / reject these
+        -- assets even if another addon changed a client font object.
+        if localizedTooltipFonts[GetLocale()] then
+            for _, entry in ipairs(westernTooltipFonts) do
+                if normalized == NormalizeFontPath(entry.path) then
+                    if GetLocale() ~= "ruRU" or entry.value ~= "Arial Narrow" then
+                        return
+                    end
+                end
+            end
+        end
+        if not seen[normalized] then
+            seen[normalized] = true
+            paths[#paths + 1] = path
+        end
+    end
+    -- DE: Nutzervorschlag: gültigen Font aus Client-Fontobjekten lesen.
+    -- EN: Community suggestion: read a valid font from client font objects.
+    AddPath(ReadFont(GameTooltipText))
+    AddPath(ReadFont(GameFontNormal))
+    AddPath(STANDARD_TEXT_FONT)
+    return paths
+end
+
+function QuestAnnounce:GetClientDefaultFontPath()
+    return GetClientTooltipFontPaths()[1]
+end
+
+function QuestAnnounce:GetTooltipFontPath(fontValue)
+    local _, _, path = self:GetTooltipFontSelection(fontValue)
+    return path or self:GetClientDefaultFontPath()
+end
+
+-- DE: Nur addon-eigene FontStrings ändern. Fehlende Assets können SetFont
+-- scheitern lassen; dann Client-Schrift versuchen bzw. geerbte Schrift erhalten.
+-- EN: Modify addon-owned FontStrings only. If SetFont rejects an asset, try
+-- client fonts or retain the inherited font. Success does not prove glyph coverage.
+function QuestAnnounce:ApplyTooltipLineFont(line, fontValue, fontSize)
+    if not line or type(line.SetFont) ~= "function" then return false end
+    local inheritedPath, inheritedSize, flags = ReadFont(line)
+    if not line.qa3InheritedFontPath then
+        line.qa3InheritedFontPath = inheritedPath
+    end
+    fontSize = tonumber(fontSize) or inheritedSize or 12
+    local _, _, selectedPath = self:GetTooltipFontSelection(fontValue)
+    local paths = GetClientTooltipFontPaths()
+    if selectedPath then table.insert(paths, 1, selectedPath) end
+    if line.qa3InheritedFontPath then paths[#paths + 1] = line.qa3InheritedFontPath end
+    for _, path in ipairs(paths) do
+        local ok, result = pcall(line.SetFont, line, path, fontSize, flags)
+        if ok and result ~= false then return true end
+    end
+    return false
+end
 
 -- ---------------------------------------------------------
 -- QuestLog-API-Kompatibilität (Retail + Classic/TBC/Wrath)
@@ -188,6 +352,8 @@ local defaults = {
         },
         announceIn = {
             say = false,           -- Sprechen-Channel
+            emote = false,         -- DE/EN: Emote-Ausgabe / Emote output
+            raid = false,          -- DE/EN: Schlachtzugchat / Raid chat
             party = true,          -- Gruppen-Channel
             guild = false,         -- Gilden-Channel
             officer = false,       -- Offizier-Channel
@@ -199,7 +365,7 @@ local defaults = {
 			focus = false		   -- an Focus Schreiben	
         },
 		tooltip = {
-            font = "Friz Quadrata TT",
+            font = "AUTO",
             fontSize = 12,
             fontColor = {0.11, 1, 0.3},
             bgColor = {0, 0, 0, 0.8}, -- Hintergrundfarbe mit Alpha
@@ -393,6 +559,7 @@ function QuestAnnounce:Initialize()
     QuestAnnounceDB.profiles = QuestAnnounceDB.profiles or {}
 
     self.db = QuestAnnounceDB
+    self:InitializeDiagnostics()
 	
 	self:BuildQuestCache()
 	if self.db.profile.announceTo and self.db.profile.announceTo.raidWarningFrame then
@@ -564,7 +731,7 @@ end
 
 QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4, arg5)
 	if event == "PLAYER_REGEN_ENABLED" then
-		self:FlushPendingCombatChatMessage()
+		self:ScheduleChatWake(0)
 		return
 	end
 
@@ -1583,141 +1750,16 @@ function QuestAnnounce:ShouldShowLocalProgressMessages()
     return true
 end
 
--- DE: Neuere WoW-Clients koennen addon-initiierten Chat in Begegnungs-/Chat-Lockdowns blockieren.
--- EN: Newer WoW clients can block addon-initiated chat during encounter/chat lockdowns.
-function QuestAnnounce:IsPublicChatType(chatType)
-    return chatType == "SAY"
-        or chatType == "YELL"
-        or chatType == "EMOTE"
-        or chatType == "CHANNEL"
-    end
-
-function QuestAnnounce:IsPublicChatAllowed(chatType)
-    if chatType == "SAY" or chatType == "YELL" or chatType == "EMOTE" or chatType == "CHANNEL" then
-        if type(IsInInstance) == "function" then
-            local ok, inInstance, instanceType = pcall(IsInInstance)
-            if ok and inInstance and instanceType ~= "pvp" and instanceType ~= "arena" then
-                return true
-            end
-        end
-
-        return false, "automatic world public chat restriction"
-    end
-
-    return true
-end
-
-function QuestAnnounce:IsChatSendRestricted(chatType)
-    if C_ChatInfo and type(C_ChatInfo.InChatMessagingLockdown) == "function" then
-        local ok, locked = pcall(C_ChatInfo.InChatMessagingLockdown)
-        if ok and locked then
-            return true, "chat messaging lockdown"
-        end
-    end
-
-    -- DE: Ein normaler Questkampf ist kein Blizzard-Encounter. SendChatMessage
-    -- kann trotzdem geschuetzt sein, daher muss der allgemeine Kampf-Lockdown
-    -- separat geprueft werden.
-    -- EN: Ordinary quest combat is not a Blizzard encounter. SendChatMessage may
-    -- still be protected, so the general combat lockdown must be checked separately.
-    if type(InCombatLockdown) == "function" then
-        local ok, inCombat = pcall(InCombatLockdown)
-        if ok and inCombat then
-            return true, "combat lockdown"
-        end
-    end
-
-    if type(IsEncounterInProgress) == "function" then
-        local ok, inEncounter = pcall(IsEncounterInProgress)
-        if ok and inEncounter then
-            return true, "encounter in progress"
-        end
-    end
-
-    -- DE: Quest-Fortschritt wird automatisch aus Events gesendet. Oeffentliche
-    -- Chat-Typen sind nur in einigen Client-Kontexten zulaessig und werden sonst
-    -- vor dem Blizzard-Aufruf uebersprungen.
-    -- EN: Quest progress is sent automatically from events. Public chat types are
-    -- only allowed in some client contexts and are skipped before Blizzard APIs otherwise.
-    if self:IsPublicChatType(chatType) then
-        local allowed, reason = self:IsPublicChatAllowed(chatType)
-        if not allowed then
-            return true, reason or "automatic public chat restriction"
-        end
-    end
-
-    return false, nil
-end
-
-function QuestAnnounce:GetChannelNameSafe(channelName)
-    if type(GetChannelName) ~= "function" then
-        return nil
-    end
-
-    local ok, id = pcall(GetChannelName, channelName)
-    if ok then
-        return id
-    end
-
-    self:SendDebugMsg("GetChannelName failed safely :: " .. tostring(channelName) .. " :: " .. tostring(id))
-    return nil
-end
-
-function QuestAnnounce:JoinTemporaryChannelSafe(channelName)
-    if type(channelName) ~= "string" or channelName == "" then
-        return false, "no channel"
-    end
-
-    local restricted, reason = self:IsChatSendRestricted("CHANNEL")
-    if restricted then
-        self:SendDebugMsg("JoinTemporaryChannel skipped by WoW restriction :: " .. tostring(reason) .. " :: " .. tostring(channelName))
-        return false, reason
-    end
-
-    if type(JoinTemporaryChannel) ~= "function" then
-        return false, "JoinTemporaryChannel unavailable"
-    end
-
-    local ok, result = pcall(JoinTemporaryChannel, channelName)
-    if not ok then
-        self:SendDebugMsg("JoinTemporaryChannel failed safely :: " .. tostring(channelName) .. " :: " .. tostring(result))
-        return false, result
-    end
-
-    return true, result
-end
-
-function QuestAnnounce:SendChatMessageSafe(msg, chatType, languageID, target)
-    if not msg or msg == "" or not chatType or chatType == "" then
-        return false, "missing message or chat type"
-    end
-
-    local restricted, reason = self:IsChatSendRestricted(chatType)
-    if restricted then
-        self:SendDebugMsg("Chat send skipped by WoW restriction :: " .. tostring(chatType) .. " :: " .. tostring(reason) .. " :: " .. tostring(msg))
-        return false, reason
-    end
-
-    local sender = C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage
-    if type(sender) ~= "function" then
-        return false, "SendChatMessage unavailable"
-    end
-
-    local ok, result = pcall(sender, msg, chatType, languageID, target)
-    if not ok then
-        self:SendDebugMsg("Chat send failed safely :: " .. tostring(chatType) .. " :: " .. tostring(result))
-        return false, result
-    end
-
-    return true, result
-end
-
-function QuestAnnounce:AddUIErrorMessageSafe(msg, r, g, b, holdTime)
-    if not msg or msg == "" or not UIErrorsFrame or type(UIErrorsFrame.AddMessage) ~= "function" then
+-- DE: Nur lokale Fehleranzeige; unabhaengig vom Chatversand. Keine Hooks am Blizzard-Frame.
+-- EN: Local error display only, independent of chat sending. No hooks on Blizzard's frame.
+function QuestAnnounce:AddUIErrorMessageSafe(msg, r, g, b)
+    if not self:IsReadable(msg) or type(msg) ~= "string" or msg == "" or not UIErrorsFrame or type(UIErrorsFrame.AddMessage) ~= "function" then
         return false
     end
 
-    local ok, result = pcall(UIErrorsFrame.AddMessage, UIErrorsFrame, msg, r, g, b, holdTime)
+    -- DE: AddMessage erwartet Alpha, dann optional messageID, keine Anzeigedauer.
+    -- EN: AddMessage expects alpha, then optional messageID, not display duration.
+    local ok, result = pcall(UIErrorsFrame.AddMessage, UIErrorsFrame, msg, r or 1, g or 1, b or 0, 1)
     if not ok then
         self:SendDebugMsg("UIErrorsFrame:AddMessage failed safely :: " .. tostring(result))
         return false
@@ -1750,7 +1792,7 @@ function QuestAnnounce:InitializeAddonRaidNoticeFrame()
 end
 
 function QuestAnnounce:AddRaidNoticeMessageSafe(msg)
-    if not msg or msg == "" then
+    if not self:IsReadable(msg) or type(msg) ~= "string" or msg == "" then
         return false
     end
 
@@ -1763,171 +1805,6 @@ function QuestAnnounce:AddRaidNoticeMessageSafe(msg)
     if not ok then
         self:SendDebugMsg("Addon raid notice AddMessage failed safely :: " .. tostring(result))
         return false
-    end
-
-    return true
-end
-
-function QuestAnnounce:HasConfiguredChatDestination(announceIn)
-    return announceIn
-        and (announceIn.say
-            or announceIn.party
-            or announceIn.instance
-            or announceIn.guild
-            or announceIn.officer
-            or announceIn.focus
-            or announceIn.whisper
-            or announceIn.channel)
-end
-
-function QuestAnnounce:QueuePendingCombatChatMessage(msg)
-    if not msg or msg == "" then
-        return
-    end
-
-    local now = type(GetTime) == "function" and GetTime() or 0
-    self.pendingCombatChatMessage = {
-        msg = msg,
-        queuedAt = now,
-    }
-    self:SendDebugMsg("Combat chat message queued :: " .. tostring(msg))
-end
-
-function QuestAnnounce:FlushPendingCombatChatMessage()
-    local pending = self.pendingCombatChatMessage
-    self.pendingCombatChatMessage = nil
-
-    if not pending or not pending.msg or pending.msg == "" then
-        return
-    end
-
-    local now = type(GetTime) == "function" and GetTime() or 0
-    local queuedAt = tonumber(pending.queuedAt) or 0
-    local age = now - queuedAt
-    if age < 0 or age > COMBAT_CHAT_REPLAY_WINDOW_SECONDS then
-        self:SendDebugMsg("Combat chat message expired :: age=" .. tostring(age) .. " :: " .. tostring(pending.msg))
-        return
-    end
-
-    if not self.db or not self.db.profile or not self.db.profile.settings then
-        return
-    end
-    if not self.db.profile.settings.enable or self.db.profile.settings.paused then
-        return
-    end
-
-    local announceTo = self.db.profile.announceTo
-    local announceIn = self.db.profile.announceIn
-    if not announceTo or not announceTo.chatFrame or not self:HasConfiguredChatDestination(announceIn) then
-        return
-    end
-
-    -- DE: Allgemeine Sperren vor der Wiedergabe erneut prüfen; Regeln für
-    -- öffentliche Kanäle werden danach pro Ziel in DispatchChatOutputs geprüft.
-    -- EN: Re-check general restrictions before replay; public-channel rules are
-    -- still evaluated per destination in DispatchChatOutputs.
-    local restricted, reason = self:IsChatSendRestricted("PARTY")
-    if restricted then
-        self:SendDebugMsg("Combat chat message discarded after combat :: " .. tostring(reason) .. " :: " .. tostring(pending.msg))
-        return
-    end
-
-    self:SendDebugMsg("Combat chat message replay attempted :: age=" .. tostring(age) .. " :: " .. tostring(pending.msg))
-    self:DispatchChatOutputs(pending.msg, false)
-end
-
-function QuestAnnounce:DispatchChatOutputs(msg, allowCombatQueue)
-    local announceIn = self.db and self.db.profile and self.db.profile.announceIn
-    local announceTo = self.db and self.db.profile and self.db.profile.announceTo
-    if not announceIn or not announceTo or not announceTo.chatFrame or not self:HasConfiguredChatDestination(announceIn) then
-        return false, "no configured chat destination"
-    end
-
-    if type(InCombatLockdown) == "function" then
-        local ok, inCombat = pcall(InCombatLockdown)
-        if ok and inCombat then
-            if allowCombatQueue ~= false then
-                self:QueuePendingCombatChatMessage(msg)
-            end
-            return false, "combat lockdown"
-        end
-    end
-
-    -- SAY
-    if announceIn.say then
-        if self:SendChatMessageSafe(msg, "SAY") then
-            self:SendDebugMsg("QuestAnnounce:SendMsg(SAY) :: " .. msg)
-        end
-    end
-
-    -- PARTY
-    if announceIn.party and IsInGroup(LE_PARTY_CATEGORY_HOME) then
-        if self:SendChatMessageSafe(msg, "PARTY") then
-            self:SendDebugMsg("QuestAnnounce:SendMsg(PARTY) :: " .. msg)
-        end
-    end
-
-    -- INSTANCE_CHAT
-    if announceIn.instance and IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
-        if self:SendChatMessageSafe(msg, "INSTANCE_CHAT") then
-            self:SendDebugMsg("QuestAnnounce:SendMsg(INSTANCE) :: " .. msg)
-        end
-    end
-
-    -- GUILD
-    if announceIn.guild and IsInGuild() then
-        if self:SendChatMessageSafe(msg, "GUILD") then
-            self:SendDebugMsg("QuestAnnounce:SendMsg(GUILD) :: " .. msg)
-        end
-    end
-
-    -- OFFICER
-    if announceIn.officer and IsInGuild() then
-        if self:SendChatMessageSafe(msg, "OFFICER") then
-            self:SendDebugMsg("QuestAnnounce:SendMsg(OFFICER) :: " .. msg)
-        end
-    end
-
-    -- FOCUS wird als Whisper an das Fokusziel gesendet
-    if announceIn.focus then
-        if UnitExists("focus") then
-            local name = UnitName("focus")
-            if name and self:SendChatMessageSafe(msg, "WHISPER", nil, name) then
-                self:SendDebugMsg("QuestAnnounce:SendMsg(FOCUS->WHISPER) :: " .. msg)
-            end
-        else
-            self:NotifySelf(L["No focus set, message not sent."], false)
-        end
-    end
-
-    -- WHISPER
-    if announceIn.whisper then
-        local who = announceIn.whisperWho
-        if who ~= nil and who ~= "" then
-            if self:SendChatMessageSafe(msg, "WHISPER", nil, who) then
-                self:SendDebugMsg("QuestAnnounce:SendMsg(WHISPER) :: " .. who .. "-" .. msg)
-            end
-        end
-    end
-
-    -- Benutzerdefinierter CHANNEL
-    if announceIn.channel then
-        if announceIn.channelName and announceIn.channelName ~= "" then
-            local id = self:GetChannelNameSafe(announceIn.channelName)
-
-            if not id or id == 0 then
-                self:JoinTemporaryChannelSafe(announceIn.channelName)
-                id = self:GetChannelNameSafe(announceIn.channelName)
-            end
-
-            if id and id > 0 then
-                if self:SendChatMessageSafe(msg, "CHANNEL", nil, id) then
-                    self:SendDebugMsg("QuestAnnounce:SendMsg(CHANNEL) :: " .. msg)
-                end
-            end
-        else
-            self:NotifySelf(L["No channel set."], false)
-        end
     end
 
     return true
@@ -1950,8 +1827,9 @@ function QuestAnnounce:SendMsg(msg, isComplete, soundOverrideEvent)
 end
 
 function QuestAnnounce:DispatchMsg(msg, isComplete, soundOverrideEvent)
-    -- Sicherheitsabbruch, wenn keine Nachricht vorhanden ist
-    if not msg then
+    -- DE: Auch lokale Ausgaben und Debugtext vor geheimen oder ungueltigen Werten schuetzen.
+    -- EN: Protect local outputs and debug text from secret or invalid values too.
+    if not self:IsReadable(msg) or type(msg) ~= "string" or msg == "" then
         return
     end
 
@@ -1983,7 +1861,7 @@ function QuestAnnounce:DispatchMsg(msg, isComplete, soundOverrideEvent)
 
     -- Nachricht zusätzlich im UIErrorsFrame anzeigen
     if allowSelfOutput and announceTo.uiErrorsFrame then
-        self:AddUIErrorMessageSafe(msg, 1.0, 1.0, 0.0, 7)
+        self:AddUIErrorMessageSafe(msg, 1.0, 1.0, 0.0)
     end
 
     -- DE: Geordnete Sound-Ausgabe ohne Sound-Flut / EN: Ordered sound output without sound spam.
