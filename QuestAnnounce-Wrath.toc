@@ -3,7 +3,7 @@
 # DE: Historisches Wrath erhalten; Titan Reforged (China) verwendet 38002.
 # EN: Retain historical Wrath; Titan Reforged (China) uses 38002.
 ## Title: Quest Announce 3
-## Version: 9.3.0.11
+## Version: 9.3.0.12-Rc1
 ## X-Curse-Project-ID: 3607
 ## X-WoWI-ID: 11002
 ## Author: Michael Irving (original), Sommy aka Gyffes(Gilneas) (WoW 2.4), Kotenuki aka Cinnabuns(Doomhammer) (WoW 4.0+)

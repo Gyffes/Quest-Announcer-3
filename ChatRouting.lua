@@ -2,7 +2,31 @@ local QA = QuestAnnounce
 local routes = {say="SAY", party="PARTY", instance="INSTANCE_CHAT", raid="RAID",
     emote="EMOTE", guild="GUILD", officer="OFFICER", whisper="WHISPER", focus="WHISPER", channel="CHANNEL"}
 local TTL, INTERVAL = 10, 1
-local routeOrder={"say", "party", "instance", "raid", "emote", "guild", "officer", "focus", "whisper", "channel"}
+local routeOrder={"say", "party", "instance", "raid", "emote", "guild", "officer", "focus", "whisper", "channel", "group"}
+local groupRoutes={party=true,raid=true,instance=true}
+local groupPresets={
+    INSTANCE_RAID_PARTY={"instance","raid","party"}, RAID_INSTANCE_PARTY={"raid","instance","party"},
+    INSTANCE_PARTY_RAID={"instance","party","raid"}, RAID_PARTY_INSTANCE={"raid","party","instance"},
+    PARTY_INSTANCE_RAID={"party","instance","raid"}, PARTY_RAID_INSTANCE={"party","raid","instance"},
+}
+local presetOrder={"INSTANCE_RAID_PARTY","RAID_INSTANCE_PARTY","INSTANCE_PARTY_RAID",
+    "RAID_PARTY_INSTANCE","PARTY_INSTANCE_RAID","PARTY_RAID_INSTANCE"}
+
+-- DE: Nur stabile Preset-IDs speichern; lokalisierte Namen dienen nur der Anzeige.
+-- EN: Store stable preset IDs only; localized names are presentation, not profile data.
+function QA:GetGroupPriorityID(value)
+    return type(value)=="string" and groupPresets[value] and value or "INSTANCE_RAID_PARTY"
+end
+function QA:GetGroupPriorityChoices()
+    local L=QuestAnnounce_L[GetLocale()] or QuestAnnounce_L.enUS
+    local labels={instance=L["Instance"],raid=L["Raid"],party=L["Party"]}
+    local choices={}
+    for _,id in ipairs(presetOrder) do
+        local p=groupPresets[id]
+        choices[#choices+1]={value=id,text=labels[p[1]] .. " > " .. labels[p[2]] .. " > " .. labels[p[3]]}
+    end
+    return choices
+end
 
 -- DE: Geheime Werte vor Typ-, Vergleichs- oder Stringoperationen aussortieren.
 -- EN: Reject secret values before type checks, comparisons or string operations.
@@ -46,12 +70,9 @@ end
 
 -- DE: Gemeinsame Sperren und Kanalregeln; fehlende/unsichere Abfragen geben keine Freigabe.
 -- EN: Shared restrictions and channel rules; missing/unsafe queries never grant permission.
-function QA:IsChatSendRestricted(chatType)
-    -- DE: Nach einem eigenen Schutzfehler diesen Kanal bis zum Reload nicht erneut versuchen.
-    -- EN: After our own protected failure, do not retry this channel until reload.
-    if self.chatBlockedChannels and self.chatBlockedChannels[chatType] then
-        return true, "previous protected send", false
-    end
+-- DE: Globale und unklare Sperren betreffen jeden Kandidaten, nicht nur den ersten Kanal.
+-- EN: Global/unknown restrictions affect every candidate, not just the first channel.
+function QA:GetGlobalChatRestriction()
     local locked, err = self:ReadChatAPI(C_ChatInfo and C_ChatInfo.InChatMessagingLockdown)
     if locked == true then return true, "chat messaging lockdown", true end
     if locked == nil and not err then return true,"nil chat lockdown result",true end
@@ -72,18 +93,90 @@ function QA:IsChatSendRestricted(chatType)
     if combat and not self:HasMeasuredRetailChatPolicy() then
         return true, "unverified client combat fallback", true
     end
+    return false
+end
+
+-- DE: Vierter Rückgabewert trennt Kanal- von globalen Sperren, ohne alte Aufrufer zu ändern.
+-- EN: A fourth return value separates channel/global restrictions without changing old callers.
+function QA:IsChatSendRestricted(chatType)
+    -- DE: Nur ein tatsächlicher eigener Schutzfehler sperrt bis Reload, keine normale Vorab-Ablehnung.
+    -- EN: Only an actual own protection failure latches until reload, not an ordinary preflight rejection.
+    if self.chatBlockedChannels and self.chatBlockedChannels[chatType] then
+        return true, "previous protected send", false, "channel"
+    end
+    local restricted,reason,retry=self:GetGlobalChatRestriction()
+    if restricted then return true,reason,retry,"global" end
     if self:HasMeasuredRetailChatPolicy() and chatType == "GUILD" then
         -- DE: GUILD war auch bei Map=0/Chat=0 blockiert. Bis zur Klärung konservativ
         --     auslassen; Profilwahl erhalten. Dies ist keine allgemeine Blizzard-Regel.
         -- EN: GUILD was blocked even at Map=0/Chat=0. Conservatively skip it until
         --     resolved, preserving the profile choice. This is not a universal Blizzard rule.
-        return true, "guild automatic sending unverified", false
+        return true, "guild automatic sending unverified", false, "channel"
     end
     if self:IsPublicChatType(chatType) then
         local allowed, reason = self:IsPublicChatAllowed(chatType)
-        if not allowed then return true, reason, false end
+        if not allowed then return true, reason, false, "channel" end
     end
     return false
+end
+
+-- DE: Keine Probe senden. Nur aktivierte, passende und unabhängig erlaubte Kandidaten wählen.
+-- EN: Never probe by sending. Choose only enabled, eligible and independently permitted routes.
+function QA:SelectAutomaticGroupRoute(profile)
+    local blocked,reason,retry=self:GetGlobalChatRestriction()
+    if blocked then return nil,reason,retry end
+    local order=groupPresets[self:GetGroupPriorityID(profile.settings.groupChannelPriority)]
+    for _,key in ipairs(order) do
+        local eligible=false
+        if profile.announceIn[key] then
+            if key=="raid" then eligible=self:ReadChatAPI(IsInRaid)==true
+            elseif key=="instance" and LE_PARTY_CATEGORY_INSTANCE~=nil then
+                eligible=self:ReadChatAPI(IsInGroup,LE_PARTY_CATEGORY_INSTANCE)==true
+            elseif key=="party" and LE_PARTY_CATEGORY_HOME~=nil then
+                eligible=self:ReadChatAPI(IsInGroup,LE_PARTY_CATEGORY_HOME)==true
+                    and self:ReadChatAPI(IsInRaid,LE_PARTY_CATEGORY_HOME)==false
+            end
+        end
+        if eligible then
+            local restricted,why,later,scope=self:IsChatSendRestricted(routes[key])
+            if not restricted then return key end
+            if scope~="channel" then return nil,why,later end
+            self:ChatRecord("GROUP_CANDIDATE_SKIPPED",{channel=routes[key],reason=why})
+        end
+    end
+    return nil,"no eligible group route",false
+end
+function QA:GetGroupQueueSignature(profile)
+    local p=profile.announceIn
+    return self:GetGroupPriorityID(profile.settings.groupChannelPriority) .. ":"
+        .. tostring(p.raid==true) .. tostring(p.instance==true) .. tostring(p.party==true)
+end
+-- DE/EN: Nur betroffene Gruppenaufträge verwerfen / invalidate group work, not unrelated routes.
+function QA:InvalidateGroupChatQueue()
+    for _,key in ipairs({"group","party","raid","instance"}) do
+        if self.pendingChatRoutes then self.pendingChatRoutes[key]=nil end
+        if self.chatEventQueues then self.chatEventQueues[key]=nil end
+    end
+end
+
+-- DE: Abschlussereignisse begrenzt erhalten; normale Fortschritte bleiben Latest-wins.
+-- EN: Retain bounded milestone events; ordinary progress remains latest-wins.
+function QA:QueueChatRoute(key,item,metadata)
+    if type(metadata)~="table" or not metadata.eventID then self.pendingChatRoutes[key]=item; return end
+    self.chatEventQueues=self.chatEventQueues or {}
+    self.chatEventSeen=self.chatEventSeen or {}
+    local now=GetTime()
+    for token,expires in pairs(self.chatEventSeen) do if expires<=now then self.chatEventSeen[token]=nil end end
+    local token=key .. ":" .. tostring(metadata.eventID)
+    if self.chatEventSeen[token] then return end
+    local count=0
+    for _,queue in pairs(self.chatEventQueues) do count=count+#queue end
+    local queue=self.chatEventQueues[key] or {}
+    if #queue>=8 or count>=64 then self:ChatRecord("SKIPPED",{channel=routes[key],reason="milestone queue full"}); return end
+    item.metadata=metadata
+    queue[#queue+1]=item
+    self.chatEventQueues[key]=queue
+    self.chatEventSeen[token]=item.expires
 end
 function QA:GetChannelNameSafe(name)
     if not self:IsReadable(name) or type(name) ~= "string" or name == "" then return nil end
@@ -194,7 +287,12 @@ function QA:IsChatRouteAvailable(key, target)
     return true
 end
 function QA:ClearPendingChat(reason)
+    if reason=="pause changed" or reason=="enable changed" or reason=="profile changed" or reason=="player died" then
+        self:ResetObjectiveAnnouncementBaseline()
+    end
     self.pendingChatRoutes = {}
+    self.chatEventQueues = {}
+    self.chatEventSeen = {}
     self.chatQueueGeneration = (self.chatQueueGeneration or 0) + 1
     self.chatWakeScheduled = nil
     self.chatWakeAt = nil
@@ -228,23 +326,42 @@ function QA:FlushPendingCombatChatMessage()
     for offset=0,#routeOrder-1 do
         local index=(start+offset-1)%#routeOrder+1
         local key=routeOrder[index]
-        local item = self.pendingChatRoutes and self.pendingChatRoutes[key]
+        local events=self.chatEventQueues and self.chatEventQueues[key]
+        local isEvent=events and #events>0
+        local item = isEvent and events[1] or self.pendingChatRoutes and self.pendingChatRoutes[key]
+        local consumed=false
+        local function consume()
+            consumed=true
+            if isEvent then table.remove(events,1) else self.pendingChatRoutes[key]=nil end
+        end
         if item then
+            local auto=profile.settings.autoGroupChannel==true
             local invalid = item.profile ~= profile or not profile.announceTo.chatFrame
-                or not profile.announceIn[key] or not self:IsChatRouteAvailable(key, item.target)
+                or (key~="group" and (not profile.announceIn[key] or not self:IsChatRouteAvailable(key, item.target)))
+                or (groupRoutes[key] and auto)
+                or (key=="group" and (not auto or item.groupSignature~=self:GetGroupQueueSignature(profile)
+                    or item.rosterGeneration~=(self.groupRosterGeneration or 0)))
+                or (item.metadata and self.IsObjectiveMessageCurrent and not self:IsObjectiveMessageCurrent(item.metadata))
                 or (key == "whisper" and profile.announceIn.whisperWho ~= item.target)
                 or (key == "channel" and profile.announceIn.channelName ~= item.target)
             if invalid or now >= item.expires then
-                self.pendingChatRoutes[key] = nil
+                consume()
                 self:ChatRecord(invalid and "SKIPPED" or "EXPIRED", {channel=routes[key], reason="route changed or expired"})
             else
                 -- DE: Aktive Diagnose reserviert die Sendeschritte; normale Ziele warten begrenzt.
                 -- EN: Active diagnostics reserve send slots; regular destinations wait within their TTL.
                 local ok, reason, retry
+                local chatType=routes[key]
                 if self.diagnosticSuite and (not self.diagnosticSuite.paired or self.diagnosticSuite.prepared) then
                     ok, reason, retry = false, "diagnostic suite", true
                 else
                     local target=item.target
+                    if key=="group" then
+                        local selected
+                        selected,reason,retry=self:SelectAutomaticGroupRoute(profile)
+                        if selected then chatType=routes[selected]
+                        else ok=false end
+                    end
                     if key == "channel" then target=self:GetChannelNameSafe(item.target) end
                     if key == "channel" and not target then
                         -- DE: Alten Beitritt auf erlaubten Clients erhalten; hoechstens einmal je Meldung.
@@ -260,11 +377,11 @@ function QA:FlushPendingCombatChatMessage()
                             if not target then ok,reason,retry=false,"channel join pending",true end
                         end
                     end
-                    if ok == nil then ok, reason, retry = self:SendChatMessageSafe(item.msg, routes[key], nil, target) end
+                    if ok == nil then ok, reason, retry = self:SendChatMessageSafe(item.msg, chatType, nil, target) end
                 end
-                if ok or not retry then self.pendingChatRoutes[key] = nil end
+                if ok or not retry then consume() end
                 if ok then self.nextChatRouteIndex=index%#routeOrder+1 end
-                self:ChatRecord(ok and "ATTEMPT_COMPLETED" or (retry and "DEFERRED" or "SKIPPED"), {channel=routes[key], reason=reason})
+                self:ChatRecord(ok and "ATTEMPT_COMPLETED" or (retry and "DEFERRED" or "SKIPPED"), {channel=chatType, reason=reason})
                 if not ok and retry then
                     local delay = item.expires - now
                     if reason == "send spacing" then delay = math.min(delay, math.max(.05, (self.nextChatSendAt or now) - now)) end
@@ -272,19 +389,27 @@ function QA:FlushPendingCombatChatMessage()
                     nextWake = math.min(nextWake or delay, delay)
                 end
             end
+            if isEvent and consumed and (#events>0 or (self.pendingChatRoutes and self.pendingChatRoutes[key])) then
+                local delay=math.max(.05,(self.nextChatSendAt or now)-now)
+                nextWake=math.min(nextWake or delay,delay)
+            end
         end
     end
     if nextWake then self:ScheduleChatWake(nextWake) end
 end
-function QA:DispatchChatOutputs(msg)
+function QA:DispatchChatOutputs(msg,metadata)
     local p = self.db and self.db.profile
     if not p or not p.settings.enable or p.settings.paused or not p.announceTo.chatFrame then
         self:ClearPendingChat("chat disabled") return false
     end
     if not self:ValidChatText(msg) then self:ChatRecord("SKIPPED", {reason="invalid message"}) return false end
     self.pendingChatRoutes = self.pendingChatRoutes or {}
+    if p.settings.autoGroupChannel==true then
+        self:QueueChatRoute("group",{msg=msg,profile=p,expires=GetTime()+TTL,
+            groupSignature=self:GetGroupQueueSignature(p),rosterGeneration=self.groupRosterGeneration or 0},metadata)
+    end
     for key in pairs(routes) do
-        if p.announceIn[key] then
+        if p.announceIn[key] and not (p.settings.autoGroupChannel==true and groupRoutes[key]) then
             local target
             if key == "whisper" then target=p.announceIn.whisperWho
             elseif key == "focus" then target=self:GetFocusWhisperTarget()
@@ -293,7 +418,7 @@ function QA:DispatchChatOutputs(msg)
                 -- DE: Gleicher Empfaenger bei Fokus und Whisper bekommt nur eine Meldung.
                 -- EN: A recipient selected by both Focus and Whisper receives only one message.
                 if key ~= "focus" or not p.announceIn.whisper or p.announceIn.whisperWho ~= target then
-                    self.pendingChatRoutes[key] = {msg=msg, target=target, profile=p, expires=GetTime()+TTL}
+                    self:QueueChatRoute(key,{msg=msg, target=target, profile=p, expires=GetTime()+TTL},metadata)
                 else self.pendingChatRoutes[key]=nil end
             else
                 self:ChatRecord("SKIPPED", {channel=routes[key], reason="missing destination prerequisites"})
@@ -317,6 +442,10 @@ for _, event in ipairs({"ADDON_RESTRICTION_STATE_CHANGED", "ENCOUNTER_END", "PLA
     pcall(frame.RegisterEvent, frame, event)
 end
 frame:SetScript("OnEvent", function(_, event, arg1, arg2)
+    if event=="GROUP_ROSTER_UPDATE" or event=="PLAYER_ENTERING_WORLD" then
+        -- DE/EN: Alte automatische Aufträge nicht in neue Gruppen senden / never reroute old jobs into a new group.
+        QA.groupRosterGeneration=(QA.groupRosterGeneration or 0)+1
+    end
     if event == "PLAYER_DEAD" then
         -- DE: Nach dem Tod keine alten Fortschrittsmeldungen oder aktiven Tests nachholen.
         -- EN: Do not replay old progress or resume active tests after death.

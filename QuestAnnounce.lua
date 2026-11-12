@@ -330,6 +330,10 @@ local defaults = {
             soloMuteSelfMessagesOnly = false, -- DE: Eigene Meldungen nur solo stummschalten / EN: Mute self messages only while solo
             showLocalProgressMessages = true, -- DE: Lokale Fortschrittstexte anzeigen / EN: Show local progress texts
             every = 1,              -- Benachrichtigungsfrequenz
+            -- DE/EN: Neue Funktionen nur nach ausdrücklicher Wahl / New features are opt-in.
+            announceObjectiveCompletionAtZero = false,
+            autoGroupChannel = false,
+            groupChannelPriority = "INSTANCE_RAID_PARTY",
             sound = true,           -- Soundbenachrichtigungen aktiviert
 			progressSound = 8959,     -- Standard: UI Quest Progress
 			completeSound = 6197,    -- Standard: Quest Complete
@@ -548,7 +552,12 @@ end
 -- EN: Backfills active and saved profiles with all current defaults while
 -- preserving every existing user value.
 function QuestAnnounce:ApplyProfileDefaults(profile)
-    return DeepMergeDefaults(type(profile) == "table" and profile or {}, defaults.profile)
+    local result=DeepMergeDefaults(type(profile) == "table" and profile or {}, defaults.profile)
+    result.settings.announceObjectiveCompletionAtZero=result.settings.announceObjectiveCompletionAtZero==true
+    result.settings.autoGroupChannel=result.settings.autoGroupChannel==true
+    result.settings.groupChannelPriority=self.GetGroupPriorityID and self:GetGroupPriorityID(result.settings.groupChannelPriority)
+        or "INSTANCE_RAID_PARTY"
+    return result
 end
 
 
@@ -579,6 +588,7 @@ end
 QuestAnnounce:RegisterEvent("ADDON_LOADED")											-- Register Event Addon Laden
 QuestAnnounce:RegisterEvent("QUEST_LOG_UPDATE")										-- Register Event Quest Log Update
 QuestAnnounce:RegisterEvent("QUEST_ACCEPTED")                                         -- DE: Quest angenommen / EN: Quest accepted
+pcall(QuestAnnounce.RegisterEvent,QuestAnnounce,"QUEST_REMOVED")                       -- DE/EN: Entfernte Ziele verwerfen / Forget removed quest instances.
 QuestAnnounce:RegisterEvent("QUEST_TURNED_IN")                                        -- DE: Quest abgegeben / EN: Quest turned in
 QuestAnnounce:RegisterEvent("QUEST_PROGRESS")                                         -- DE/EN: Questfortschritt im Dialog (Turn-In-Kontext)
 QuestAnnounce:RegisterEvent("QUEST_COMPLETE")                                         -- DE/EN: Questabschlussdialog (Turn-In-Kontext)
@@ -634,21 +644,23 @@ end
 -- abgegeben wurde. Das geschieht unabhängig davon, ob ein Abgabe-Sound erlaubt ist.
 -- EN: Clears completion and retry state once a quest was actually turned in,
 -- regardless of whether turn-in sound playback is allowed.
-function QuestAnnounce:ClearQuestCompletionState(questID)
+function QuestAnnounce:ClearQuestCompletionState(questID,expectedLifecycle)
     if not questID then
         return
     end
+    if expectedLifecycle~=nil and expectedLifecycle~=((self.questLifecycleGeneration or {})[questID] or 0) then return end
 
     self.questCompletionAnnounced[questID] = nil
     self.questCompletionAnnouncedAt[questID] = nil
     self.pendingCompletionRecheck[questID] = nil
+    self:ForgetObjectiveQuest(questID)
 end
 
 -- DE: Fuehrt die bestehende Abgabeentscheidung ausserhalb des synchronen
 -- QUEST_TURNED_IN-/Cinematic-Aufrufstacks aus.
 -- EN: Runs the existing turn-in decision outside the synchronous
 -- QUEST_TURNED_IN/cinematic call stack.
-function QuestAnnounce:HandleQuestTurnedIn(questID)
+function QuestAnnounce:HandleQuestTurnedIn(questID,expectedLifecycle)
     local hasManualIntent, intentReason = self:IsRecentManualTurnInIntent(questID)
     if hasManualIntent then
         -- DE: Ein passender Intent gilt nur einmal und darf eine schnell
@@ -674,7 +686,7 @@ function QuestAnnounce:HandleQuestTurnedIn(questID)
     if allowByManualIntent or allowByAutoSetting or allowByContextFallback then
         if questID and self.turnInSoundHistory and self.turnInSoundHistory[questID] and (now - self.turnInSoundHistory[questID]) < 10 then
             self:SendDebugMsg("turn-in sound skipped duplicate :: questID=" .. tostring(questID) .. " :: dt=" .. string.format("%.2fs", now - self.turnInSoundHistory[questID]))
-            self:ClearQuestCompletionState(questID)
+            self:ClearQuestCompletionState(questID,expectedLifecycle)
             return
         end
         local decision = string.format(
@@ -711,14 +723,15 @@ function QuestAnnounce:HandleQuestTurnedIn(questID)
         )
     end
 
-    self:ClearQuestCompletionState(questID)
+    self:ClearQuestCompletionState(questID,expectedLifecycle)
 end
 
 function QuestAnnounce:DeferQuestTurnedIn(questID)
+    local lifecycle=(self.questLifecycleGeneration or {})[questID] or 0
     if C_Timer and type(C_Timer.After) == "function" then
         C_Timer.After(0, function()
             if QuestAnnounce and QuestAnnounce.HandleQuestTurnedIn then
-                QuestAnnounce:HandleQuestTurnedIn(questID)
+                QuestAnnounce:HandleQuestTurnedIn(questID,lifecycle)
             end
         end)
         return
@@ -753,6 +766,13 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
     end
     if event == "QUEST_ACCEPTED" then
         self:PlayConfiguredSound("accept")
+        local acceptedID=self:ResolveAcceptedQuestID(arg1,arg2)
+        if acceptedID then self:ClearQuestCompletionState(acceptedID) end
+        self:ScheduleObjectiveScan()
+        return
+    end
+    if event == "QUEST_REMOVED" then
+        if self:IsReadable(arg1) then self:ClearQuestCompletionState(tonumber(arg1)) end
         return
     end
     -- DE: Manual-Intent ausschliesslich aus Quest-Events erfassen. Nachhooks auf
@@ -766,7 +786,9 @@ QuestAnnounce:SetScript("OnEvent", function(self, event, arg1, arg2, arg3, arg4,
         return
     end
     if event == "QUEST_TURNED_IN" then
+        if not self:IsReadable(arg1) then return end
         local questID = tonumber(arg1)
+        self:ForgetObjectiveQuest(questID)
         self:DeferQuestTurnedIn(questID)
         return
     end
@@ -995,20 +1017,207 @@ end
 -- ==============================
 -- Quest- und Ziel-Cache / Quest and objective cache
 -- ==============================
+-- DE: Moderne Quest-ID zuerst abgleichen; alten Log-Index nur als Rückfall verwenden.
+-- EN: Match the modern quest ID first; use a legacy log index only as a fallback.
+function QuestAnnounce:ResolveAcceptedQuestID(first,second)
+    local ok,count=pcall(QA_QuestLog.GetNumQuestLogEntries)
+    if not ok or not self:IsReadable(count) or type(count)~="number" or count<0 or count>1000 then return nil end
+    if not self:IsReadable(first) or not self:IsReadable(second) then return nil end
+    local candidate=tonumber(second) or tonumber(first)
+    local legacyID
+    for index=1,count do
+        local readable,info=pcall(QA_QuestLog.GetInfo,index)
+        if readable and self:IsReadable(info) and type(info)=="table" and self:IsReadable(info.questID)
+            and type(info.questID)=="number" and info.questID>0 and info.questID<math.huge then
+            if info.questID==candidate then return info.questID end
+            if second==nil and index==first then legacyID=info.questID end
+        end
+    end
+    return legacyID
+end
+-- DE: Kontextwechsel beginnen mit einem Snapshot, nie mit nachgeholten Zielmeldungen.
+-- EN: Context changes establish a baseline, never a replay of already completed objectives.
+function QuestAnnounce:GetObjectiveAnnouncementContext()
+    local p=self.db and self.db.profile
+    local s=p and p.settings
+    if not s or not s.enable or s.paused or not s.announceObjectiveCompletionAtZero
+        or tonumber(s.every)~=0 then return nil end
+    local parts={}
+    for _,key in ipairs({"normal","world","trivial","campaign","story"}) do
+        parts[#parts+1]=tostring(not p.questTypeFilters or p.questTypeFilters[key]~=false)
+    end
+    return table.concat(parts,":")
+end
+-- DE/EN: Annahme-Generation erhöhen, damit alte Timer ungültig werden / invalidate old instance timers.
+function QuestAnnounce:ForgetObjectiveQuest(questID)
+    if not questID then return end
+    if self.objectiveCompletionState then self.objectiveCompletionState[questID]=nil end
+    self.questLifecycleGeneration=self.questLifecycleGeneration or {}
+    self.questLifecycleGeneration[questID]=(self.questLifecycleGeneration[questID] or 0)+1
+end
+-- DE: Nur neue Zielzustände invalidieren, ohne Profile oder normale Fortschritte zu löschen.
+-- EN: Invalidate only new objective state, preserving profiles and ordinary progress.
+function QuestAnnounce:ResetObjectiveAnnouncementBaseline()
+    self.objectiveCompletionState={}
+    self.objectiveTrackingContext=nil
+    self.objectiveTrackingProfile=nil
+end
+-- DE: Einmal pro Event-Zyklus nachlesen; keine dauernde Polling-Schleife.
+-- EN: Coalesce event-driven rereads; never install continuous polling.
+function QuestAnnounce:ScheduleObjectiveScan()
+    local context=self:GetObjectiveAnnouncementContext()
+    if not context then return end
+    if not C_Timer or type(C_Timer.After)~="function" then return end
+    self.objectiveScanSerial=(self.objectiveScanSerial or 0)+1
+    local serial,profile=self.objectiveScanSerial,self.db.profile
+    for _,delay in ipairs({0,.20,.60,1.20}) do
+        C_Timer.After(delay,function()
+            if serial==self.objectiveScanSerial and profile==self.db.profile
+                and context==self:GetObjectiveAnnouncementContext() then self:BuildQuestCache() end
+        end)
+    end
+end
+-- DE: Nur lesbare, eindeutig identifizierbare API-Ziele übernehmen; Counts nie erraten.
+-- EN: Snapshot only readable, identifiable API objectives; never invent missing counts.
+function QuestAnnounce:ReadObjectiveSnapshot(questID)
+    local ok,raw=pcall(QA_QuestLog.GetQuestObjectives,questID)
+    if not ok or not self:IsReadable(raw) or type(raw)~="table" or #raw==0 or #raw>128 then return nil end
+    local rows,completedCounts={},{}
+    for _,objective in ipairs(raw) do
+        if not self:IsReadable(objective) or type(objective)~="table" then return nil end
+        local text,kind,finished=objective.text,objective.type,objective.finished
+        local current,required=objective.numFulfilled,objective.numRequired
+        for _,value in pairs({text=text,kind=kind,finished=finished,current=current,required=required}) do
+            if not self:IsReadable(value) then return nil end
+        end
+        if type(text)~="string" or text=="" or (kind~=nil and type(kind)~="string") then return nil end
+        current,required=tonumber(current),tonumber(required)
+        local numeric=current and required and current==current and required==required
+            and current>=0 and current<math.huge and required>0 and required<math.huge
+        if type(finished)~="boolean" and not numeric then return nil end
+        -- DE: Eindeutige Texte bleiben beim Umsortieren stabil; identische Ziele nach Erfüllungsanzahl behandeln.
+        -- EN: Unique labels survive reordering; handle indistinguishable duplicates by completed count.
+        local identity=(kind or "") .. ":" .. self:NormalizeQuestTitle(text)
+        local done=finished==true or (numeric and current>=required) or false
+        if done then completedCounts[identity]=(completedCounts[identity] or 0)+1 end
+        rows[#rows+1]={identity=identity,text=text,finished=done}
+    end
+    local occurrences={}
+    for _,row in ipairs(rows) do
+        local counts=occurrences[row.identity] or {done=0,pending=0}
+        occurrences[row.identity]=counts
+        local status=row.finished and "done" or "pending"
+        counts[status]=counts[status]+1
+        local rank=row.finished and counts.done or (completedCounts[row.identity] or 0)+counts.pending
+        row.key=row.identity .. ":" .. rank
+    end
+    return rows
+end
+-- DE: Async-Ausgaben gelten nur für dasselbe Profil, denselben Kontext und dieselbe Questannahme.
+-- EN: Async output belongs to one profile, context and quest instance; stale work is discarded.
+function QuestAnnounce:IsObjectiveMessageCurrent(metadata)
+    if not metadata.objectiveQuest then return true end
+    local state=self.objectiveCompletionState and self.objectiveCompletionState[metadata.objectiveQuest]
+    return state~=nil and state.epoch==metadata.objectiveEpoch and metadata.profile==(self.db and self.db.profile)
+        and metadata.objectiveContext==self:GetObjectiveAnnouncementContext()
+        and metadata.lifecycle==((self.questLifecycleGeneration or {})[metadata.objectiveQuest] or 0)
+end
+-- DE: Genau ein logisches Ereignis mit getrennten lokalen/Chat-Links und Soundpriorität erzeugen.
+-- EN: Create one logical milestone with separate local/chat links and sound priority.
+function QuestAnnounce:EmitObjectiveMilestone(questID,info,text,whole,silent)
+    local state=self.objectiveCompletionState[questID]
+    self.objectiveMessageSerial=(self.objectiveMessageSerial or 0)+1
+    local metadata={eventID="objective-" .. self.objectiveMessageSerial,profile=self.db.profile,
+        objectiveQuest=questID,objectiveEpoch=state.epoch,objectiveContext=self:GetObjectiveAnnouncementContext(),
+        lifecycle=(self.questLifecycleGeneration or {})[questID] or 0,silentSound=silent}
+    local chatTitle=self:BuildQuestLink(questID,info.title,info.level)
+    local localTitle=self:BuildLocalQuestAddonLink(questID,info.title)
+    local chatText=whole and (L["Completed: "] .. chatTitle)
+        or string.format(L["Objective completed: %s %s"],chatTitle,text)
+    local localText=whole and (L["Completed: "] .. localTitle)
+        or string.format(L["Objective completed: %s %s"],localTitle,text)
+    if self:ShouldShowLocalProgressMessages() then self:NotifySelf(localText,false) end
+    self:SendMsg(chatText,whole,"complete",metadata)
+end
+-- DE: Zustand bleibt über Cache-Neuaufbauten erhalten; erste Beobachtung ist immer still.
+-- EN: State survives cache rebuilds; first observation is always silent.
+function QuestAnnounce:ProcessObjectiveCompletions(quests)
+    local context=self:GetObjectiveAnnouncementContext()
+    local profile=self.db and self.db.profile
+    if not context then
+        self.objectiveCompletionState={}; self.objectiveTrackingContext=nil; self.objectiveTrackingProfile=nil
+        return
+    end
+    if context~=self.objectiveTrackingContext or profile~=self.objectiveTrackingProfile then
+        self.objectiveCompletionState={}
+        self.objectiveTrackingContext=context; self.objectiveTrackingProfile=profile
+    end
+    local states=self.objectiveCompletionState or {}
+    self.objectiveCompletionState=states
+    for questID in pairs(states) do if not quests[questID] then self:ForgetObjectiveQuest(questID) end end
+    for questID,info in pairs(quests) do
+        local rows=self:ReadObjectiveSnapshot(questID)
+        -- DE: Gesamtabschluss bleibt auch für Quests ohne Zielzeilen möglich, wenn die Client-API ihn belegt.
+        -- EN: Preserve whole-quest completion without objective rows when the client API confirms it.
+        local nativeComplete=self:ReadChatAPI(QA_QuestLog.IsComplete,questID)
+        if rows or type(nativeComplete)=="boolean" then
+            local state=states[questID]
+            local baseline=not state
+            if not state then
+                self.objectiveEpochSerial=(self.objectiveEpochSerial or 0)+1
+                state={epoch=self.objectiveEpochSerial,rows={},announced={}}
+                states[questID]=state
+            end
+            local allowed=self:ReadChatAPI(self.IsQuestTypeAllowed,self,questID,info.index)==true
+            local changed,newRows={},{}
+            local allFinished=rows~=nil
+            for _,row in ipairs(rows or {}) do
+                local previous=state.rows[row.key]
+                if not row.finished then allFinished=false end
+                if row.finished and not state.announced[row.key] then
+                    if not baseline and previous==false and allowed then changed[#changed+1]=row.text end
+                    state.announced[row.key]=true
+                end
+                newRows[row.key]=row.finished
+            end
+            if rows then state.rows=newRows end
+            local complete=nativeComplete==true or (allFinished and self:ReadChatAPI(self.IsQuestCompleteByObjectives,self,questID)==true)
+            local announceWhole=not baseline and complete and not state.whole and allowed
+                and not self.questCompletionAnnounced[questID]
+            for index,text in ipairs(changed) do
+                self:EmitObjectiveMilestone(questID,info,text,false,announceWhole or index<#changed)
+            end
+            if complete then state.whole=true end
+            if announceWhole then
+                self.questCompletionAnnounced[questID]=true
+                self.questCompletionAnnouncedAt[questID]=GetTime and GetTime() or 0
+                self:EmitObjectiveMilestone(questID,info,nil,true,false)
+            end
+        end
+    end
+end
+
 function QuestAnnounce:BuildQuestCache()
+    local countOK,numEntries=pcall(QA_QuestLog.GetNumQuestLogEntries)
+    if not countOK or not self:IsReadable(numEntries) or type(numEntries)~="number"
+        or numEntries~=numEntries or numEntries<0 or numEntries>1000 then return end
     wipe(self.questCache)
     wipe(self.objectiveCache)
 
     local questCount = 0
     local objectiveCount = 0
-    local numEntries = QA_QuestLog.GetNumQuestLogEntries()
     local activeQuestIDs = {}
+    local objectiveQuests = {}
 
     for i = 1, numEntries do
-        local info = QA_QuestLog.GetInfo(i)
+        local infoOK,info = pcall(QA_QuestLog.GetInfo,i)
 
-        if info and info.title and info.questID and not info.isHeader then
+        if infoOK and self:IsReadable(info) and type(info)=="table" and self:IsReadable(info.title)
+            and type(info.title)=="string" and self:IsReadable(info.questID) and type(info.questID)=="number"
+            and info.questID>0 and info.questID<math.huge and self:IsReadable(info.level)
+            and self:IsReadable(info.isHeader) and not info.isHeader then
             activeQuestIDs[info.questID] = true
+            objectiveQuests[info.questID]={title=info.title,level=info.level,index=i}
             local normalizedTitle = self:NormalizeQuestTitle(info.title)
 
             self.questCache[normalizedTitle] = {
@@ -1019,10 +1228,11 @@ function QuestAnnounce:BuildQuestCache()
             }
             questCount = questCount + 1
 
-            local objectives = QA_QuestLog.GetQuestObjectives(info.questID)
-            if objectives then
+            local objectivesOK,objectives = pcall(QA_QuestLog.GetQuestObjectives,info.questID)
+            if objectivesOK and self:IsReadable(objectives) and type(objectives)=="table" then
                 for _, objective in ipairs(objectives) do
-                    if objective and objective.text and objective.text ~= "" then
+                    if self:IsReadable(objective) and type(objective)=="table"
+                        and self:IsReadable(objective.text) and type(objective.text)=="string" and objective.text ~= "" then
                         local normalizedObjective = self:NormalizeQuestTitle(objective.text)
 
                         self.objectiveCache[normalizedObjective] = {
@@ -1039,6 +1249,7 @@ function QuestAnnounce:BuildQuestCache()
         end
     end
 
+    self:ProcessObjectiveCompletions(objectiveQuests)
     if self.questCompletionAnnounced then
         for questID in pairs(self.questCompletionAnnounced) do
             if not activeQuestIDs[questID] then
@@ -1419,7 +1630,13 @@ end
 
 --[[ Event handlers für UI-Nachrichten]]--
 function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
-    if not msg or msg == "" then
+    if not self:IsReadable(msg) or type(msg)~="string" or msg == "" then
+        return
+    end
+
+    if self:GetObjectiveAnnouncementContext() then
+        self:BuildQuestCache()
+        self:ScheduleObjectiveScan()
         return
     end
 
@@ -1543,7 +1760,10 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
         if objectiveLooksComplete and questID then
             self:SendDebugMsg("objective complete event but quest not complete yet :: questID=" .. tostring(questID) .. " :: reason=" .. tostring(completeReason))
             if not self.pendingCompletionRecheck[questID] then
-                self.pendingCompletionRecheck[questID] = true
+                local recheckToken={}
+                self.pendingCompletionRecheck[questID] = recheckToken
+                local lifecycle=(self.questLifecycleGeneration or {})[questID] or 0
+                local profile=self.db.profile
                 local retryDelays = { 0.20, 0.60, 1.20 }
                 local function RunDelayedCheck(attempt)
                     local delay = retryDelays[attempt]
@@ -1553,6 +1773,14 @@ function QuestAnnounce:UI_INFO_MESSAGE(event, id, msg)
                     end
                     C_Timer.After(delay, function()
                         if not QuestAnnounce or not QuestAnnounce.IsQuestCompleteByObjectives then
+                            return
+                        end
+                        if QuestAnnounce.pendingCompletionRecheck[questID]~=recheckToken then return end
+                        -- DE/EN: Alte Annahme/Profile dürfen keine neuen Abschlüsse markieren / discard stale instance/profile checks.
+                        if lifecycle~=((QuestAnnounce.questLifecycleGeneration or {})[questID] or 0)
+                            or profile~=QuestAnnounce.db.profile or not profile.settings.enable or profile.settings.paused
+                            or QuestAnnounce:GetObjectiveAnnouncementContext() then
+                            QuestAnnounce.pendingCompletionRecheck[questID]=nil
                             return
                         end
                         local delayedComplete, delayedReason = QuestAnnounce:IsQuestCompleteByObjectives(questID)
@@ -1813,20 +2041,21 @@ end
 --[[ Sends a chat message to the selected chat channels and frames where applicable,
     if we have a message to send; will also send a debugging message if debug is enabled ]]--
 -- Sendet die Nachricht an die aktivierten Ausgabekanaele und Ausgabefenster.
-function QuestAnnounce:SendMsg(msg, isComplete, soundOverrideEvent)
+function QuestAnnounce:SendMsg(msg, isComplete, soundOverrideEvent, metadata)
     if C_Timer and C_Timer.After then
         C_Timer.After(0, function()
             if QuestAnnounce and QuestAnnounce.DispatchMsg then
-                QuestAnnounce:DispatchMsg(msg, isComplete, soundOverrideEvent)
+                QuestAnnounce:DispatchMsg(msg, isComplete, soundOverrideEvent, metadata)
             end
         end)
         return
     end
 
-    self:DispatchMsg(msg, isComplete, soundOverrideEvent)
+    self:DispatchMsg(msg, isComplete, soundOverrideEvent, metadata)
 end
 
-function QuestAnnounce:DispatchMsg(msg, isComplete, soundOverrideEvent)
+function QuestAnnounce:DispatchMsg(msg, isComplete, soundOverrideEvent, metadata)
+    if type(metadata)=="table" and not self:IsObjectiveMessageCurrent(metadata) then return end
     -- DE: Auch lokale Ausgaben und Debugtext vor geheimen oder ungueltigen Werten schuetzen.
     -- EN: Protect local outputs and debug text from secret or invalid values too.
     if not self:IsReadable(msg) or type(msg) ~= "string" or msg == "" then
@@ -1852,7 +2081,7 @@ function QuestAnnounce:DispatchMsg(msg, isComplete, soundOverrideEvent)
     local allowSelfOutput = self:ShouldShowSelfMessages()
 
     -- Nachricht an Chatkanäle senden
-    self:DispatchChatOutputs(msg, true)
+    self:DispatchChatOutputs(msg, metadata)
 
     -- Nachricht zusätzlich im addon-eigenen Raid-Hinweisframe anzeigen
     if allowSelfOutput and announceTo.raidWarningFrame then
@@ -1865,7 +2094,7 @@ function QuestAnnounce:DispatchMsg(msg, isComplete, soundOverrideEvent)
     end
 
     -- DE: Geordnete Sound-Ausgabe ohne Sound-Flut / EN: Ordered sound output without sound spam.
-    if allowSelfOutput then
+    if allowSelfOutput and not (type(metadata)=="table" and metadata.silentSound) then
         if soundOverrideEvent == "complete" then
             self:PlayConfiguredSound("complete")
         elseif soundOverrideEvent == "progress" then

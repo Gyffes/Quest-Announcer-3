@@ -8,13 +8,13 @@
 
 ## Aktuelle Version / Current version
 
-**9.3.0.11 Multi — 08.11.2026**
+**9.3.0.12-Rc1 Multi — 12.11.2026**
 
-GitHub-Tag: **V9.3.0.11-Multi**. Reguläres Release ohne RC-Zusatz / Regular release without an RC suffix. Diagnosebuild / Diagnostic build: **20261007-1**; beide Testpartner verwenden dieselbe Addonversion / both peers should use the same addon version.
+Entwicklungsstand / Development candidate: **9.3.0.12-Rc1**, Diagnosebuild / diagnostic build **20261112-1**. Beide Testpartner verwenden dieselbe Addonversion / both peers should use the same addon version. Bisheriges stabiles Release / Existing stable release: **V9.3.0.11-Multi**. Der RC ist noch nicht als neues stabiles Release veröffentlicht / The RC has not been published as a new stable release.
 
-DE: Enthält die Tooltip-/Sprachkorrekturen, kanalabhängigen Chatversand, die integrierte Chatdiagnose und den aktuellen Client-Metadatenabgleich. Der Release-Status bedeutet nicht, dass jede Region, Schrift oder Client-API live getestet wurde. Bekannte Einschränkungen bleiben unten dokumentiert.
+DE: Ergänzt optional erfüllte Einzelziele bei Fortschrittsfrequenz 0 und eine auswählbare Gruppenkanal-Priorität (#24/#25). Beide Optionen sind standardmäßig aus. Tooltip-/Sprachkorrekturen, Chatdiagnose und bisherige Ausgabeziele bleiben erhalten. Die Clientkennungen wurden am 12.11.2026 erneut abgeglichen; regionale Ingame-Abnahmen stehen weiter aus.
 
-EN: Includes locale-aware tooltip fixes, channel-aware chat routing, integrated chat diagnostics and the current client metadata check. Release status does not mean every region, font or client API was tested live. Known limitations remain documented below.
+EN: Adds optional individual objective announcements at progress frequency 0 and selectable group-channel priority (#24/#25). Both options default to off. Locale-aware tooltip fixes, chat diagnostics and existing destinations are retained. Client identifiers were rechecked on November 12, 2026; regional in-game acceptance remains pending.
 
 ## Installation / WowUp
 
@@ -51,6 +51,36 @@ EN: In WowUp, open Get Addons → install from URL using the repository URL `htt
 - Locale-aware tooltip font, size and colors. Automatic font from client font objects, with native Korean, Chinese and Russian choices. No global changes to Blizzard fonts.
 - Ten languages: enUS, deDE, esES, esMX, frFR, koKR, ptBR, ruRU, zhCN and zhTW; enUS fallback.
 - Integrated chat diagnostics, off by default; single/paired tests require explicit action.
+
+## Neue Optionen (DE)
+
+Unter `/qa` im Hauptbereich:
+
+- **Erfüllte Questziele bei Fortschritt 0 melden:** Fortschrittsfrequenz auf **0** setzen und die Option einschalten. Jedes neu erfüllte Ziel wird einmal je Questannahme gemeldet; beim letzten Ziel folgt zusätzlich der Gesamtquest-Abschluss. Zwischenstände bleiben stumm. Bei anderen Frequenzen gilt die bisherige Fortschrittsregel. Login, Reload, Aktivierung, Profilwechsel und Wiederaufnahme nach Pause holen keine fertigen Ziele nach.
+- **Gruppenkanal automatisch wählen:** Gewünschte Checkboxen für **Instanz, Schlachtzug und/oder Gruppe** aktivieren, Chatankündigungen einschalten und die Automatik aktivieren. Die Prioritätsauswahl bietet alle sechs Reihenfolgen; Standard ist **Instanz > Schlachtzug > Gruppe**. Ausgeschaltet bleibt die bisherige Ausgabe in alle ausgewählten Kanäle bestehen.
+
+Die Automatik verwendet höchstens einen aktivierten, tatsächlich verfügbaren und erlaubten Gruppenkanal pro Meldung. Bei **Schlachtzug > Instanz > Gruppe** und einer bekannten, ausschließlich für RAID geltenden Sperre wird INSTANCE_CHAT verwendet, sofern aktiviert, verfügbar und erlaubt; andernfalls der nächste passende Kandidat. PARTY setzt eine passende Gruppe voraus und ist im Raid nicht automatisch verfügbar. Solo erfolgt kein Gruppenversand. Flüstern, andere Chatziele, lokale Anzeigen und Sounds bleiben unabhängig.
+
+Globale oder unklare Blizzard-Sperren erlauben keinen Kanalwechsel. Ein unerwarteter Schutzfehler beim Senden löst keine Wiederholung derselben Meldung in anderen Kanälen aus; spätere Meldungen können den inzwischen bekannten gesperrten Kanal überspringen. Gruppen-, Profil-, Modus- oder Prioritätswechsel verwerfen betroffene wartende Gruppenaufträge.
+
+Nur ein tatsächlich gemeldeter eigener Schutzfehler sperrt den betroffenen Kanal vorsorglich bis `/reload`. Eine vorher erkannte gewöhnliche Einschränkung erzeugt diese Sperre nicht; spätere Meldungen werden erneut geprüft. Die Schutzfehlersperre wird nicht im Profil gespeichert.
+
+Ziel-/Questabschlussereignisse erhalten eine begrenzte Warteschlange: höchstens acht je Ausgabeziel und 64 insgesamt, maximal zehn Sekunden gültig und mindestens eine Sekunde Abstand zwischen Chatversuchen. Gewöhnliche Fortschritte behalten nur den neuesten Stand je Ziel. Ablauf und Überlauf werden diagnostiziert; blockierte oder abgelaufene Meldungen werden nicht unbegrenzt nachgeliefert. Lokale Anzeigen und Sounds werden bei Chatwiederholungen nicht erneut ausgelöst.
+
+## New options (EN)
+
+In the main section of `/qa`:
+
+- **Announce completed objectives at progress 0:** Set progress frequency to **0** and enable this option. Each newly completed objective is announced once per quest acceptance; the final objective is followed by whole-quest completion. Intermediate progress stays silent. Other frequencies retain existing rules. Login, reload, enabling, profile changes and resuming after pause do not replay completed objectives.
+- **Automatically select group channel:** Enable the desired **Instance, Raid and/or Party** checkboxes, enable chat announcements and turn on automatic selection. Choose any of the six priority orders; the default is **Instance > Raid > Party**. With automatic selection off, existing output to all selected channels is retained.
+
+Automatic selection uses at most one enabled, actually available and permitted group channel per message. With **Raid > Instance > Party**, a known RAID-only restriction selects INSTANCE_CHAT if enabled, available and allowed; otherwise the next eligible candidate is considered. PARTY requires an appropriate group and is not automatically available in a raid. Solo players send no group chat. Whispers, other chat destinations, local displays and sounds remain independent.
+
+Global or unknown Blizzard restrictions never permit channel switching. An unexpected protection failure during sending does not replay that message in another channel; later messages can skip the now-known blocked channel. Group, profile, mode or priority changes discard affected pending group work.
+
+Only an actual reported own protection failure conservatively disables that channel until `/reload`. An ordinary restriction detected before sending does not latch the channel; later messages are checked again. The protection-failure latch is not saved in the profile.
+
+Objective/quest milestones use a bounded queue: at most eight per destination and 64 overall, valid for up to ten seconds, with at least one second between chat attempts. Ordinary progress retains only the latest message per destination. Expiry and overflow are diagnosed; blocked or expired messages are not delivered indefinitely. Chat retries do not replay local displays or sounds.
 
 ## Debugging kurz (DE)
 
@@ -123,5 +153,7 @@ The tracked tree and ZIPs contain only addon files, the icon and current documen
 Änderungen / Changes: [CHANGELOG.txt](CHANGELOG.txt). Sichtbare Texte in den Lokalisierungsdateien mitpflegen / Maintain localization files when changing visible text.
 
 Danke an [user_n6i4a961y2ds2da7](https://legacy.curseforge.com/members/user_n6i4a961y2ds2da7) für den Schriftartenhinweis und an [Nerf_Teh_Derp](https://www.curseforge.com/members/nerf_teh_derp) für den Chatbericht / Thanks for the tooltip-font and chat reports.
+
+Danke an **C0res1ash** für das CurseForge-Feedback zu [#24](https://github.com/Gyffes/Quest-Announcer-3/issues/24) und [#25](https://github.com/Gyffes/Quest-Announcer-3/issues/25) / Thanks for the CurseForge feedback on objective announcements and group-channel priority.
 
 Teile der Modernisierung und Dokumentation wurden mit Unterstützung von ChatGPT/Codex erstellt. / Parts of the modernization and documentation were created with ChatGPT/Codex assistance.

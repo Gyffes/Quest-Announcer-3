@@ -694,6 +694,7 @@ end
 
 		if QuestAnnounce.db.profile.settings.every ~= rounded then
 			QuestAnnounce.db.profile.settings.every = rounded
+            QuestAnnounce:ResetObjectiveAnnouncementBaseline()
 			QuestAnnounce:SendDebugMsg("setSettings: every :: " .. tostring(rounded))
 		end
 
@@ -713,6 +714,7 @@ end
 		end
 
 			QuestAnnounce.db.profile.settings.every = value
+            QuestAnnounce:ResetObjectiveAnnouncementBaseline()
 			everySlider:SetValue(value)
 			SetNumericEditBoxValue(self, value, 1)
 			self:ClearFocus()
@@ -731,22 +733,35 @@ end
 		end
 
 			QuestAnnounce.db.profile.settings.every = value
+            QuestAnnounce:ResetObjectiveAnnouncementBaseline()
 			everySlider:SetValue(value)
 			SetNumericEditBoxValue(self, value, 1)
 
 		QuestAnnounce:SendDebugMsg("setSettings: every :: " .. tostring(value))
 	end)
 
+    -- DE: Zielabschluss bei Frequenz 0 ist unabhängig von normalen Fortschritten.
+    -- EN: Objective milestones at frequency zero are separate from ordinary progress.
+    local objectiveCompletionCheckbox=CreateCheckbox(content,L["Announce completed objectives at progress 0"],16,-292,
+        function(box)
+            QuestAnnounce.db.profile.settings.announceObjectiveCompletionAtZero=box:GetChecked() and true or false
+            QuestAnnounce.objectiveCompletionState={}
+            QuestAnnounce.objectiveTrackingContext=nil
+            QuestAnnounce:BuildQuestCache()
+        end,L["Announce completed objectives at progress 0"],L["Objective completion at zero help"])
+    objectiveCompletionCheckbox.Text:SetWidth(540)
+    objectiveCompletionCheckbox.Text:SetWordWrap(true)
+
 	-- Trennlinie über dem Announce-Bereich
 	local separator2 = content:CreateTexture(nil, "ARTWORK")
 	separator2:SetColorTexture(0.5, 0.5, 0.5, 0.6)
 	separator2:SetHeight(1)
-	separator2:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -288)
-	separator2:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -288)
+	separator2:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -328)
+	separator2:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -328)
 
     -- Überschrift für die Ziele der Ausgabe
     local announceToHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    announceToHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -310)
+    announceToHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -350)
     announceToHeader:SetText(L["Where do you want to make the announcements?"])
     AttachTooltip(
         announceToHeader,
@@ -759,7 +774,7 @@ end
         content,
         L["Chat Announcements"],
         16,
-        -346,
+        -386,
         function(self)
             QuestAnnounce.db.profile.announceTo.chatFrame = self:GetChecked() and true or false
             QuestAnnounce:ClearPendingChat("chat settings changed")
@@ -774,7 +789,7 @@ end
         content,
         L["Raid Warning Frame"],
         220,
-        -346,
+        -386,
         function(self)
             QuestAnnounce.db.profile.announceTo.raidWarningFrame = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceTo: raidWarningFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.raidWarningFrame))
@@ -788,7 +803,7 @@ end
         content,
         L["UI Errors Frame"],
         440,
-        -346,
+        -386,
         function(self)
             QuestAnnounce.db.profile.announceTo.uiErrorsFrame = self:GetChecked() and true or false
             QuestAnnounce:SendDebugMsg("setAnnounceTo: uiErrorsFrame :: " .. tostring(QuestAnnounce.db.profile.announceTo.uiErrorsFrame))
@@ -802,12 +817,12 @@ end
 	local separator3 = content:CreateTexture(nil, "ARTWORK")
 	separator3:SetColorTexture(0.5, 0.5, 0.5, 0.6)
 	separator3:SetHeight(1)
-	separator3:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -394)
-	separator3:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -394)
+	separator3:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -434)
+	separator3:SetPoint("TOPRIGHT", content, "TOPRIGHT", -16, -434)
 	
         -- Überschrift für die Chatkanäle linksbündig und näher an den Checkboxen
     local announceInHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    announceInHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -420)
+    announceInHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, -460)
     announceInHeader:SetText(L["What channels do you want to make the announcements?"])
     AttachTooltip(
         announceInHeader,
@@ -820,7 +835,7 @@ end
         content,
         L["Say"],
         16,
-        -450,
+        -490,
         function(self)
             QuestAnnounce.db.profile.announceIn.say = self:GetChecked() and true or false
             QuestAnnounce:ClearPendingChat("chat settings changed")
@@ -837,7 +852,7 @@ end
         content,
         L["Party"],
         16,
-        -480,
+        -520,
         function(self)
             QuestAnnounce.db.profile.announceIn.party = self:GetChecked() and true or false
             QuestAnnounce:ClearPendingChat("chat settings changed")
@@ -851,7 +866,7 @@ end
         content,
         L["Instance"],
         16,
-        -510,
+        -550,
         function(self)
             QuestAnnounce.db.profile.announceIn.instance = self:GetChecked() and true or false
             QuestAnnounce:ClearPendingChat("chat settings changed")
@@ -867,7 +882,7 @@ end
         content,
         L["Officer"],
         220,
-        -450,
+        -490,
         function(self)
             QuestAnnounce.db.profile.announceIn.officer = self:GetChecked() and true or false
             QuestAnnounce:ClearPendingChat("chat settings changed")
@@ -881,7 +896,7 @@ end
         content,
         L["Focus"],
         220,
-        -510,
+        -550,
         function(self)
             QuestAnnounce.db.profile.announceIn.focus = self:GetChecked() and true or false
             QuestAnnounce:ClearPendingChat("chat settings changed")
@@ -895,7 +910,7 @@ end
         content,
         L["Guild"],
         220,
-        -480,
+        -520,
         function(self)
             QuestAnnounce.db.profile.announceIn.guild = self:GetChecked() and true or false
             QuestAnnounce:ClearPendingChat("chat settings changed")
@@ -908,13 +923,13 @@ end
 
     -- DE: Dritte Spalte: Emote und darunter Schlachtzug; Profile bleiben abwaertskompatibel.
     -- EN: Third column: Emote with Raid below; existing profiles remain compatible.
-    local emoteCheckbox = CreateCheckbox(content, L["Emote"], 424, -450,
+    local emoteCheckbox = CreateCheckbox(content, L["Emote"], 424, -490,
         function(box)
             QuestAnnounce.db.profile.announceIn.emote = box:GetChecked() and true or false
             QuestAnnounce:ClearPendingChat("chat settings changed")
         end,
         L["Emote"], L["Emote help"])
-    local raidCheckbox = CreateCheckbox(content, L["Raid"], 424, -480,
+    local raidCheckbox = CreateCheckbox(content, L["Raid"], 424, -520,
         function(box)
             QuestAnnounce.db.profile.announceIn.raid = box:GetChecked() and true or false
             QuestAnnounce:ClearPendingChat("chat settings changed")
@@ -934,7 +949,7 @@ end
         content,
         L["Whisper"],
         16,
-        -560,
+        -600,
         function(self)
             QuestAnnounce.db.profile.announceIn.whisper = self:GetChecked() and true or false
             QuestAnnounce:ClearPendingChat("chat settings changed")
@@ -986,7 +1001,7 @@ end
         content,
         L["Channel"],
         16,
-        -590,
+        -630,
         function(self)
             local value = self:GetChecked() and true or false
             QuestAnnounce.db.profile.announceIn.channel = value
@@ -1064,6 +1079,27 @@ end
         L["Send a test message using the currently selected output settings."]
     )
 
+    -- DE: Bestehende Kanalwahl respektieren; Preset-IDs sind sprachunabhängig.
+    -- EN: Respect channel checkboxes; priority IDs are independent of locale.
+    local groupPriorityDropdown
+    local autoGroupCheckbox=CreateCheckbox(content,L["Automatically select group channel"],16,-700,
+        function(box)
+            QuestAnnounce.db.profile.settings.autoGroupChannel=box:GetChecked() and true or false
+            QuestAnnounce:InvalidateGroupChatQueue()
+            groupPriorityDropdown:SetEnabled(box:GetChecked() and true or false)
+            groupPriorityDropdown.menu:Hide()
+        end,L["Automatically select group channel"],L["Automatic group channel help"])
+    autoGroupCheckbox.Text:SetWidth(540)
+    autoGroupCheckbox.Text:SetWordWrap(true)
+    local priorityLabel=content:CreateFontString(nil,"ARTWORK","GameFontNormal")
+    priorityLabel:SetPoint("TOPLEFT",16,-744)
+    priorityLabel:SetText(L["Group channel priority"])
+    groupPriorityDropdown=CreateDropdown(content,540,16,-768,QuestAnnounce:GetGroupPriorityChoices(),
+        function(value)
+            QuestAnnounce.db.profile.settings.groupChannelPriority=QuestAnnounce:GetGroupPriorityID(value)
+            QuestAnnounce:InvalidateGroupChatQueue()
+        end,L["Group channel priority"],L["Group channel priority help"])
+
     -- Aktualisiert alle Werte im Hauptpanel beim Öffnen.
 local function RefreshGeneralPanel()
 	if not QuestAnnounce.db or not QuestAnnounce.db.profile then
@@ -1088,6 +1124,14 @@ local function RefreshGeneralPanel()
     soloMuteSelfMessagesOnlyCheckbox:SetChecked(settings.soloMuteSelfMessagesOnly and true or false)
     localProgressMessagesCheckbox:SetChecked(settings.showLocalProgressMessages ~= false)
     debugCheckbox:SetChecked(settings.debug and true or false)
+    objectiveCompletionCheckbox:SetChecked(settings.announceObjectiveCompletionAtZero==true)
+    autoGroupCheckbox:SetChecked(settings.autoGroupChannel==true)
+    local priorityID=QuestAnnounce:GetGroupPriorityID(settings.groupChannelPriority)
+    for _,choice in ipairs(QuestAnnounce:GetGroupPriorityChoices()) do
+        if choice.value==priorityID then groupPriorityDropdown:SetSelected(choice.value,choice.text) end
+    end
+    groupPriorityDropdown:SetEnabled(settings.autoGroupChannel==true)
+    groupPriorityDropdown.menu:Hide()
     linkQuestCheckbox:SetChecked(settings.linkQuest and true or false)
 
 	everySlider:SetValue(GetNumberOrDefault(settings.every, 1))

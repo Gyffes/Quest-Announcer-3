@@ -1,4 +1,4 @@
-# Debug-Anleitung / Debug Guide — 9.3.0.11
+# Debug-Anleitung / Debug Guide — 9.3.0.12-Rc1
 
 ## Deutsch
 
@@ -16,7 +16,7 @@ Normal spielen und das Problem reproduzieren. Danach `/qa diag cancel`, `/qa dia
 
 ### 2. Empfang mit einem Partner prüfen
 
-Beide Spieler installieren **9.3.0.11** (Diagnosebuild **20261007-1**) und aktivieren `/qa diag on` sowie `/qa diag mode normal`. Beide tragen den jeweils anderen mit `/qa diag partner Name-Realm` ein. Der Empfänger aktiviert anschließend `/qa diag receive on`; ein Partnerwechsel deaktiviert den Empfang wieder.
+Beide Spieler installieren **9.3.0.12-Rc1** (Diagnosebuild **20261112-1**) und aktivieren `/qa diag on` sowie `/qa diag mode normal`. Beide tragen den jeweils anderen mit `/qa diag partner Name-Realm` ein. Der Empfänger aktiviert anschließend `/qa diag receive on`; ein Partnerwechsel deaktiviert den Empfang wieder.
 
 Der Sender startet zunächst nur einen gezielten Flüstertest:
 
@@ -43,6 +43,20 @@ Nach `/reload` oder Logout: `<WoW-Client>/WTF/Account/<ACCOUNT>/SavedVariables/Q
 
 Keine vollständigen Logs werden automatisch hochgeladen; Partnertests übertragen begrenzte Test-/Steuerinformationen und Empfangsrückmeldungen. Aufzeichnung: maximal 2000 Datensätze und 20 Sitzungen; Ergebnisse/Empfangspuffer sind ebenfalls begrenzt. Erst nach dem Sichern `/qa diag clear` verwenden: löscht die Diagnoseeinträge, Ergebnisse und Empfangspuffer und stoppt Tests, behält aber Profile und Einstellungen.
 
+### 5. Neue Ziel- und Gruppenoptionen prüfen
+
+Mit `/qa diag on` und `/qa diag mode normal` aufzeichnen. Beide neuen Optionen sind standardmäßig aus. Für einen Vergleich zunächst ausgeschaltet lassen; anschließend einzeln und zusammen einschalten:
+
+1. Fortschrittsfrequenz **0**, „Erfüllte Questziele bei Fortschritt 0 melden“ an: bei einer noch unvollständigen Quest 9/10 → 10/10 erreichen. Eine Zielmeldung erwarten, keine Zwischenstände. Beim letzten Ziel zusätzlich genau einen Gesamtabschluss erwarten. Bei Reload/Pause keine Nachholung; nach echter Neuannahme darf dieselbe Quest erneut melden.
+2. Gewünschte Gruppenkanäle ankreuzen, Chatankündigungen und „Gruppenkanal automatisch wählen“ einschalten, Priorität wählen. Pro Meldung höchstens einen passenden Gruppenkanal erwarten. Beispiel: **Schlachtzug > Instanz > Gruppe**; bei einer bereits bekannten reinen RAID-Sperre kann INSTANCE_CHAT übernehmen, sofern aktiviert, verfügbar und erlaubt. Ohne belegte Sperre keinen künstlichen Schutzfehler provozieren. Solo keine Gruppenmeldung; Flüstern und lokale Anzeigen separat prüfen.
+3. Bei globaler Chat-/Encounter-Sperre keinen Kanalwechsel erwarten. Nach einem unerwarteten eigenen Schutzfehler wird dieselbe Meldung nicht auf einen anderen Gruppenkanal wiederholt; nur spätere Meldungen berücksichtigen die bekannte Kanalsperre. Gruppen-/Prioritätswechsel dürfen alte Meldungen nicht neu zustellen.
+
+Im Rohprotokoll bedeutet `GROUP_CANDIDATE_SKIPPED` einen kanalspezifisch ausgeschlossenen Kandidaten; `ATTEMPT` nennt den tatsächlich versuchten Kanal. `DEFERRED` enthält z. B. den globalen Sperrgrund. `no eligible group route` bedeutet keinen aktivierten, verfügbaren und erlaubten Kandidaten; `milestone queue full` bedeutet die Kapazitätsgrenze (acht je Ziel, 64 insgesamt). Ereignisse verfallen nach zehn Sekunden (`EXPIRED`); es gibt keine unbegrenzte Nachlieferung. Nachrichtentexte werden nicht mitprotokolliert, also Zielreihenfolge, gewählte Priorität, Checkboxen und beobachtete Anzeige im Fehlerbericht ergänzen.
+
+Ausdrückliche Diagnose-Kanaltests bleiben Einzeltests der gewählten Kanäle. Die automatische Priorität fasst diese Testserie nicht zusammen; für ihre Prüfung normale Questmeldungen verwenden. Lokale Simulationen ersetzen keine native Client-/Sprach-/Gameplay-Abnahme.
+
+`previous protected send` bedeutet: Ein eigener tatsächlicher Schutzfehler hat diesen Kanal bis `/reload` vorsorglich gesperrt. Normale Vorab-Ablehnungen setzen diese Sperre nicht. Sie wird nicht im Profil gespeichert; andere Kanäle werden unabhängig geprüft.
+
 ## English
 
 The general **Debug** option and new **Chat Diagnostics** are independent. Diagnostics are off on new installations; existing recording preferences are preserved. They store bounded state/error information, not ordinary message text. Open `/qa` → Chat Diagnostics. Command tokens are identical in every locale.
@@ -59,7 +73,7 @@ Play normally and reproduce the problem. Afterwards use `/qa diag cancel`, `/qa 
 
 ### 2. Check receipt with a partner
 
-Both players install **9.3.0.11** (diagnostic build **20261007-1**) and enable `/qa diag on` and `/qa diag mode normal`. Each sets the other using `/qa diag partner Name-Realm`. The recipient then enables `/qa diag receive on`; changing partners disables receiving again.
+Both players install **9.3.0.12-Rc1** (diagnostic build **20261112-1**) and enable `/qa diag on` and `/qa diag mode normal`. Each sets the other using `/qa diag partner Name-Realm`. The recipient then enables `/qa diag receive on`; changing partners disables receiving again.
 
 The sender initially runs only a targeted whisper test:
 
@@ -85,3 +99,17 @@ Tests start after a delay, send no more than once every eight seconds and run fo
 After `/reload` or logout: `<WoW-client>/WTF/Account/<ACCOUNT>/SavedVariables/QuestAnnounce.lua`. Look for **QuestAnnounceDiagnosticsDB**, not the Lua source under AddOns. The same SavedVariables file also contains personal profiles. Share only the required diagnostic extract and remove profile/peer/target/channel names first. Include client version/build, locale, situation, channel and result.
 
 Complete logs are never automatically uploaded; paired tests exchange bounded test/control metadata and acknowledgements. Recording is limited to 2000 records and 20 sessions; result/receipt buffers are also bounded. Only after saving, use `/qa diag clear`: clears diagnostic entries, results and receipt buffers and stops tests, preserving profiles and settings.
+
+### 5. Verify new objective and group options
+
+Record with `/qa diag on` and `/qa diag mode normal`. Both new options default to off. Compare with both disabled first, then enable them individually and together:
+
+1. Set progress frequency to **0**, enable “Announce completed objectives at progress 0” and advance an incomplete quest from 9/10 to 10/10. Expect one objective message and no intermediate progress. For the final objective, also expect one whole-quest completion. Reload/pause must not replay completions; a genuinely reaccepted quest may announce again.
+2. Check the desired group destinations, enable chat announcements and “Automatically select group channel”, then choose a priority. Expect at most one eligible group destination per message. Example: **Raid > Instance > Party**; a previously known RAID-only block may select INSTANCE_CHAT if enabled, available and allowed. Do not manufacture a protection error to simulate a block. Solo players send no group message; check whispers and local output separately.
+3. Global chat/encounter restrictions must not switch channels. After an unexpected own protection failure, that message is not replayed in another group channel; only later messages take the known channel block into account. Group/priority changes must not resend old messages.
+
+In raw records, `GROUP_CANDIDATE_SKIPPED` identifies a channel-specific exclusion; `ATTEMPT` names the channel actually attempted. `DEFERRED` includes reasons such as global restrictions. `no eligible group route` means no enabled, available and permitted candidate; `milestone queue full` means the capacity limit (eight per destination, 64 overall). Events expire after ten seconds (`EXPIRED`); no unlimited backlog is delivered. Message text is not recorded, so include objective order, selected priority, checkboxes and observed output in the report.
+
+Explicit diagnostic channel tests still test each chosen channel. Automatic priority does not collapse that suite; verify it with ordinary quest announcements. Local simulations do not replace native client/language/gameplay acceptance.
+
+`previous protected send` means an actual own protection failure has conservatively disabled this channel until `/reload`. Ordinary preflight rejections do not latch it. The latch is not saved in the profile; other channels are checked independently.

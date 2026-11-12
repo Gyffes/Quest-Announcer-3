@@ -1,7 +1,7 @@
 local QA = QuestAnnounce
 -- DE: Diagnosekennung auch im Release erhalten; wird beim Partner protokolliert.
 -- EN: Preserve the diagnostic revision in releases, including peer metadata.
-QA.DIAGNOSTIC_REVISION="20261007-1"
+QA.DIAGNOSTIC_REVISION="20261112-1"
 local L = QuestAnnounce_L[GetLocale()] or QuestAnnounce_L.enUS
 local MAX_RECORDS, MAX_SESSIONS = 2000, 20
 local channels = {"SAY", "YELL", "EMOTE", "PARTY", "RAID", "RAID_WARNING", "INSTANCE_CHAT", "GUILD", "OFFICER", "WHISPER", "CHANNEL"}
