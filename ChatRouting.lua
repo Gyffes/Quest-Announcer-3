@@ -48,17 +48,53 @@ function QA:GetRestrictionState(name)
     return value,reason
 end
 function QA:HasMeasuredRetailChatPolicy()
-    -- DE: Nur Retail mit moderner API ist gemessen; andere Clients behalten den Kampffallback.
-    -- EN: Only Retail with the modern API was measured; other clients retain the combat fallback.
+    -- DE: Gemessene Retail-Sonderregeln von der allgemeinen Client-/Kanalprüfung trennen.
+    -- EN: Keep measured Retail exceptions separate from shared client/channel checks.
     return WOW_PROJECT_MAINLINE ~= nil and WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
         and C_ChatInfo and type(C_ChatInfo.InChatMessagingLockdown) == "function"
+end
+-- DE: Echte Projektkonstanten statt Versionszahlen verwenden; unbekannte Clients nicht freigeben.
+-- EN: Match real project constants, not version numbers; do not authorize unknown clients.
+function QA:IsSupportedChatClient()
+    for _,name in ipairs({"WOW_PROJECT_MAINLINE","WOW_PROJECT_CLASSIC","WOW_PROJECT_BURNING_CRUSADE_CLASSIC",
+        "WOW_PROJECT_WRATH_CLASSIC","WOW_PROJECT_CATACLYSM_CLASSIC","WOW_PROJECT_MISTS_CLASSIC","WOW_PROJECT_CAMELOT"}) do
+        local project=rawget(_G,name)
+        if type(project)=="number" and WOW_PROJECT_ID==project then return true end
+    end
+    return false
+end
+-- DE: Alle unterstützten Clientfamilien mit vollständigen modernen APIs gleich behandeln.
+--     Lesbare Rückgabewerte und aktive Sperren prüft weiterhin der gemeinsame Versandpfad.
+-- EN: Treat every supported family with complete modern APIs equally. The common send path
+--     still validates returned states and enforces active restrictions.
+function QA:HasModernChatRestrictionPolicy()
+    local types=Enum and Enum.AddOnRestrictionType
+    return self:IsSupportedChatClient()
+        and C_ChatInfo~=nil and type(C_ChatInfo.InChatMessagingLockdown)=="function"
+        and C_RestrictedActions~=nil and type(C_RestrictedActions.GetAddOnRestrictionState)=="function"
+        and types~=nil and type(types.Chat)=="number" and type(types.Encounter)=="number" or false
+end
+-- DE: Gruppenchat ist kein öffentlicher Chat; GROUP bezeichnet nur den internen Auswahlauftrag.
+-- EN: Group chat is not public chat; GROUP is only the internal automatic-selection job.
+function QA:IsGroupChatType(chatType)
+    return chatType=="PARTY" or chatType=="RAID" or chatType=="INSTANCE_CHAT" or chatType=="GROUP"
+end
+-- DE: Nichtöffentliche Chatarten brauchen keinen pauschalen Kampfstopp. Gilden-/Offiziersrechte,
+--     Flüsterziele und Retail-Sonderregeln werden separat geprüft; Fokus nutzt WHISPER.
+-- EN: Non-public chat types do not need blanket combat deferral. Check guild/officer eligibility,
+--     whisper targets and Retail exceptions separately; focus uses WHISPER.
+function QA:IsNonPublicChatType(chatType)
+    return self:IsGroupChatType(chatType) or chatType=="GUILD" or chatType=="OFFICER"
+        or chatType=="WHISPER" or chatType=="RAID_WARNING"
 end
 function QA:IsPublicChatType(chatType)
     return chatType == "SAY" or chatType == "YELL" or chatType == "EMOTE" or chatType == "CHANNEL"
 end
 function QA:IsPublicChatAllowed(chatType)
+    -- DE: CHANNEL braucht auch in Instanzen einen Hardwareauslöser; ein Timer ist keiner.
+    -- EN: CHANNEL needs a hardware event even inside instances; a timer is not one.
+    if chatType=="CHANNEL" then return false,"automatic custom channel blocked" end
     if self:HasMeasuredRetailChatPolicy() then
-        if chatType == "CHANNEL" then return false, "automatic custom channel blocked" end
         if chatType == "EMOTE" then return true end
     end
     local inside = self:ReadChatAPI(IsInInstance)
@@ -72,11 +108,12 @@ end
 -- EN: Shared restrictions and channel rules; missing/unsafe queries never grant permission.
 -- DE: Globale und unklare Sperren betreffen jeden Kandidaten, nicht nur den ersten Kanal.
 -- EN: Global/unknown restrictions affect every candidate, not just the first channel.
-function QA:GetGlobalChatRestriction()
+function QA:GetGlobalChatRestriction(chatType)
     local locked, err = self:ReadChatAPI(C_ChatInfo and C_ChatInfo.InChatMessagingLockdown)
     if locked == true then return true, "chat messaging lockdown", true end
     if locked == nil and not err then return true,"nil chat lockdown result",true end
     if err and err ~= "unavailable" then return true, err, true end
+    if locked~=nil and type(locked)~="boolean" then return true,"invalid chat lockdown result",true end
     for _, name in ipairs({"Chat", "Encounter"}) do
         local state, stateError = self:GetRestrictionState(name)
         if stateError and stateError ~= "unavailable" then return true, stateError, true end
@@ -88,9 +125,16 @@ function QA:GetGlobalChatRestriction()
     local encounter, encounterError = self:ReadChatAPI(IsEncounterInProgress)
     if encounter == true then return true, "encounter in progress", true end
     if encounterError and encounterError ~= "unavailable" then return true, encounterError, true end
+    if not encounterError and type(encounter)~="boolean" then return true,"query error",true end
     local combat, combatError = self:ReadChatAPI(InCombatLockdown)
     if combatError then return true, "combat status " .. combatError, true end
-    if combat and not self:HasMeasuredRetailChatPolicy() then
+    if type(combat)~="boolean" then return true,"query error",true end
+    -- DE: Auf unterstützten Clients gewöhnlichen Kampf nicht mit einer nichtöffentlichen Chatsperre
+    --     verwechseln, auch wenn ältere Clients keine modernen Sperrabfragen anbieten.
+    -- EN: Ordinary combat is not a non-public chat restriction on supported clients, including
+    --     older clients without modern restriction queries. All available checks above still apply.
+    local supportedDestination=self:IsSupportedChatClient() and self:IsNonPublicChatType(chatType)
+    if combat and not self:HasMeasuredRetailChatPolicy() and not self:HasModernChatRestrictionPolicy() and not supportedDestination then
         return true, "unverified client combat fallback", true
     end
     return false
@@ -104,7 +148,7 @@ function QA:IsChatSendRestricted(chatType)
     if self.chatBlockedChannels and self.chatBlockedChannels[chatType] then
         return true, "previous protected send", false, "channel"
     end
-    local restricted,reason,retry=self:GetGlobalChatRestriction()
+    local restricted,reason,retry=self:GetGlobalChatRestriction(chatType)
     if restricted then return true,reason,retry,"global" end
     if self:HasMeasuredRetailChatPolicy() and chatType == "GUILD" then
         -- DE: GUILD war auch bei Map=0/Chat=0 blockiert. Bis zur Klärung konservativ
@@ -123,7 +167,7 @@ end
 -- DE: Keine Probe senden. Nur aktivierte, passende und unabhängig erlaubte Kandidaten wählen.
 -- EN: Never probe by sending. Choose only enabled, eligible and independently permitted routes.
 function QA:SelectAutomaticGroupRoute(profile)
-    local blocked,reason,retry=self:GetGlobalChatRestriction()
+    local blocked,reason,retry=self:GetGlobalChatRestriction("GROUP")
     if blocked then return nil,reason,retry end
     local order=groupPresets[self:GetGroupPriorityID(profile.settings.groupChannelPriority)]
     for _,key in ipairs(order) do
@@ -195,8 +239,14 @@ function QA:ChatRecord(kind, data)
     -- DE: Den bestehenden Debugschalter weiterhin mit Versandentscheidungen bedienen.
     -- EN: Keep exposing send decisions through the existing debug switch.
     if self.db and self.db.profile and self.db.profile.settings.debug then
+        -- DE: Rohgrund im Protokoll erhalten, bekannte Gründe im sichtbaren Debugtext erläutern.
+        -- EN: Preserve raw log reasons; explain known reasons in visible debug text.
+        local reason=tostring(data and data.reason or "-")
+        local translations=QuestAnnounce_L[GetLocale()] or QuestAnnounce_L.enUS
+        local explanation=rawget(translations,"Diagnostic reason " .. reason)
+        if explanation then reason=reason .. " (" .. explanation .. ")" end
         self:SendDebugMsg("Chat " .. kind .. " :: " .. tostring(data and data.channel or "-")
-            .. " :: " .. tostring(data and data.reason or "-"))
+            .. " :: " .. reason)
     end
 end
 function QA:ValidChatText(text)
@@ -269,9 +319,10 @@ function QA:GetFocusWhisperTarget()
 end
 function QA:IsChatRouteAvailable(key, target)
     if key == "party" then
-        return self:ReadChatAPI(IsInGroup, LE_PARTY_CATEGORY_HOME) == true
-            and self:ReadChatAPI(IsInRaid, LE_PARTY_CATEGORY_HOME) ~= true
-    elseif key == "instance" then return self:ReadChatAPI(IsInGroup, LE_PARTY_CATEGORY_INSTANCE) == true
+        return LE_PARTY_CATEGORY_HOME~=nil and self:ReadChatAPI(IsInGroup, LE_PARTY_CATEGORY_HOME) == true
+            and self:ReadChatAPI(IsInRaid, LE_PARTY_CATEGORY_HOME) == false
+    elseif key == "instance" then
+        return LE_PARTY_CATEGORY_INSTANCE~=nil and self:ReadChatAPI(IsInGroup, LE_PARTY_CATEGORY_INSTANCE) == true
     elseif key == "raid" then return self:ReadChatAPI(IsInRaid) == true
     elseif key == "guild" or key == "officer" then
         if self:ReadChatAPI(IsInGuild) ~= true then return false end
@@ -363,20 +414,6 @@ function QA:FlushPendingCombatChatMessage()
                         else ok=false end
                     end
                     if key == "channel" then target=self:GetChannelNameSafe(item.target) end
-                    if key == "channel" and not target then
-                        -- DE: Alten Beitritt auf erlaubten Clients erhalten; hoechstens einmal je Meldung.
-                        -- EN: Preserve joining on permitted clients; at most once per queued message.
-                        local restricted, why, later=self:IsChatSendRestricted("CHANNEL")
-                        if restricted then ok,reason,retry=false,why,later
-                        else
-                            if not item.joinAttempted then
-                                item.joinAttempted=true
-                                self:JoinTemporaryChannelSafe(item.target)
-                            end
-                            target=self:GetChannelNameSafe(item.target)
-                            if not target then ok,reason,retry=false,"channel join pending",true end
-                        end
-                    end
                     if ok == nil then ok, reason, retry = self:SendChatMessageSafe(item.msg, chatType, nil, target) end
                 end
                 if ok or not retry then consume() end
@@ -385,7 +422,6 @@ function QA:FlushPendingCombatChatMessage()
                 if not ok and retry then
                     local delay = item.expires - now
                     if reason == "send spacing" then delay = math.min(delay, math.max(.05, (self.nextChatSendAt or now) - now)) end
-                    if reason == "channel join pending" then delay=math.min(delay,1) end
                     nextWake = math.min(nextWake or delay, delay)
                 end
             end

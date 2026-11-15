@@ -196,3 +196,37 @@ local featureTexts={
 for locale,values in pairs(featureTexts) do
     for index,key in ipairs(featureKeys) do QuestAnnounce_L[locale][key]=values[index] end
 end
+
+-- DE: Fallback erklärt fehlende Client-/API-Freigabe, keinen beobachteten Blizzard-Schutzfehler.
+-- EN: Explain a missing client/API policy, rather than claiming an observed Blizzard protection failure.
+local restrictionReasons={
+    enUS={"Chat deferred during combat: no supported client policy with the required restriction APIs.","Chat restriction query returned an invalid value; sending deferred."},
+    deDE={"Chat im Kampf zurückgestellt: keine unterstützte Clientregel mit den nötigen Restriktions-APIs.","Chat-Sperrabfrage lieferte einen ungültigen Wert; Versand zurückgestellt."},
+    esES={"Chat aplazado en combate: no hay una regla de cliente compatible con las API de restricciones necesarias.","La consulta de restricciones del chat devolvió un valor no válido; envío aplazado."},
+    esMX={"Chat aplazado en combate: no hay una regla de cliente compatible con las API de restricciones necesarias.","La consulta de restricciones del chat devolvió un valor no válido; envío aplazado."},
+    frFR={"Chat différé en combat : aucune règle de client prise en charge avec les API de restriction requises.","La vérification des restrictions du chat a renvoyé une valeur invalide ; envoi différé."},
+    ptBR={"Chat adiado em combate: não há uma regra de cliente compatível com as APIs de restrição necessárias.","A consulta de restrições do chat retornou um valor inválido; envio adiado."},
+    ruRU={"Чат отложен в бою: нет поддерживаемого правила клиента с необходимыми API ограничений.","Проверка ограничений чата вернула недопустимое значение; отправка отложена."},
+    koKR={"전투 중 채팅 보류: 필요한 제한 API를 갖춘 지원 클라이언트 규칙이 없습니다.","채팅 제한 조회가 잘못된 값을 반환하여 전송을 보류했습니다."},
+    zhCN={"战斗中暂缓聊天：没有具备所需限制API的受支持客户端规则。","聊天限制查询返回无效值，已暂缓发送。"},
+    zhTW={"戰鬥中暫緩聊天：沒有具備所需限制API的受支援用戶端規則。","聊天限制查詢傳回無效值，已暫緩傳送。"},
+}
+for locale,values in pairs(restrictionReasons) do
+    QuestAnnounce_L[locale]["Diagnostic reason unverified client combat fallback"]=values[1]
+    QuestAnnounce_L[locale]["Diagnostic reason invalid chat lockdown result"]=values[2]
+end
+
+-- DE/EN: Hardwarepflicht gilt für CHANNEL auch in Instanzen / CHANNEL needs hardware input indoors too.
+local customChannelNotices={
+    enUS="Custom-channel messages require hardware input, even inside instances. Saved channel preferences remain, but queued quest messages are not sent there.",
+    deDE="Nachrichten in benutzerdefinierten Kanälen benötigen einen Hardwareauslöser, auch in Instanzen. Gespeicherte Kanalwünsche bleiben erhalten; wartende Questmeldungen werden dort nicht gesendet.",
+    esES="Los mensajes en canales personalizados requieren una acción del usuario, incluso en estancias. Se conserva la selección, pero no se envían allí los mensajes de misión en cola.",
+    esMX="Los mensajes en canales personalizados requieren una acción del usuario, incluso en instancias. Se conserva la selección, pero no se envían allí los mensajes de misión en cola.",
+    frFR="Les messages dans les canaux personnalisés nécessitent une action de l’utilisateur, même en instance. Le choix est conservé, mais les annonces de quête en attente ne sont pas envoyées sur ces canaux.",
+    ptBR="Mensagens em canais personalizados exigem uma ação do usuário, mesmo em instâncias. A seleção é mantida, mas mensagens de missão na fila não são enviadas nesses canais.",
+    ruRU="Сообщения в пользовательские каналы требуют действия пользователя даже в подземельях. Настройки сохраняются, но сообщения о заданиях из очереди туда не отправляются.",
+    koKR="사용자 지정 채널의 메시지는 인스턴스 안에서도 직접 입력이 필요합니다. 채널 설정은 유지되지만 대기 중인 퀘스트 메시지는 전송하지 않습니다.",
+    zhCN="自定义频道的消息即使在副本内也需要硬件输入。已保存的频道设置会保留，但不会向这些频道发送排队的任务消息。",
+    zhTW="自訂頻道的訊息即使在副本內也需要硬體輸入。已儲存的頻道設定會保留，但不會向這些頻道傳送佇列中的任務訊息。",
+}
+for locale,value in pairs(customChannelNotices) do QuestAnnounce_L[locale]["Custom channel blocked"]=value end

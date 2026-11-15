@@ -8,13 +8,17 @@
 
 ## Aktuelle Version / Current version
 
-**9.3.0.12-Rc1 Multi — 12.11.2026**
+**9.3.0.12-Rc2 Multi — 15.11.2026**
 
-Entwicklungsstand / Development candidate: **9.3.0.12-Rc1**, Diagnosebuild / diagnostic build **20261112-1**. Beide Testpartner verwenden dieselbe Addonversion / both peers should use the same addon version. Bisheriges stabiles Release / Existing stable release: **V9.3.0.11-Multi**. Der RC ist noch nicht als neues stabiles Release veröffentlicht / The RC has not been published as a new stable release.
+Entwicklungsstand / Development candidate: **9.3.0.12-Rc2**, Diagnosebuild / diagnostic build **20261115-1**. Beide Testpartner verwenden dieselbe Addonversion / both peers should use the same addon version. Bisheriges stabiles Release / Existing stable release: **V9.3.0.11-Multi**. RC2 ist ein neuer lokaler Teststand; veröffentlichter RC1 und stabiles Release bleiben unverändert / RC2 is a new local candidate; the published RC1 and stable release remain unchanged.
 
 DE: Ergänzt optional erfüllte Einzelziele bei Fortschrittsfrequenz 0 und eine auswählbare Gruppenkanal-Priorität (#24/#25). Beide Optionen sind standardmäßig aus. Tooltip-/Sprachkorrekturen, Chatdiagnose und bisherige Ausgabeziele bleiben erhalten. Die Clientkennungen wurden am 12.11.2026 erneut abgeglichen; regionale Ingame-Abnahmen stehen weiter aus.
 
 EN: Adds optional individual objective announcements at progress frequency 0 and selectable group-channel priority (#24/#25). Both options default to off. Locale-aware tooltip fixes, chat diagnostics and existing destinations are retained. Client identifiers were rechecked on November 12, 2026; regional in-game acceptance remains pending.
+
+DE: **RC2 korrigiert die pauschale Kampfverzögerung für alle unterstützten Clientfamilien:** Retail, Era/Hardcore/SoD, TBC/Anniversary, Wrath/Titan Reforged, Cata, MoP und Forever. PARTY, RAID, INSTANCE_CHAT, GUILD, OFFICER und WHISPER/Fokus werden nicht allein wegen gewöhnlichen Kampfes zurückgestellt. Verfügbarkeit, Ziele, Kanalwahl und vorhandene Chat-/Encounter-Sperren gelten weiter; fehlende moderne Abfragen sind bei bekannten Clients kein pauschales Verbot dieser nichtöffentlichen Kanäle. Retail-GUILD bleibt wegen beobachteter Schutzfehler separat zurückgehalten. Unbekannte Clients und öffentliche Kanäle ohne passende Restriktions-APIs behalten den Kampffallback. Lokale Simulationen bestehen; native Ingame-Abnahme der Korrektur steht aus.
+
+EN: **RC2 corrects blanket combat deferral across every supported family:** Retail, Era/Hardcore/SoD, TBC/Anniversary, Wrath/Titan Reforged, Cata, MoP and Forever. PARTY, RAID, INSTANCE_CHAT, GUILD, OFFICER and WHISPER/focus are no longer deferred solely because of ordinary combat. Membership, targets, channel choices and available chat/encounter restrictions still apply; missing modern queries are not a blanket prohibition of these non-public destinations on known clients. Retail GUILD remains independently withheld because protection failures were observed. Unknown clients and public destinations without appropriate restriction APIs retain combat fallback. Local simulations pass; native in-game acceptance of the correction remains pending.
 
 ## Installation / WowUp
 
@@ -136,9 +140,24 @@ DE: 14 TOCs mit identischer Ladereihenfolge und denselben gespeicherten Variable
 
 EN: 14 TOCs share load order and saved variables. Current identifiers: Retail `120105`, Era/Hardcore/SoD `11509`, TBC/Anniversary `20506`, MoP `50504`, Forever `16001`, Titan Reforged (China) `38002`. Historical Wrath/Cata identifiers are retained; PTR is not presented as live support.
 
-DE: **Automatisches GUILD wird auf der modernen Retail-Regel vorsorglich zurückgehalten**, weil geschützte Aufrufe auch ohne sichtbare Chat-/Map-Sperre beobachtet wurden. Die Option bleibt gespeichert; OFFICER ist unabhängig. Automatisches CHANNEL ist dort ebenfalls eingeschränkt. Andere Clients behalten den konservativen Kampffallback. Es gibt keine Umgehung von Blizzard-Sperren und keinen Wechsel zu alten Dropdown-/Chat-Modi.
+DE: **Automatisches GUILD wird auf der modernen Retail-Regel vorsorglich zurückgehalten**, weil geschützte Aufrufe auch ohne sichtbare Chat-/Map-Sperre beobachtet wurden. Die Option bleibt gespeichert; OFFICER ist unabhängig. CHANNEL benötigt auch innerhalb von Instanzen einen Hardwareauslöser und wird nicht automatisch aus der Warteschlange gesendet; die alte automatische Beitritts-/Sendefreigabe wurde entfernt. Explizite Kanalwahl und gespeicherte Werte bleiben erhalten. SAY/YELL im Freien bleiben gesperrt. EMOTE ist auf der gemessenen Retail-Regel erlaubt, auf anderen Clients bleibt die bisherige Freigabe auf passende Instanzen begrenzt, bis eine native Freigabe belegt ist. Eine Gruppe hebt öffentliche Chatregeln nicht auf. Globale/unklare Sperren und tatsächliche Schutzfehler werden weiterhin berücksichtigt; es gibt keine Umgehung und keine Rückkehr zu alten Dropdown-/Chat-Modi.
 
-EN: **Automatic GUILD is conservatively withheld by the modern Retail policy** because protected calls were observed even without visible chat/map restrictions. The preference is preserved; OFFICER remains independent. Automatic CHANNEL is also restricted there. Other clients retain conservative combat handling. Blizzard restrictions are not bypassed, and legacy dropdown/chat modes are not reintroduced.
+EN: **Automatic GUILD is conservatively withheld by the modern Retail policy** because protected calls were observed even without visible chat/map restrictions. The preference is preserved; OFFICER remains independent. CHANNEL needs hardware input even inside instances and is not sent automatically from the queue; the old automatic join/send allowance was removed. Explicit channel selection and saved preferences are preserved. Outdoor SAY/YELL remain blocked. EMOTE is permitted by the measured Retail policy; other clients retain the existing appropriate-instance-only allowance pending native evidence. Joining a party does not lift public-chat rules. Global/unknown restrictions and actual protection failures remain effective, without bypasses or legacy dropdown/chat modes.
+
+| Kanal / Destination | Retail | Andere unterstützte Clients / Other supported clients |
+| --- | --- | --- |
+| PARTY / RAID / INSTANCE_CHAT | Verfügbarkeit + Sperrprüfung / eligibility + restrictions | Ebenso, kein pauschaler Kampfstopp / same, no blanket combat stop |
+| WHISPER / Fokus | Ziel + Sperrprüfung / target + restrictions | Ebenso / same |
+| GUILD | Wegen beobachtetem Schutzfehler zurückgehalten / withheld after observed protection failures | Mitgliedschaft + Sperrprüfung / membership + restrictions |
+| OFFICER | Separat von GUILD; Rechte nötig / independent of GUILD; rights required | Mitgliedschaft/Rechte + Sperrprüfung / membership/rights + restrictions |
+| SAY / YELL | Passende Instanz + Sperrprüfung / appropriate instance + restrictions | Ebenso; bei fehlenden APIs zusätzlicher Kampffallback / same; combat fallback without required APIs |
+| EMOTE | Gemessene Freigabe + Sperrprüfung / measured allowance + restrictions | Bisherige Instanzregel; weitere Freigaben unbestätigt / existing instance rule; broader permission unconfirmed |
+| CHANNEL | Hardwarepflicht; kein automatischer Versand / hardware required; no queued sending | Ebenso, auch innerhalb von Instanzen / same, including inside instances |
+| Lokale Anzeigen / Local displays | Unabhängig vom Chatversand / independent of chat sending | Ebenso / same |
+
+DE: Diese Tabelle beschreibt die Addonentscheidung, keinen garantierten Empfang. Historisches Wrath/Cata und regionale Varianten sind anhand vorhandener API-Verträge und Mocks berücksichtigt, nicht als laufende native Clients abgenommen.
+
+EN: This table describes addon decisions, not guaranteed receipt. Historical Wrath/Cata and regional variants are covered through available API contracts and mocks, not accepted as running native clients.
 
 DE: Lokale Lua-5.1-, Übersetzungs-, Metadaten- und Partnersimulationen bestehen. Tatsächliches Laden aller Clients ohne Outdated-Schalter, regionale API-/Gameplay-Tests und die visuelle koKR/zhCN/zhTW/ruRU-Abnahme bleiben offen. Ein erfolgreicher API-Aufruf oder eigener Chat-Echo ist kein Zustellnachweis.
 

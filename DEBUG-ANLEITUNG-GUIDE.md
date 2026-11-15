@@ -1,4 +1,4 @@
-# Debug-Anleitung / Debug Guide — 9.3.0.12-Rc1
+# Debug-Anleitung / Debug Guide — 9.3.0.12-Rc2
 
 ## Deutsch
 
@@ -16,7 +16,7 @@ Normal spielen und das Problem reproduzieren. Danach `/qa diag cancel`, `/qa dia
 
 ### 2. Empfang mit einem Partner prüfen
 
-Beide Spieler installieren **9.3.0.12-Rc1** (Diagnosebuild **20261112-1**) und aktivieren `/qa diag on` sowie `/qa diag mode normal`. Beide tragen den jeweils anderen mit `/qa diag partner Name-Realm` ein. Der Empfänger aktiviert anschließend `/qa diag receive on`; ein Partnerwechsel deaktiviert den Empfang wieder.
+Beide Spieler installieren **9.3.0.12-Rc2** (Diagnosebuild **20261115-1**) und aktivieren `/qa diag on` sowie `/qa diag mode normal`. Beide tragen den jeweils anderen mit `/qa diag partner Name-Realm` ein. Der Empfänger aktiviert anschließend `/qa diag receive on`; ein Partnerwechsel deaktiviert den Empfang wieder.
 
 Der Sender startet zunächst nur einen gezielten Flüstertest:
 
@@ -57,6 +57,16 @@ Ausdrückliche Diagnose-Kanaltests bleiben Einzeltests der gewählten Kanäle. D
 
 `previous protected send` bedeutet: Ein eigener tatsächlicher Schutzfehler hat diesen Kanal bis `/reload` vorsorglich gesperrt. Normale Vorab-Ablehnungen setzen diese Sperre nicht. Sie wird nicht im Profil gespeichert; andere Kanäle werden unabhängig geprüft.
 
+### 6. Kanal-/Clientkorrektur in RC2
+
+RC1 konnte beim normalen Gruppenquesten auf Forever mit `Chat DEFERRED ... unverified client combat fallback` auch PARTY zurückhalten. RC2 behandelt alle unterstützten Familien nach Kanal und vorhandenen APIs. PARTY/RAID/INSTANCE_CHAT sowie GUILD/OFFICER/WHISPER/Fokus werden auf bekannten Clients nicht allein wegen gewöhnlichen Kampfes verzögert. Vorhandene globale Sperren, Ziele und Mitgliedschaft bleiben maßgeblich; Retail-GUILD hat weiterhin seine gesonderte, auf echten Schutzfehlern beruhende Sperre.
+
+Für den Vergleich: Chatankündigungen und **Gruppe** aktivieren; bei Automatik eine Priorität wählen, in der die verfügbaren angehakten Kanäle vorkommen. In einer normalen Gruppe im Freien vor, während und nach gewöhnlichem Kampf neue Questfortschritte erzeugen. PARTY sollte bei freien Sperrabfragen unmittelbar versucht werden. Nur neue Meldungen vergleichen; RC1-Meldungen werden nicht nachgeliefert. Für andere Ziele deren Mitgliedschaft/Empfänger getrennt prüfen; persönliche Profile bleiben erhalten.
+
+Die Diagnose erfasst `supportedChatClient`, `modernChatPolicy` und `retailChatPolicy` neben Clientbuild und Sperrzuständen. `unverified client combat fallback` bezeichnet die vorsorgliche Rückstellung bei unbekanntem Client oder öffentlichem Kanal ohne passende APIs; kein Beleg eines Blizzard-Schutzfehlers. Bekannte Gründe werden im Debugtext zusätzlich lokalisiert erklärt; Rohprotokollgründe bleiben stabil.
+
+SAY/YELL im Freien bleiben gesondert gesperrt; EMOTE bleibt außerhalb der gemessenen Retail-Regel auf passende Instanzen begrenzt. CHANNEL wird auch in Instanzen nicht automatisch gesendet oder aus der Queue beigetreten, weil ein Hardwareauslöser nötig ist. Gespeicherte Kanalwahl und ausdrücklicher Beitritt bleiben erhalten. Die README-Kanaltabelle beschreibt diese Grenzen; lokale Anzeigen und Sounds bleiben unabhängig.
+
 ## English
 
 The general **Debug** option and new **Chat Diagnostics** are independent. Diagnostics are off on new installations; existing recording preferences are preserved. They store bounded state/error information, not ordinary message text. Open `/qa` → Chat Diagnostics. Command tokens are identical in every locale.
@@ -73,7 +83,7 @@ Play normally and reproduce the problem. Afterwards use `/qa diag cancel`, `/qa 
 
 ### 2. Check receipt with a partner
 
-Both players install **9.3.0.12-Rc1** (diagnostic build **20261112-1**) and enable `/qa diag on` and `/qa diag mode normal`. Each sets the other using `/qa diag partner Name-Realm`. The recipient then enables `/qa diag receive on`; changing partners disables receiving again.
+Both players install **9.3.0.12-Rc2** (diagnostic build **20261115-1**) and enable `/qa diag on` and `/qa diag mode normal`. Each sets the other using `/qa diag partner Name-Realm`. The recipient then enables `/qa diag receive on`; changing partners disables receiving again.
 
 The sender initially runs only a targeted whisper test:
 
@@ -113,3 +123,13 @@ In raw records, `GROUP_CANDIDATE_SKIPPED` identifies a channel-specific exclusio
 Explicit diagnostic channel tests still test each chosen channel. Automatic priority does not collapse that suite; verify it with ordinary quest announcements. Local simulations do not replace native client/language/gameplay acceptance.
 
 `previous protected send` means an actual own protection failure has conservatively disabled this channel until `/reload`. Ordinary preflight rejections do not latch it. The latch is not saved in the profile; other channels are checked independently.
+
+### 6. RC2 channel/client correction
+
+RC1 could defer PARTY during ordinary Forever group questing with `Chat DEFERRED ... unverified client combat fallback`. RC2 handles all supported families by destination and available APIs. PARTY/RAID/INSTANCE_CHAT and GUILD/OFFICER/WHISPER/focus on known clients are no longer deferred solely due to ordinary combat. Available global restrictions, targets and membership still apply; Retail GUILD retains its separate block based on actual protection failures.
+
+For comparison, enable chat announcements and **Party**; if automatic selection is enabled, choose a priority containing the checked eligible destinations. In an ordinary outdoor party, generate fresh quest progress before, during and after ordinary combat. PARTY should be attempted immediately when restriction checks allow it. Compare fresh messages only; RC1 backlog is not replayed. Check membership/recipients separately for other destinations. Personal profiles are preserved.
+
+Diagnostics record `supportedChatClient`, `modernChatPolicy` and `retailChatPolicy` alongside client build and restriction states. `unverified client combat fallback` means conservative deferral for an unknown client or a public destination without the required APIs, not evidence of a Blizzard protection failure. Known reasons also receive localized explanations in visible debug text; raw log reasons remain stable.
+
+Outdoor SAY/YELL remain separately blocked. Outside the measured Retail policy, EMOTE retains its appropriate-instance-only allowance. CHANNEL is not automatically sent or joined from the queue even inside instances because hardware input is required. Saved channel choices and explicit joining remain available. See the README destination table; local displays and sounds remain independent.
